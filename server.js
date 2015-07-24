@@ -1,15 +1,25 @@
 var pg = require("pg")
 var restify = require('restify');
+var fs      = require('fs');
 var async = require('async');
-
-var ip_addr = 'localhost';
-var port    =  '8080';
 
 var server = restify.createServer({
     name : "server kuntur"
 });
 
-var conString = "pg://postgres:postgres@localhost:5432/kuntur2";
+
+// reading config file
+var config = JSON.parse(fs.readFileSync('/etc/nodejs-config/Kuntur.json'));
+var ip_addr = config.host;
+var port    =  config.port;
+
+// connection string to Kuntur database
+var conString = "postgres://" +
+               config.pg.user + ":" +
+               config.pg.pass + "@" +
+               config.pg.host + "/" +
+               config.pg.db;
+
 var client = new pg.Client(conString);
 client.connect();
 
