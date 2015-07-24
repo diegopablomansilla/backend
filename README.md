@@ -1,4 +1,4 @@
-# GeoObject
+# Kuntur Backend
 Proyecto de implementacion de webservices REST para el sistema kuntur. 
 
 ## Configuración
