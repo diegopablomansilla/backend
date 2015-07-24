@@ -1,0 +1,26 @@
+{
+  "name": "backend-kuntur",
+  "version": "1.0.0",
+  "description": "Backend de kuntur, sistema de gestion de estudiantes internacionales utilizado por la Prosecretaria de Relaciones Internacionales",
+  "main": "server.js",
+  "dependencies": {
+    "pg": "^4.4.0",
+    "restify": "^3.0.3",
+    "async": "^1.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "kuntur",
+    "extranjeros",
+    "intercambio",
+    "psi",
+    "pri",
+    "desarrollo"
+  ],
+  "author": "Alejandro Biagetti, Agustin Moyano, Nelson Rios",
+  "license": "ISC"
+}
