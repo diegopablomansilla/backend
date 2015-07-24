@@ -107,6 +107,38 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 
 });
 
+server.get({path:'/findAgreementById', version:'0.0.1'}, function(req,res,next){
+	var sql="SELECT * FROM f_findagreementsById('"+req.params.idAgreement+"');";
+
+		pg.connect(conString, function(err, client, done){
+			client.query('BEGIN', function(err) {
+
+				console.log(sql);
+			var query = client.query(sql);
+
+			query.on("row", function(row, result){
+				result.addRow(row);
+			});
+
+			query.on("end",function(result){
+
+				client.query('COMMIT', done);
+				res.send(200,result.rows);
+			});
+
+			query.on("error",function(){
+				return rollback(client, done);
+			});
+
+			if(err) {
+	          console.log(err);
+	          return rollback(client, done);
+	        }
+	    });
+
+	});
+});
+
 server.get({path : '/getAgreementsTypes', version : '0.0.1'} , function(req, res , next){
 
 	var sql="SELECT id, name FROM kuntur.agreement_type";
@@ -826,7 +858,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 									});
 
 									queryAgItOu.on("error",function(error){
-										console.log(error);
+										//console.log(error);
 										res.send(500,error.message);
 										return rollback(client, done);
 									});
@@ -835,7 +867,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 									callbackInterno();//Para que termine el elemento UNC
 								}
 							},function(err){
-								//console.log("termino ou");
+								////console.log("termino ou");
 								callback();
 							});
 						},
@@ -859,8 +891,8 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 								"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemId+"', '"+contacts.id+"', '"+inn+"', '"+out+"');"//(contacts.in === true && typeof contacts.in != 'undefined') ? "true" : "false"+
 								// console.log("contacts.id");
 								// console.log(contacts.id);
-								console.log("sqlAgrCon");
-								console.log(sqlAgrCon);
+								//console.log("sqlAgrCon");
+								////console.log(sqlAgrCon);
 								var queryAgrCon = client.query(sqlAgrCon);
 
 								queryAgrCon.on("row", function(row, result){
@@ -871,7 +903,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 								});
 
 								queryAgrCon.on("error",function(error){
-									console.log(error);
+									//console.log(error);
 									res.send(500,error);
 									return rollback(client, done);
 								});
@@ -879,11 +911,11 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 							},function(err){
 								if(err){
-									console.log(err);
+									//console.log(err);
 									res.send(500,err.message);
 									rollback(client, done);
 								}
-								console.log("termino contact")
+								//console.log("termino contact")
 								callback();
 							});
 						}], function(err){
@@ -895,7 +927,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 							}else{
 								client.query('COMMIT', done);
-								res.send(200,"OK");
+								res.send(200,agreementId);
 							}
 						});
 
@@ -907,7 +939,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 					});
 
 					query2.on("error",function(error){
-						console.log(error);
+						//console.log(error);
 						res.send(500,error.message);
 						return rollback(client, done);
 
@@ -919,7 +951,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 			});
 
 			query.on("end",function(result){
-				// console.log(result);
+				// //console.log(result);
 				//res.send(200,"");//JSON.parse(result.rows[0].f_plazas)
 			});
 
