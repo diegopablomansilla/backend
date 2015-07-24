@@ -827,7 +827,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 									queryAgItOu.on("error",function(error){
 										console.log(error);
-										res.send(500,error);
+										res.send(500,error.message);
 										return rollback(client, done);
 									});
 
@@ -880,7 +880,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 							},function(err){
 								if(err){
 									console.log(err);
-									res.send(500,err);
+									res.send(500,err.message);
 									rollback(client, done);
 								}
 								console.log("termino contact")
@@ -891,7 +891,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 							if(err){
 								console.log(err);
 								rollback(client, done);
-								res.send(500,err);
+								res.send(500,err.message);
 
 							}else{
 								client.query('COMMIT', done);
@@ -908,7 +908,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 					query2.on("error",function(error){
 						console.log(error);
-						res.send(500,error);
+						res.send(500,error.message);
 						return rollback(client, done);
 
 					});
@@ -925,7 +925,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 			query.on("error",function(error){
 				console.log(error);
-				res.send(500,error);
+				res.send(500,error.message);
 				return rollback(client, done);
 
 			});
