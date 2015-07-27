@@ -113,7 +113,7 @@ server.get({path:'/findAgreementById', version:'0.0.1'}, function(req,res,next){
 		pg.connect(conString, function(err, client, done){
 			client.query('BEGIN', function(err) {
 
-				console.log(sql);
+				// console.log(sql);
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
@@ -1201,6 +1201,38 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 	});
 });
 
+server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res , next){
+
+	
+
+	var sql = "UPDATE kuntur.agreement "+
+  		"SET name='"+req.body.agreement.name+"', from_date='"+req.body.agreement.from_date+"', to_date='"+req.body.agreement.to_date+"', agreement_type_id='"+req.body.agreement.agreement_type_id+
+  		"', agreement_status_id='"+req.body.agreement.agreement_status_id+"'"+
+ 		" WHERE id='"+req.body.agreement.id+"';"
+
+ 	console.log(sql);
+
+ 	pg.connect(conString, function(err, client, done){
+ 		client.query('BEGIN', function(err) {
+	 		var query = client.query(sql);
+
+			query.on("end",function(result){
+				client.query('COMMIT', done);
+				res.send(200,"OK");
+			});
+
+			query.on("error",function(error){
+				res.send(500,error.message);
+				return rollback(client, done);
+			});
+
+			if(err) {
+	          res.send(500,err);
+	          return rollback(client, done);
+	        }
+	    });
+ 	});
+});
 
 server.listen(port ,ip_addr, function(){
     console.log('%s listening at %s ', server.name , server.url);
