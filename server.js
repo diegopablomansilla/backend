@@ -600,13 +600,13 @@ server.post(
 
   			// Email value cannot be blank
         // country code cannot be blank
-  			if(!req.body.countryCode){
+  			if(!req.body.country_code){
   				res.send(400, {code: 400, message: 'Bad Request', description: 'country code phone value required'});
   				return next();
   			}
 
   			// phone value cannot be blank
-  			if(!req.body.phone){
+  			if(!req.body.phone_number){
   				res.send(400, {code: 400, message: 'Bad Request', description: 'phone value required'});
   				return next();
   			}
