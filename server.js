@@ -508,7 +508,7 @@ server.del(
 
 server.get({path : '/universities/:id/phones', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_phone WHERE org_id='" + req.params.id + "'";
+	var sql="SELECT * FROM kuntur.org_phone WHERE org_id='" + req.params.id + "' AND erased='false'";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -587,6 +587,63 @@ server.post(
 		}
 	);
 
+  /* Update a university phone */
+  server.put(
+  		{path: '/universities/:unversityId/phones/:phoneId', version: '0.0.1'},
+  		function(req, res, next){
+
+  			// Body cannot be empty
+  			if(!req.body){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'Empty body. Body format... {\"email\":\"some@email.foo\", \"comment\":\"bar\"}'});
+  				return next();
+  			}
+
+  			// Email value cannot be blank
+        // country code cannot be blank
+  			if(!req.body.countryCode){
+  				res.send(400, {code: 400, message: 'Bad Request', description: 'country code phone value required'});
+  				return next();
+  			}
+
+  			// phone value cannot be blank
+  			if(!req.body.phone){
+  				res.send(400, {code: 400, message: 'Bad Request', description: 'phone value required'});
+  				return next();
+  			}
+
+  			pg.connect(conString, function(err, client, done){
+  				if(err){
+  					done();
+  					console.error('error fetching client from pool', err);
+  					res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+  					return next();
+  				}
+
+  				var sql = 'UPDATE kuntur.org_phone SET ';
+  					sql += "phone_number= '" + req.body.phone_number + "' ";
+            sql += "country_code= '" + req.body.country_code + "' ";
+  					if(!!req.body.comment){
+  						sql += ", comment= '" + req.body.comment + "' ";
+  					}
+          sql += " WHERE id='" + req.params.phoneId + "'";
+
+  				console.log(sql);
+
+  				client.query(sql, function(err, result) {
+  					done();
+  					//Return if an error occurs
+  					if(err) { //connection failed
+  						console.error(err);
+  						res.send(503, {code: 503, message: 'Database error', description: err});
+  						return next();
+  					}
+  					res.send(204);
+  				});
+
+  			});
+  		}
+  	);
+
 server.del(
 	{path:'/universities/:unversityId/phones/:phoneId'},
 	function(req, res, next){
@@ -601,8 +658,8 @@ server.del(
         }
 
         //querying database
-        var sql = 'DELETE FROM kuntur.org_phone WHERE id=';
-          sql += "'" + req.params.mailId + "'";
+        var sql = "UPDATE kuntur.org_phone SET erased='true' WHERE id=";
+          sql += "'" + req.params.phoneId + "'";
 
         client.query(sql, function(err, result) {
           done(); //release the pg client back to the pool
