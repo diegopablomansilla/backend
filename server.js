@@ -1217,11 +1217,11 @@ server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function
 //  " where ((ai.org_id=o.id and c.org_id=o.id and p.id=c.person_id) or o.primary_org=true ) and ai.agreement_id='"+agreementId+"'"+
 // "group by o.short_name, o.id;";
 
-var sql = "SELECT org_short_name, person_family_name || ',' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg(person_phone_phone_number, ' ') AS tel,"+
+var sql = "SELECT org_id,org_short_name, person_family_name || ',' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg(person_phone_phone_number, ' ') AS tel,"+
  "agreement_contact_reception_student AS reception_student, agreement_contact_sending_student AS sending_student "
 +"FROM kuntur.v_responsables "
 +"WHERE agreement_item_agreement_id= '"+agreementId+"' "
-+"GROUP BY org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name ORDER BY org_short_name";
++"GROUP BY org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name, org_id ORDER BY org_short_name";
 
 	//console.log(sql);
 	pg.connect(conString, function(err, client, done){
