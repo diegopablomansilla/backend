@@ -30,6 +30,7 @@ var corsOptions={
 	headers : [ "location"]
 }
 server.use(restify.CORS(corsOptions));
+server.use(restify.fullResponse());
 
 
 if (!Array.prototype.first)
@@ -344,7 +345,7 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 /* GET list of emails from a given university */
 server.get({path : '/universities/:id/mails', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_email WHERE org_id='" + req.params.id + "'";
+	var sql="SELECT * FROM kuntur.org_email WHERE org_id='" + req.params.id + "' AND erased='false'";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -416,6 +417,57 @@ server.post(
 		}
 	);
 
+  /* Update an university email (email and comment) */
+  server.put(
+  		{path: '/universities/:unversityId/mails/:mailId', version: '0.0.1'},
+  		function(req, res, next){
+
+  			// Body cannot be empty
+  			if(!req.body){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'Empty body. Body format... {\"email\":\"some@email.foo\", \"comment\":\"bar\"}'});
+  				return next();
+  			}
+
+  			// Email value cannot be blank
+  			if(!req.body.email){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'email value required'});
+  				return next();
+  			}
+
+  			pg.connect(conString, function(err, client, done){
+  				if(err){
+  					done();
+  					console.error('error fetching client from pool', err);
+  					res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+  					return next();
+  				}
+
+  				var sql = 'UPDATE kuntur.org_email SET ';
+  					sql += "email= '" + req.body.email + "' ";
+  					if(!!req.body.comment){
+  						sql += ", comment= '" + req.body.comment + "' ";
+  					}
+          sql += " WHERE id='" + req.params.mailId + "'";
+
+  				console.log(sql);
+
+  				client.query(sql, function(err, result) {
+  					done();
+  					//Return if an error occurs
+  					if(err) { //connection failed
+  						console.error(err);
+  						res.send(503, {code: 503, message: 'Database error', description: err});
+  						return next();
+  					}
+  					res.send(204);
+  				});
+
+  			});
+  		}
+  	);
+
+/* Delete an university email */
+
 server.del(
 	{path:'/universities/:unversityId/mails/:mailId'},
 	function(req, res, next){
@@ -430,7 +482,7 @@ server.del(
         }
 
         //querying database
-        var sql = 'DELETE FROM kuntur.org_email WHERE id=';
+        var sql = "UPDATE kuntur.org_email SET erased='true' WHERE id=";
           sql += "'" + req.params.mailId + "'";
 
         client.query(sql, function(err, result) {
@@ -1203,7 +1255,7 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 
 server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res , next){
 
-	
+
 
 	var sql = "UPDATE kuntur.agreement "+
   		"SET name='"+req.body.agreement.name+"', from_date='"+req.body.agreement.from_date+"', to_date='"+req.body.agreement.to_date+"', agreement_type_id='"+req.body.agreement.agreement_type_id+
