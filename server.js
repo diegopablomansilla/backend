@@ -86,7 +86,7 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 		sql += "AND (org.short_name ILIKE '%" + req.params.searchText + "%' OR org.original_name ILIKE '%" + req.params.searchText + "%')";
 	}
 
-  if(req.params.erased){
+  if(!req.params.showErased){
 		sql += "AND org.erased=false ";
 	}
 
