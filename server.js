@@ -78,7 +78,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 // "	translate(coalesce('%"+busqueda+"%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') OR"+
 // "	translate(coalesce(st.name::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE "+
 // "	translate(coalesce('%"+busqueda+"%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')";
-	sql="SELECT * FROM findAgreements('"+busqueda+"') ORDER BY name DESC;";
+	sql="SELECT * FROM findAgreements('"+busqueda+"');";
 	pg.connect(conString, function(err, client, done){
 		client.query('BEGIN', function(err) {
 
@@ -275,7 +275,7 @@ server.get({path : '/getFullOrganizations', version : '0.0.1'} , function(req, r
 
 server.get({path : '/universities', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT org.id, org.short_name, org.original_name, org.photo_url, org.web_site, org.country_code FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' ";
+	var sql="SELECT org.id, org.short_name, org.original_name, org.url_photo, org.web_site, org.country_code FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' ";
 
 	if(req.params.countryCode){
 		sql += "AND country_code='"+req.params.countryCode.toUpperCase()+"' ";
@@ -288,7 +288,7 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	if(req.params.offset && req.params.limit){
 		sql += "OFFSET '"+req.params.offset+"' LIMIT '"+req.params.limit+"'";
 	}
-
+	console.log(sql);
 	var query = client.query(sql);
 
 	pg.connect(conString, function(err, client, done){
@@ -913,7 +913,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 
 	var sql="INSERT INTO kuntur.agreement("+
-            "id, erased, name, from_date, to_date, comment, agreement_type_id, "+
+            "id, erased, title, from_date, to_date, comment, agreement_type_id, "+
             "agreement_status_id, org_id)"+
 	"VALUES (uuid_generate_v4()::varchar, true,'"+req.body.agreement.name+"', '"+req.body.agreement.from+"', '"+req.body.agreement.to+"', 'asdasd', '"+req.body.agreement.type+"',"+
 	"'"+req.body.agreement.status+"', 'b57e010c-426a-45d4-b218-f819fd1bf4e7') RETURNING id;"
@@ -923,7 +923,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
-				//console.log(row.id);
+				console.log(row.id);
 				var agreementId=row.id;
 
 				req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
@@ -1313,7 +1313,7 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res , next){
 
 	var sql = "UPDATE kuntur.agreement "+
-  		"SET name='"+req.body.agreement.name+"', from_date='"+req.body.agreement.from_date+"', to_date='"+req.body.agreement.to_date+"', agreement_type_id='"+req.body.agreement.agreement_type_id+
+  		"SET title='"+req.body.agreement.title+"', from_date='"+req.body.agreement.from_date+"', to_date='"+req.body.agreement.to_date+"', agreement_type_id='"+req.body.agreement.agreement_type_id+
   		"', agreement_status_id='"+req.body.agreement.agreement_status_id+"'"+
  		" WHERE id='"+req.body.agreement.id+"';"
 
@@ -1485,9 +1485,9 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
  	});
 });
 
-server.post({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , next){
+server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , next){
 
-	var sql = "select * from kuntur.org o join kuntur.agreement_item ai on ai.org_id=o.id where ai.agreement_id='"+req.params.id+"';"
+	var sql = "select * from kuntur.org o join kuntur.v_agreement_data ai on ai.org_id=o.id where ai.agreement_id='"+req.params.id+"';"
 
  	pg.connect(conString, function(err, client, done){
  		client.query('BEGIN', function(err) {
