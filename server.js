@@ -87,7 +87,7 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	}
 
   if(!req.params.showErased){
-		sql += "AND org.erased=false ";
+		sql += "AND org.erased=false "; // FIXME when showErased is setted to false, it doesnt add this bit to the sql.
 	}
 
 	if(req.params.offset && req.params.limit){
@@ -126,8 +126,8 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 		var agreements = []
 		query.on("row", function(row, result){
 			var agreement = {
-				code: row.code,
-				title: row.name,
+				code: row.number_agreement,
+				title: row.title,
 				type: row.agreement_type_name,
 				status: row.agreement_status_name,
 				universitiesCount: row.orgs
@@ -1280,7 +1280,7 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 		aux.push(string);
 	}
 	//console.log(req.body.orgs[0].short_name);
-	var sql = "select * from f_responsablesByOrg(ARRAY["+aux+"])";
+	var sql = "select * from f_responsablesByOrg(ARRAY['"+aux+"'])";
 	//console.log(sql);
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
