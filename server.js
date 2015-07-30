@@ -69,7 +69,7 @@ var rollback = function(client, done) {
   *
   * @param {String} countryCode - The iso alpha 3 code of a country.
   * @param {String} searchText - Given text to search
-  * @param {Boolean} erased - Consider erased universities.
+  * @param {Boolean} showErased - Consider erased universities.
   * @param {Number} offset - List of universities offset.
   * @param {Number} limit - How many results do you want.
   *
@@ -87,7 +87,7 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	}
 
   if(req.params.erased){
-		sql += "AND org.erased="+req.params.erased+" ";
+		sql += "AND org.erased=false ";
 	}
 
 	if(req.params.offset && req.params.limit){
