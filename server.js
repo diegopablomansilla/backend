@@ -122,6 +122,45 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	});
 });
 
+/* Delete an university email */
+
+server.del(
+	{path:'/universities/:unversityId'},
+	function(req, res, next){
+		pg.connect(conString, function(err, client, done){
+
+        //Return if an error occurs
+        if(err) {
+          done(); //release the pg client back to the pool
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+        //querying database
+        var sql = "UPDATE kuntur.org SET erased='true' WHERE id=";
+          sql += "'" + req.params.unversityId + "'";
+
+        client.query(sql, function(err, result) {
+          done(); //release the pg client back to the pool
+          //Return if an error occurs
+          if(err) {//falta de conexion
+            console.error('error fetching client from pool', err);
+            res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+            return next();
+          }
+          if (result.rowCount == 0) {
+            console.error('result not found', err);
+            res.send(404, {code: 404, message: 'Not Found', description: 'Cannot delete a non existent resource'});
+            return next();
+          }else{
+            res.send(204);
+          }
+        });
+		});
+	}
+);
+
 server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function(req, res , next){
 //
 	var sql = "SELECT a.*, ai.*, null::varchar AS agreement_contact ";
@@ -1624,7 +1663,7 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
  server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
 
 	var agreementId=req.params.agrId;
-	
+
 	var sql="select ai.id, ai.in_units, ai.out_units, ai.agreement_id, ai.org_id, o.short_name, o.name, o.original_name, o.country_code from kuntur.agreement_item ai join kuntur.org o on o.id=ai.org_id where agreement_id = '"+agreementId+"';";
 
 
@@ -1641,20 +1680,20 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 				// row.prueba="lala";
 				result.addRow(row);
 
-				
+
 			});
 
 			query.on("end",function(result){
 
 
-				
+
 				async.forEach(result.rows, function(agreementItem, callbackForEach) {
 					var agreementItemId=agreementItem.id;
-					
+
 
 					async.parallel([
 						function(callbackInterno){
-							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"';"	
+							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"';"
 							var queryContact = client.query(sqlItem);
 
 							queryContact.on("row", function(row, result){
@@ -1673,7 +1712,7 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 
 						},
 						function(callbackInterno){
-							var sqlItemOu="select ou.id, ou.in_units, ou.out_units, ou.org_id, o.short_name, o.name, o.original_name, o.country_code from kuntur.agreement_item_ou ou join kuntur.org o on o.id = ou.org_id where agreement_item_id='"+agreementItemId+"';"	
+							var sqlItemOu="select ou.id, ou.in_units, ou.out_units, ou.org_id, o.short_name, o.name, o.original_name, o.country_code from kuntur.agreement_item_ou ou join kuntur.org o on o.id = ou.org_id where agreement_item_id='"+agreementItemId+"';"
 							var queryItemOu = client.query(sqlItemOu);
 
 							queryItemOu.on("row", function(row, result){
@@ -1701,7 +1740,7 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 					});
 				}, function(err){
 
-			
+
 					console.log(agreement);
 					res.send(200, agreement);
 					done();
