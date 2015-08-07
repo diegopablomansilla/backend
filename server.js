@@ -33,23 +33,31 @@ server.use(restify.CORS(corsOptions));
 server.use(restify.fullResponse());
 
 
-if (!Array.prototype.first)
-{
-   Array.prototype.first = function(predicate)
-   {
-     "use strict";
-     if (this == null)
-       throw new TypeError();
-     if (typeof predicate != "function")
-       throw new TypeError();
+// if (!Array.prototype.first)
+// {
+//    Array.prototype.first = function(predicate)
+//    {
+//      "use strict";
+//      if (this == null)
+//        throw new TypeError();
+//      if (typeof predicate != "function")
+//        throw new TypeError();
 
-     for (var i = 0; i < this.length; i++) {
-       if (predicate(this[i])) {
-         return this[i];
-       }
-     }
-     return null;
-   }
+//      for (var i = 0; i < this.length; i++) {
+//        if (predicate(this[i])) {
+//          return this[i];
+//        }
+//      }
+//      return null;
+//    }
+// }
+
+var findFirstOccurrence = function(array, property, value){
+  for(var i = 0 ; i < array.length; i++){
+    if(array[i][property]==value){
+      return array[i];
+    }
+  }
 }
 
 var rollback = function(client, done) {
@@ -943,7 +951,8 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 				req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
 					//console.log(element.agreementItemOu);
 
-					var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
+					// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
+					var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC')
 					//console.log(agreementId);
 
 					var sql="INSERT INTO kuntur.agreement_item("+
@@ -1276,12 +1285,13 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 	var aux=[]
 	for(var i=0;i<req.body.orgs.length;i++){
 		var string="";
-		string="\'"+req.body.orgs[i].id+"\'";
+		string="\'"+req.body.orgs[i].id+"\'";//+"\'" Tenia esto por alguna razon
 		aux.push(string);
 	}
 	//console.log(req.body.orgs[0].short_name);
-	var sql = "select * from f_responsablesByOrg(ARRAY['"+aux+"'])";
-	//console.log(sql);
+	console.log(aux);
+	var sql = "select * from f_responsablesByOrg(ARRAY["+aux+"])";
+	console.log(sql);
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
 
@@ -1302,71 +1312,77 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 	});
 });
 
-server.get({path : '/prueba', version : '0.0.1'} , function(req, res , next){
+var findId = function(id, array){
+	for(i in array){
+		// console.log(array[i].id+" - "+id);
+		if(array[i].id==id){
+			// console.log("ret - "+array[i].short_name)
+			return i;
+		}else{
+			return null;
+		}
+	}
+}
 
-	var sql="  WITH RECURSIVE c AS ("+
-    " SELECT *, 0 as lvl"+
-    " FROM kuntur.org"+
-   " WHERE id = 'b57e010c-426a-45d4-b218-f819fd1bf4e7' AND org_id IS NULL"+
-  " UNION ALL"+
-    " SELECT kuntur.org.*, c.lvl + 1 as lvl"+
-    " FROM kuntur.org "+
-    " JOIN c ON kuntur.org.org_id = c.id"+
-" ),"+
-" maxlvl AS ("+
-  " SELECT max(lvl) maxlvl FROM c"+
-" ),"+
-" j AS ("+
-    " SELECT c.*, json '[]' children"+
-    " FROM c, maxlvl"+
-    " WHERE lvl = maxlvl"+
-  " UNION ALL"+
-    " SELECT (c).*, array_to_json(array_agg(j)) children FROM ("+
-      " SELECT c, j"+
-      " FROM j"+
-      " JOIN c ON j.org_id = c.id"+
-    " ) v"+
-    " GROUP BY v.c"+
-" )"+
-" SELECT row_to_json(j)::text json_tree"+
-" FROM j"+
-" WHERE lvl = 0;";
-console.log(sql);
-
-	pg.connect(conString, function(err, client, done){
-		var query = client.query(sql);
-
-		query.on("row", function(row, result){
-			result.addRow(row);
-		});
-
-		query.on("end",function(result){
-			done();
-			res.send(200,result.rows);
-		});
-
-		if(err) {
-          console.log(err);
-        }
-	});
-});
-
+var recursiva = function(originalTree, nodo){
+	// console.log(originalTree.id+" - "+nodo.id);
+	// nodo.children.forEach()
+	if(nodo.children.length>0){//completar
+		// console.log(nodo.children);
+		for(i in nodo.children){
+			(function(p){
+				// console.log(nodo.children[p].original_name);
+				if(p=='first'){
+					console.log(nodo.children[p])
+				}
+				var j = findId(nodo.children[p].id, originalTree.children);
+				// console.log(nodo.children[i].short_name);
+				// console.log(j);
+				if(j){
+					// console.log(nodo.original_name);
+					recursiva(originalTree.children[j],nodo.children[p]);
+				}else{
+					// console.log(nodo.original_name);
+					originalTree.children.push(nodo.children[p]);
+				}
+			})(i);
+		}
+	}else{
+		console.log("sale");
+	}
+}
+//Prueba es el verdadero org2
 server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 
-	var sql="select * from kuntur.org o where o.id IN (select org_id from kuntur.org o2 where o2.org_id <> '') AND COALESCE(org_id, '') = ''"+
-		"UNION ALL "+
-		"SELECT * FROM kuntur.org WHERE org_id <> ''";
+	var sql="select * from getOrgTree()";
+
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-			result.addRow(row);
+			// console.log("sql");
+			// console.log(JSON.parse(row.getorgtree));
+			result.addRow(JSON.parse(row.getorgtree));//JSON.parse(result.rows[0].f_plazas)
 		});
 
 		query.on("end",function(result){
 			done();
-			res.send(200,result.rows);
+			var original=result.rows[0];
+			// console.log(result.rows[0].children)
+			// for(var i=1;i<result.rows.length;i++){
+			// 	// console.log(result.rows[i].children)
+			// 	recursiva(original,result.rows[i])
+			// }
+
+			for(var i = 1; i < result.rows.length;i++){
+		        (function(j){
+		        	recursiva(original,result.rows[j]);
+		        })(i);
+  			}
+			// console.log(original)
+			//res.send(200,result.rows);
+			res.send(200,original);
 		});
 
 		if(err) {
@@ -1374,6 +1390,30 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
         }
 	});
 });
+
+// server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
+
+// 	var sql="select * from kuntur.org o where o.id IN (select org_id from kuntur.org o2 where o2.org_id <> '') AND COALESCE(org_id, '') = ''"+
+// 		"UNION ALL "+
+// 		"SELECT * FROM kuntur.org WHERE org_id <> ''";
+
+// 	pg.connect(conString, function(err, client, done){
+// 		var query = client.query(sql);
+
+// 		query.on("row", function(row, result){
+// 			result.addRow(row);
+// 		});
+
+// 		query.on("end",function(result){
+// 			done();
+// 			res.send(200,result.rows);
+// 		});
+
+// 		if(err) {
+//           console.log(err);
+//         }
+// 	});
+// });
 
 server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res , next){
 
@@ -1416,7 +1456,8 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 			req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
 				//console.log(element.agreementItemOu);
 
-				var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
+				// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
+				var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC')
 				//console.log(agreementId);
 
 				var sql="INSERT INTO kuntur.agreement_item("+
