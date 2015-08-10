@@ -1525,30 +1525,6 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 	});
 });
 
-// server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
-
-// 	var sql="select * from kuntur.org o where o.id IN (select org_id from kuntur.org o2 where o2.org_id <> '') AND COALESCE(org_id, '') = ''"+
-// 		"UNION ALL "+
-// 		"SELECT * FROM kuntur.org WHERE org_id <> ''";
-
-// 	pg.connect(conString, function(err, client, done){
-// 		var query = client.query(sql);
-
-// 		query.on("row", function(row, result){
-// 			result.addRow(row);
-// 		});
-
-// 		query.on("end",function(result){
-// 			done();
-// 			res.send(200,result.rows);
-// 		});
-
-// 		if(err) {
-//           console.log(err);
-//         }
-// 	});
-// });
-
 server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res , next){
 
 	var sql = "UPDATE kuntur.agreement "+
@@ -1788,7 +1764,7 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 
 					async.parallel([
 						function(callbackInterno){
-							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"';"
+							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"';"
 							var queryContact = client.query(sqlItem);
 
 							queryContact.on("row", function(row, result){
