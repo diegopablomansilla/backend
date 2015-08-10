@@ -122,7 +122,94 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	});
 });
 
-/* Delete an university email */
+/* Get a single university */
+
+server.get({path : '/universities/:universityId', version : '0.0.1'} , function(req, res , next){
+
+	var sql="SELECT org.id, org.short_name, org.original_name, org.url_photo, org.web_site, org.country_code, org.erased FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' AND org.id='" + req.params.universityId + "'";
+
+	var query = client.query(sql);
+
+	pg.connect(conString, function(err, client, done){
+		var query = client.query(sql);
+
+		query.on("row", function(row, result){
+			result.addRow(row);
+		});
+
+		query.on("end",function(result){
+			done();
+			res.send(200,result.rows);
+		});
+
+		if(err) {
+          console.log(err);
+        }
+	});
+});
+
+/* Update a university */
+server.put({path:'/universities/:universityId', version:'0.0.1'}, function(req, res, next){
+  // Body cannot be empty
+  if(!req.body){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+    return next();
+  }
+
+  // Original name cannot be empty
+  if(!req.body.original_name){
+    res.send(409, {code: 409, message: 'Conflict', description: 'original_name value required'});
+    return next();
+  }
+
+  // web_site value cannot be blank
+  if(!req.body.web_site){
+    res.send(409, {code: 409, message: 'Conflict', description: 'web_site value required'});
+    return next();
+  }
+
+  // country_code value cannot be blank
+  if(!req.body.country_code){
+    res.send(409, {code: 409, message: 'Conflict', description: 'country_code value required'});
+    return next();
+  }
+
+  pg.connect(conString, function(err, client, done){
+    if(err){
+      done();
+      console.error('error fetching client from pool', err);
+      res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+      return next();
+    }
+
+    var sql = 'UPDATE kuntur.org SET ';
+      sql += "original_name= '" + req.body.original_name + "', ";
+      sql += "country_code= '" + req.body.country_code + "', ";
+      sql += "web_site= '" + req.body.web_site + "' ";
+      if(!!req.body.short_name){
+        sql += ", short_name= '" + req.body.short_name + "' ";
+      }
+      if(!req.body.erased){
+        sql += ", erased= '" + req.body.erased + "' ";
+      }
+    sql += " WHERE id='" + req.params.universityId + "'";
+
+    console.log(sql);
+
+    client.query(sql, function(err, result) {
+      done();
+      //Return if an error occurs
+      if(err) { //connection failed
+        console.error(err);
+        res.send(503, {code: 503, message: 'Database error', description: err});
+        return next();
+      }
+      res.send(204);
+    });
+  });
+});
+
+/* Delete a university */
 
 server.del(
 	{path:'/universities/:unversityId'},
@@ -160,6 +247,8 @@ server.del(
 		});
 	}
 );
+
+
 
 server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function(req, res , next){
 //
@@ -269,7 +358,7 @@ server.post(
 		}
 	);
 
-  /* Update an university email (email and comment) */
+  /* Update a university email */
   server.put(
   		{path: '/universities/:unversityId/mails/:mailId', version: '0.0.1'},
   		function(req, res, next){
@@ -299,6 +388,9 @@ server.post(
   					if(!!req.body.comment){
   						sql += ", comment= '" + req.body.comment + "' ";
   					}
+            if(!req.body.erased){
+  						sql += ", erased= '" + req.body.erased + "' ";
+  					}
           sql += " WHERE id='" + req.params.mailId + "'";
 
   				console.log(sql);
@@ -318,7 +410,7 @@ server.post(
   		}
   	);
 
-/* Delete an university email */
+/* Delete a university email */
 
 server.del(
 	{path:'/universities/:unversityId/mails/:mailId'},
@@ -476,6 +568,9 @@ server.post(
             sql += "country_code= '" + req.body.country_code + "' ";
   					if(!!req.body.comment){
   						sql += ", comment= '" + req.body.comment + "' ";
+  					}
+            if(!req.body.erased){
+  						sql += ", erased= '" + req.body.erased + "' ";
   					}
           sql += " WHERE id='" + req.params.phoneId + "'";
 
