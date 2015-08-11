@@ -58,6 +58,7 @@ var findFirstOccurrence = function(array, property, value){
       return array[i];
     }
   }
+  return -1;
 }
 
 var rollback = function(client, done) {
@@ -1557,30 +1558,39 @@ server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res ,
 });
 
 server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, res , next){
+	var agreementId=req.body.agreement.id;
+	req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
+		//console.log(element.agreementItemOu);
 
- 	pg.connect(conString, function(err, client, done){
- 		client.query('BEGIN', function(err) {
-	 		var query = client.query(sql);
-	 		var agreementId=req.body.agreement.id;
+		// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
+		var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC');
+		//console.log(agreementId);
 
-			req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
-				//console.log(element.agreementItemOu);
-
-				// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
-				var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC')
-				//console.log(agreementId);
-
-				var sql="INSERT INTO kuntur.agreement_item("+
-					    "id, erased, in_units, out_units, agreement_id, org_id)"+
+		if(findFirstOccurrence(req.body.agreement.universitiesInsert,'id',elementAgreementItem.id)!=-1){// se debe crear un nuevo agreement_item porque la universidad vino en el arreglo de insersiones
+	 		var sql="INSERT INTO kuntur.agreement_item("+
+				"id, erased, in_units, out_units, agreement_id, org_id)"+
 				"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemDetail.in+"', '"+agreementItemDetail.out+"', '"+agreementId+"', '"+elementAgreementItem.id+"')"+
 				"RETURNING id;"
-					// console.log(result);
+		}else if(findFirstOccurrence(req.body.agreement.universitiesDelete,'id',elementAgreementItem.id)!=-1){// se debe borrar el agreement intem (erased = true)
+			var sql="UPDATE kuntur.agreement_item "+
+	   			"SET erased=true "+
+	 			"WHERE agreement_id = '"+agreementId+"' and org_id = '"+elementAgreementItem.id+"';"
+		}else{//como la universidad no esta en el arreglo de insersiones ni el de eliminaciones, solo se hace un update.
+			var sql="UPDATE kuntur.agreement_item "+
+	   			"SET erased=false, in_units='"+agreementItemDetail.in+"', out_units='"+agreementItemDetail.out+"' "+
+	 			"WHERE agreement_id = '"+agreementId+"' and org_id = '"+elementAgreementItem.id+"';"
+		}
 
+		
+
+	 	pg.connect(conString, function(err, client, done){
+	 		client.query('BEGIN', function(err) {
+					
 				var query2 = client.query(sql);
 
 				query2.on("row", function(row, result){
 					var agreementItemId=row.id;
-
+console.log("oasas");
 					async.parallel([
 					function(callback){
 
@@ -1591,9 +1601,22 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 							if(elementAgreementItemOu.id!="UNC"){//SON PARA LOS AGREEMENT ITEMS, LOS USE EN EL PASO ANTERIOR
 								//console.log("elementAgreementItemOu.id");
 								//console.log(elementAgreementItemOu.id);
-								var sqlAgItOu="INSERT INTO kuntur.agreement_item_ou("+
-						   		"id, erased, in_units, out_units, agreement_item_id, org_id)"+
-								"VALUES (uuid_generate_v4()::varchar, false, '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"', '"+agreementItemId+"', '"+elementAgreementItemOu.id+"');"
+								
+								if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlInsert,'id',elementAgreementItemOu.id)!=-1){//insersion de agreement_item_ou
+									var sqlAgItOu="INSERT INTO kuntur.agreement_item_ou("+
+						   			"id, erased, in_units, out_units, agreement_item_id, org_id)"+
+									"VALUES (uuid_generate_v4()::varchar, false, '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"', '"+agreementItemId+"', '"+elementAgreementItemOu.id+"');"
+								}else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'id',elementAgreementItemOu.id)!=-1){
+									var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
+						   			" SET erased=true, in_units='"+elementAgreementItemOu.in+"', out_units='"+elementAgreementItemOu.out+"' "+
+									"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
+								}else{
+									var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
+						   			" SET erased=false,  "+
+									"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
+								}
+
+								console.log(sqlAgItOu);
 								var queryAgItOu = client.query(sqlAgItOu);
 
 								queryAgItOu.on("row", function(row, result){
@@ -1633,6 +1656,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 							}else{
 								out="false";
 							}
+
 							var sqlAgrCon="INSERT INTO kuntur.agreement_contact("+
 					    	"id, erased, agreement_item_id, contact_id, reception_student, sending_student)"+
 							"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemId+"', '"+contacts.id+"', '"+inn+"', '"+out+"');"//(contacts.in === true && typeof contacts.in != 'undefined') ? "true" : "false"+
