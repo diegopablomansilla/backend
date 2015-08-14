@@ -865,7 +865,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 	}
 	var deleted = false;
 
-	sql="SELECT * FROM findAgreements('"+busqueda+"',"+deleted+");";
+	sql="SELECT * FROM kuntur.findAgreements('"+busqueda+"',"+deleted+");";
 	pg.connect(conString, function(err, client, done){
 		client.query('BEGIN', function(err) {
 
@@ -1358,7 +1358,7 @@ server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function
 var sql = "SELECT org_id,org_short_name, person_family_name || ',' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg(person_phone_phone_number, ' ') AS tel,"+
  "agreement_contact_reception_student AS reception_student, agreement_contact_sending_student AS sending_student "
 +"FROM kuntur.v_responsables "
-+"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false "
++"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false AND agreement_item_erased = false "
 +"GROUP BY org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name, org_id, erased ORDER BY org_short_name";
 
 	
@@ -1536,10 +1536,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 		var newAgreementItem=false;
 
 		if(findFirstOccurrence(req.body.agreement.universitiesInsert,'id',elementAgreementItem.id)!=-1){// se debe crear un nuevo agreement_item porque la universidad vino en el arreglo de insersiones
-	 		var sql="INSERT INTO kuntur.agreement_item("+
-				"id, erased, in_units, out_units, agreement_id, org_id)"+
-				"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemDetail.in+"', '"+agreementItemDetail.out+"', '"+agreementId+"', '"+elementAgreementItem.id+"')"+
-				"RETURNING id;"
+	 		var sql="select kuntur.f_insertAgreementItem('"+agreementId+"', '"+elementAgreementItem.id+"','"+agreementItemDetail.in+"','"+agreementItemDetail.out+"');";//function que inserta el agreement si no exsite (puede estar borrado y en ese caso se revive)
 			newAgreementItem=true;
 		}else if(findFirstOccurrence(req.body.agreement.universitiesDelete,'id',elementAgreementItem.id)!=-1){// se debe borrar el agreement intem (erased = true)
 			var sql="UPDATE kuntur.agreement_item "+
@@ -1561,8 +1558,10 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 
 				query2.on("row", function(row, result){
 
-
 					var agreementItemId=row.id;
+					if(typeof agreementItemId === 'undefined'){
+						agreementItemId=row.f_insertagreementitem;
+					}
 					async.parallel([
 					function(callback){
 
@@ -1570,12 +1569,10 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 							if(elementAgreementItemOu.id!="UNC"){//SON PARA LOS AGREEMENT ITEMS, LOS USE EN EL PASO ANTERIOR
 								
 								if((findFirstOccurrence(req.body.agreement.selectedOrgs2LvlInsert,'id',elementAgreementItemOu.id)!=-1) || (newAgreementItem)){//insersion de agreement_item_ou, en caso que sea un nuevo agreementItem la insersion se realiza si o si
-									var sqlAgItOu="INSERT INTO kuntur.agreement_item_ou("+
-						   			"id, erased, in_units, out_units, agreement_item_id, org_id)"+
-									"VALUES (uuid_generate_v4()::varchar, false, '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"', '"+agreementItemId+"', '"+elementAgreementItemOu.id+"');"
-								}else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'id',elementAgreementItemOu.id)!=-1){
+									var sqlAgItOu="select kuntur.f_insertAgreementItemOu('"+agreementItemId+"','"+elementAgreementItemOu.id+"', '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"');";
+								}else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'org_id',elementAgreementItemOu.id)!=-1){
 									var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
-						   			" SET erased=true "
+						   			" SET erased=true "+
 									"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
 								}else{
 									var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
@@ -1626,13 +1623,11 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 							}
 
 							if(findFirstOccurrence(req.body.agreement.contactsInsert,'id',contacts.id)!=-1){//insersion de agreement_contact, en caso de ser un nuevo agreementItem se debe seleccionar igualmente el responsable
-								var sqlAgrCon="INSERT INTO kuntur.agreement_contact("+
-						    		"id, erased, agreement_item_id, contact_id, reception_student, sending_student)"+
-									"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemId+"', '"+contacts.id+"', '"+inn+"', '"+out+"');"//(contacts.in === true && typeof contacts.in != 'undefined') ? "true" : "false"+
+								var sqlAgrCon="select kuntur.f_insertAgreementContact('"+agreementItemId+"', '"+contacts.id+"', '"+inn+"', '"+out+"');"
 							}else{//es un update, si los dos estan en falso, un trigger deberia setear la bandera erased en true
 								var sqlAgrCon="UPDATE kuntur.agreement_contact "+
 									"SET erased=false, reception_student='"+inn+"', sending_student='"+out+"' "+
-									"WHERE agreement_item_id='"+agreementItemId+"' and contact_id='"+contacts.id+"';"
+									"WHERE agreement_item_id='"+agreementItemId+"' and contact_id='"+contacts.contact_id+"';"
 							}
 
 							console.log("agreement_contact");
@@ -1764,7 +1759,7 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 
 					async.parallel([
 						function(callbackInterno){
-							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"' where ac.erased=false;"
+							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"' and ac.erased=false;"
 							var queryContact = client.query(sqlItem);
 
 							queryContact.on("row", function(row, result){
