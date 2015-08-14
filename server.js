@@ -149,6 +149,82 @@ server.get({path : '/universities/:universityId', version : '0.0.1'} , function(
 	});
 });
 
+
+/* Create a university */
+
+server.post(
+  {path:'/universities', version:'0.0.1'},
+  function (req, res, next) {
+    // Body cannot be empty
+    if(!req.body){
+      res.send(409, {code: 400, message: 'Bad Request', description: 'No body found in request.'});
+      return next();
+    }
+
+    // Original name cannot be empty
+    if(!req.body.original_name){
+      res.send(400, {code: 400, message: 'Bad Request', description: 'original_name value required'});
+      return next();
+    }
+
+    // web_site value cannot be blank
+    if(!req.body.web_site){
+      res.send(400, {code: 400, message: 'Bad Request', description: 'web_site value required'});
+      return next();
+    }
+
+    // country_code value cannot be blank
+    if(!req.body.country_code){
+      res.send(400, {code: 400, message: 'Bad Request', description: 'country_code value required'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      var sql_u = "select id from kuntur.org_type where code = 'U'";
+      client.query(sql_u, function(err, result){
+        //Return if an error occurs
+        if(err) {
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+        var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, web_site, country_code, primary_org, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
+          if(!!req.body.short_name){ //column short_name
+            sql += "'" + req.body.short_name + "', ";
+          }
+          else {
+            sql += "' ', "
+          }
+            sql += "'" + req.body.original_name + "', ";  // column original_name
+            sql += "'" + req.body.web_site + "', ";       // column web_site
+            sql += "'" + req.body.country_code + "', ";   // column country_code
+            sql += 'false, ';                             // column primary_org
+            sql += "'" + result.id + "', ";               // column org_type_id
+
+            client.query(sql, function(err, result) {
+              done();
+              //Return if an error occurs
+              if(err) { //connection failed
+                console.error(err);
+                res.send(503, {code: 503, message: 'Database error', description: err});
+                return next();
+              }
+              res.send(204);
+            }); // end of insert query
+          }); // end of u code query
+        }); //end of pg connect
+  } // end of function
+);
+
 /* Update a university */
 server.put({path:'/universities/:universityId', version:'0.0.1'}, function(req, res, next){
   // Body cannot be empty
@@ -664,7 +740,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-			
+
 		});
 
 		query.on("end",function(result){
@@ -901,7 +977,7 @@ server.get({path:'/findAgreementById', version:'0.0.1'}, function(req,res,next){
 		pg.connect(conString, function(err, client, done){
 			client.query('BEGIN', function(err) {
 
-				
+
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
@@ -980,7 +1056,7 @@ server.get({path : '/getOrganizations', version : '0.0.1'} , function(req, res ,
 	// });
 
 	// query.on("end",function(result){
-	
+
 	// 	res.send(200,result.rows);
 	// });
 
@@ -1014,7 +1090,7 @@ server.get({path : '/getStatus', version : '0.0.1'} , function(req, res , next){
 	// });
 
 	// query.on("end",function(result){
-	
+
 	// 	res.send(200,result.rows);
 	// });
 
@@ -1054,7 +1130,7 @@ server.get({path : '/getFullOrganizations', version : '0.0.1'} , function(req, r
 	// 	result.addRow(row);
 	// });
 	// query.on("end",function(result){
-	
+
 	// 	res.send(200,result.rows);
 	// });
 });
@@ -1077,17 +1153,17 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 				var agreementId=row.id;
 
 				req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
-					
+
 
 					// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
 					var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC')
-					
+
 
 					var sql="INSERT INTO kuntur.agreement_item("+
 						    "id, erased, in_units, out_units, agreement_id, org_id)"+
 					"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemDetail.in+"', '"+agreementItemDetail.out+"', '"+agreementId+"', '"+elementAgreementItem.id+"')"+
 					"RETURNING id;"
-						
+
 
 					var query2 = client.query(sql);
 
@@ -1099,11 +1175,11 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 							async.forEach(elementAgreementItem.agreementItemOu,function(elementAgreementItemOu, callbackInterno){
 							//elementAgreementItem.agreementItemOu.forEach(function(elementAgreementItemOu){
-								
-								 
+
+
 								if(elementAgreementItemOu.id!="UNC"){//SON PARA LOS AGREEMENT ITEMS, LOS USE EN EL PASO ANTERIOR
-									
-									
+
+
 									var sqlAgItOu="INSERT INTO kuntur.agreement_item_ou("+
 							   		"id, erased, in_units, out_units, agreement_item_id, org_id)"+
 									"VALUES (uuid_generate_v4()::varchar, false, '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"', '"+agreementItemId+"', '"+elementAgreementItemOu.id+"');"
@@ -1113,12 +1189,12 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 									});
 
 									queryAgItOu.on("end",function(result){
-										
+
 										callbackInterno();
 									});
 
 									queryAgItOu.on("error",function(error){
-										
+
 										res.send(500,error.message);
 										return rollback(client, done);
 									});
@@ -1127,7 +1203,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 									callbackInterno();//Para que termine el elemento UNC
 								}
 							},function(err){
-								
+
 								callback();
 							});
 						},
@@ -1149,10 +1225,10 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 								var sqlAgrCon="INSERT INTO kuntur.agreement_contact("+
 						    	"id, erased, agreement_item_id, contact_id, reception_student, sending_student)"+
 								"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemId+"', '"+contacts.id+"', '"+inn+"', '"+out+"');"//(contacts.in === true && typeof contacts.in != 'undefined') ? "true" : "false"+
-								
-								
-								
-								
+
+
+
+
 								var queryAgrCon = client.query(sqlAgrCon);
 
 								queryAgrCon.on("row", function(row, result){
@@ -1163,7 +1239,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 								});
 
 								queryAgrCon.on("error",function(error){
-									
+
 									res.send(500,error);
 									return rollback(client, done);
 								});
@@ -1171,11 +1247,11 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 							},function(err){
 								if(err){
-									
+
 									res.send(500,err.message);
 									rollback(client, done);
 								}
-								
+
 								callback();
 							});
 						}], function(err){
@@ -1199,7 +1275,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 					});
 
 					query2.on("error",function(error){
-						
+
 						res.send(500,error.message);
 						return rollback(client, done);
 
@@ -1211,7 +1287,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 			});
 
 			query.on("end",function(result){
-				
+
 				//res.send(200,"");//JSON.parse(result.rows[0].f_plazas)
 			});
 
@@ -1233,23 +1309,23 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 	});
 
 	// for(i in req.body.agreement.agreementItem){
-	
-	
+
+
  //        for(j in req.body.agreement.agreementItem[i].agreementItemOu){
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
  //    	}
  //    	for(j in req.body.agreement.agreementItem[i].contactIn){
-	
-	
+
+
 	//     }
 	//     for(j in req.body.agreement.agreementItem[i].contactOut){
-	
-	
+
+
 	//     }
  //    }
 
@@ -1287,7 +1363,7 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 			// 	}
 			// 	sql+=");";
 
-			
+
 			// 	var query2 = client.query(sql);
 
 			// 	query2.on("row", function(row, result){
@@ -1296,14 +1372,14 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 			// 	});
 
 			// 	query2.on("end",function(result){
-			
-			
+
+
 			// 		done();
 			// 		res.send(200,result);
 			// 	});
 			// }
-			
-			
+
+
 			done();
 			res.send(200,JSON.parse(result.rows[0].f_plazas));
 		});
@@ -1319,7 +1395,7 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 	// 	result.addRow(row);
 	// });
 	// query.on("end",function(result){
-	
+
 	// 	var sql="CREATE EXTENSION IF NOT EXISTS tablefunc;"+
 	// 			"select * from crosstab("+
 	// 				 "'select org2.name, org.id, w.in_units || ''-'' || w.out_units from kuntur.agreement_item w join kuntur.org org ON w.org_unit_id = org.id join kuntur.org org2 ON w.org_id = org2.id  where w.agreement_id=''"+agreementId+"''',"+
@@ -1335,7 +1411,7 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 	// 		}
 	// 		sql+=");";
 
-	
+
 	// 		query = client.query(sql);
 
 	// 		query.on("row", function(row, result){
@@ -1343,8 +1419,8 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 	// 		});
 
 	// 		query.on("end",function(result){
-	
-	
+
+
 	// 			res.send(200,result);
 	// 		});
 	// 	}
@@ -1354,14 +1430,14 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 
 server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
-	
+
 var sql = "SELECT org_id,org_short_name, person_family_name || ',' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg(person_phone_phone_number, ' ') AS tel,"+
  "agreement_contact_reception_student AS reception_student, agreement_contact_sending_student AS sending_student "
 +"FROM kuntur.v_responsables "
 +"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false AND agreement_item_erased = false "
 +"GROUP BY org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name, org_id, erased ORDER BY org_short_name";
 
-	
+
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
 
@@ -1392,7 +1468,7 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 		string="\'"+req.body.orgs[i].id+"\'";//+"\'" Tenia esto por alguna razon
 		aux.push(string);
 	}
-	
+
 
 	var sql = "select * from kuntur.f_responsablesByOrg(ARRAY["+aux+"])";
 
@@ -1405,7 +1481,7 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 
 		query.on("end",function(result){
 			done();
-			
+
 			res.send(200,result.rows);
 		});
 
@@ -1418,9 +1494,9 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 
 var findId = function(id, array){
 	for(i in array){
-		
+
 		if(array[i].id==id){
-			
+
 			return i;
 		}else{
 			return null;
@@ -1429,24 +1505,24 @@ var findId = function(id, array){
 }
 
 var recursiva = function(originalTree, nodo){
-	
+
 	// nodo.children.forEach()
 	if(nodo.children.length>0){//completar
-		
+
 		for(i in nodo.children){
 			(function(p){
-				
+
 				if(p=='first'){
 
 				}
 				var j = findId(nodo.children[p].id, originalTree.children);
-				
-				
+
+
 				if(j){
-					
+
 					recursiva(originalTree.children[j],nodo.children[p]);
 				}else{
-					
+
 					originalTree.children.push(nodo.children[p]);
 				}
 			})(i);
@@ -1465,17 +1541,17 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-			
-			
+
+
 			result.addRow(JSON.parse(row.getorgtree));//JSON.parse(result.rows[0].f_plazas)
 		});
 
 		query.on("end",function(result){
 			done();
 			var original=result.rows[0];
-			
+
 			// for(var i=1;i<result.rows.length;i++){
-			
+
 			// 	recursiva(original,result.rows[i])
 			// }
 
@@ -1484,7 +1560,7 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 		        	recursiva(original,result.rows[j]);
 		        })(i);
   			}
-			
+
 			//res.send(200,result.rows);
 			res.send(200,original);
 		});
@@ -1529,7 +1605,7 @@ server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res ,
 server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.body.agreement.id;
 	req.body.agreement.agreementItem.forEach(function(elementAgreementItem){
-		
+
 
 		// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
 		var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC');
@@ -1567,7 +1643,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 
 						async.forEach(elementAgreementItem.agreementItemOu,function(elementAgreementItemOu, callbackInterno){
 							if(elementAgreementItemOu.id!="UNC"){//SON PARA LOS AGREEMENT ITEMS, LOS USE EN EL PASO ANTERIOR
-								
+
 								if((findFirstOccurrence(req.body.agreement.selectedOrgs2LvlInsert,'id',elementAgreementItemOu.id)!=-1) || (newAgreementItem)){//insersion de agreement_item_ou, en caso que sea un nuevo agreementItem la insersion se realiza si o si
 									var sqlAgItOu="select kuntur.f_insertAgreementItemOu('"+agreementItemId+"','"+elementAgreementItemOu.id+"', '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"');";
 								}else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'org_id',elementAgreementItemOu.id)!=-1){
@@ -1601,7 +1677,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 								callbackInterno();//Para que termine el elemento UNC
 							}
 						},function(err){
-							
+
 							callback();
 						});
 					},
@@ -1632,8 +1708,8 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 
 							console.log("agreement_contact");
 							console.log(sqlAgrCon);
-							
-							
+
+
 							var queryAgrCon = client.query(sqlAgrCon);
 
 							queryAgrCon.on("row", function(row, result){
@@ -1644,7 +1720,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 							});
 
 							queryAgrCon.on("error",function(error){
-								
+
 								res.send(500,error);
 								return rollback(client, done);
 							});
@@ -1652,11 +1728,11 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 
 						},function(err){
 							if(err){
-								
+
 								res.send(500,err.message);
 								rollback(client, done);
 							}
-							
+
 							callback();
 						});
 					}], function(err){
@@ -1681,7 +1757,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 				});
 
 				query2.on("error",function(error){
-					
+
 					res.send(500,error.message);
 					return rollback(client, done);
 
@@ -1741,8 +1817,8 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 			agreement.agreementItem=[];
 
 			query.on("row", function(row, result){
-				
-				
+
+
 				// row.prueba="lala";
 				result.addRow(row);
 
@@ -1796,8 +1872,8 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 							});
 						}
 					], function(err, results){
-						
-						
+
+
 						agreementItem.contacts=results[0];
 						agreementItem.agreementItemOu=results[1];
 
