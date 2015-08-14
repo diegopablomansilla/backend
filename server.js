@@ -196,7 +196,6 @@ server.post(
           res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
           return next();
         }
-
         var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, web_site, country_code, primary_org, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
           if(!!req.body.short_name){ //column short_name
             sql += "'" + req.body.short_name + "', ";
@@ -208,7 +207,8 @@ server.post(
             sql += "'" + req.body.web_site + "', ";       // column web_site
             sql += "'" + req.body.country_code + "', ";   // column country_code
             sql += 'false, ';                             // column primary_org
-            sql += "'" + result.id + "', ";               // column org_type_id
+            sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
+            console.log(sql);
 
             client.query(sql, function(err, result) {
               done();
@@ -218,7 +218,8 @@ server.post(
                 res.send(503, {code: 503, message: 'Database error', description: err});
                 return next();
               }
-              res.send(204);
+			  res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + result.rows[0].id);
+              res.send(201);
             }); // end of insert query
           }); // end of u code query
         }); //end of pg connect
