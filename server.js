@@ -813,7 +813,7 @@ server.post(
           if(!!req.body.street_number){                     //street_number
 						sql += "'" + req.body.street_number + "', '";
 					}else{
-						sql += "' ', ";
+						sql += "'s/n', ";
 					}
 
           if(!!req.body.building){                         //building
