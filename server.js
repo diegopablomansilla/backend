@@ -124,7 +124,6 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 });
 
 /* Get a single university */
-
 server.get({path : '/universities/:universityId', version : '0.0.1'} , function(req, res , next){
 
 	var sql="SELECT org.id, org.short_name, org.original_name, org.url_photo, org.web_site, org.country_code, org.erased FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' AND org.id='" + req.params.universityId + "'";
@@ -287,7 +286,6 @@ server.put({path:'/universities/:universityId', version:'0.0.1'}, function(req, 
 });
 
 /* Delete a university */
-
 server.del(
 	{path:'/universities/:unversityId'},
 	function(req, res, next){
@@ -708,7 +706,7 @@ server.del(
 
 server.get({path : '/universities/:id/addresses', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "'";
+	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "' and erased=false";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -751,6 +749,45 @@ server.get({path : '/universities/:id/addresses/:addressId', version : '0.0.1'} 
         }
 	});
 });
+
+/* Delete a university address */
+server.del(
+	{path:'/universities/:unversityId/addresses/:addressId'},
+	function(req, res, next){
+		pg.connect(conString, function(err, client, done){
+
+        //Return if an error occurs
+        if(err) {
+          done(); //release the pg client back to the pool
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+        //querying database
+        var sql = "UPDATE kuntur.org_address SET erased='true' WHERE id=";
+          sql += "'" + req.params.addressId + "'";
+
+        client.query(sql, function(err, result) {
+          done(); //release the pg client back to the pool
+          //Return if an error occurs
+          if(err) {//falta de conexion
+            console.error('error fetching client from pool', err);
+            res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+            return next();
+          }
+          if (result.rowCount == 0) {
+            console.error('result not found', err);
+            res.send(404, {code: 404, message: 'Not Found', description: 'Cannot delete a non existent resource'});
+            return next();
+          }else{
+            res.send(204);
+          }
+        });
+		});
+	}
+);
+
 
 /* Create a new university address */
 server.post(
@@ -832,8 +869,6 @@ server.post(
 
 					sql += req.params.unversityId + "') RETURNING id";  //org_id
 
-          console.log(sql);
-
 				client.query(sql, function(err, result) {
 					done();
 					//Return if an error occurs
@@ -849,6 +884,29 @@ server.post(
 			});
 		}
 	);
+
+  /* Get a sigle university address */
+  server.del({path : '/universities/:id/addresses/:addressId', version : '0.0.1'} , function(req, res , next){
+
+  	var sql="SELECT * FROM kuntur.org_address WHERE id='" + req.params.addressId + "'";
+
+  	pg.connect(conString, function(err, client, done){
+  		var query = client.query(sql);
+
+  		query.on("row", function(row, result){
+  			result.addRow(row);
+  		});
+
+  		query.on("end",function(result){
+  			done();
+  			res.send(200,result.rows);
+  		});
+
+  		if(err) {
+
+          }
+  	});
+  });
 
 server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} , function(req, res , next){
 
