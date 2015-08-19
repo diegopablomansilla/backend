@@ -124,7 +124,6 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 });
 
 /* Get a single university */
-
 server.get({path : '/universities/:universityId', version : '0.0.1'} , function(req, res , next){
 
 	var sql="SELECT org.id, org.short_name, org.original_name, org.url_photo, org.web_site, org.country_code, org.erased FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' AND org.id='" + req.params.universityId + "'";
@@ -208,7 +207,6 @@ server.post(
             sql += "'" + req.body.country_code + "', ";   // column country_code
             sql += 'false, ';                             // column primary_org
             sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
-            console.log(sql);
 
             client.query(sql, function(err, result) {
               done();
@@ -288,7 +286,6 @@ server.put({path:'/universities/:universityId', version:'0.0.1'}, function(req, 
 });
 
 /* Delete a university */
-
 server.del(
 	{path:'/universities/:unversityId'},
 	function(req, res, next){
@@ -356,7 +353,7 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 		});
 
 		if(err) {
-
+      console.log(err);
         }
 	});
 });
@@ -709,7 +706,7 @@ server.del(
 
 server.get({path : '/universities/:id/addresses', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "'";
+	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "' and erased=false";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -730,6 +727,186 @@ server.get({path : '/universities/:id/addresses', version : '0.0.1'} , function(
 });
 
 
+/* Get a sigle university address */
+server.get({path : '/universities/:id/addresses/:addressId', version : '0.0.1'} , function(req, res , next){
+
+	var sql="SELECT * FROM kuntur.org_address WHERE id='" + req.params.addressId + "'";
+
+	pg.connect(conString, function(err, client, done){
+		var query = client.query(sql);
+
+		query.on("row", function(row, result){
+			result.addRow(row);
+		});
+
+		query.on("end",function(result){
+			done();
+			res.send(200,result.rows);
+		});
+
+		if(err) {
+
+        }
+	});
+});
+
+/* Delete a university address */
+server.del(
+	{path:'/universities/:unversityId/addresses/:addressId'},
+	function(req, res, next){
+		pg.connect(conString, function(err, client, done){
+
+        //Return if an error occurs
+        if(err) {
+          done(); //release the pg client back to the pool
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+        //querying database
+        var sql = "UPDATE kuntur.org_address SET erased='true' WHERE id=";
+          sql += "'" + req.params.addressId + "'";
+
+        client.query(sql, function(err, result) {
+          done(); //release the pg client back to the pool
+          //Return if an error occurs
+          if(err) {//falta de conexion
+            console.error('error fetching client from pool', err);
+            res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+            return next();
+          }
+          if (result.rowCount == 0) {
+            console.error('result not found', err);
+            res.send(404, {code: 404, message: 'Not Found', description: 'Cannot delete a non existent resource'});
+            return next();
+          }else{
+            res.send(204);
+          }
+        });
+		});
+	}
+);
+
+
+/* Create a new university address */
+server.post(
+		{path: '/universities/:unversityId/addresses', version: '0.0.1'},
+		function(req, res, next){
+
+			// Body cannot be empty
+			if(!req.body){
+				res.send(400, {code: 400, message: 'Bad Request', description: 'Request body cannot be empty.'});
+				return next();
+			}
+
+      // Checking for required values
+			if(!req.body.country_code){
+				res.send(400, {code: 400, message: 'Bad Request', description: 'country_code value is required'});
+				return next();
+			}
+
+			if(!req.body.locality){
+				res.send(400, {code: 400, message: 'Bad Request', description: 'locality value is required'});
+				return next();
+			}
+
+			if(!req.body.street){
+				res.send(400, {code: 400, message: 'Bad Request', description: 'street value is required'});
+				return next();
+			}
+
+			if(!req.body.postal_code){
+				res.send(400, {code: 400, message: 'Bad Request', description: 'postal_code value is required'});
+				return next();
+			}
+
+			pg.connect(conString, function(err, client, done){
+				if(err){
+					done();
+					console.error('error fetching client from pool', err);
+					res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+					return next();
+				}
+
+        // sql base string
+				var sql = 'INSERT INTO kuntur.org_address ';
+          //columns to be inserted
+          sql += '(id, erased, country_code, admin_area_level1_code, locality, street, street_number, building, postal_code, comment, org_id) VALUES ';
+
+          //values inserted
+          sql += "(uuid_generate_v4()::varchar, false, ";    //id, erased
+					sql += "'" + req.body.country_code + "', ";        //country_code
+
+					if(!!req.body.admin_area_level1_code){            //admin_area_level_1_code
+						sql += "'" + req.body.admin_area_level1_code + "', '";
+					}else{
+						sql += "' ', ";
+					}
+
+          sql += "'" + req.body.locality + "', ";           //locality
+          sql += "'" + req.body.street + "', ";             //street
+
+          if(!!req.body.street_number){                     //street_number
+						sql += "'" + req.body.street_number + "', '";
+					}else{
+						sql += "'s/n', ";
+					}
+
+          if(!!req.body.building){                         //building
+						sql += "'" + req.body.building + "', '";
+					}else{
+						sql += "' ', ";
+					}
+
+          sql += "'" + req.body.postal_code + "', ";      //postal_code
+
+          if(!!req.body.comment){                         //comment
+						sql += "'" + req.body.comment + "', '";
+					}else{
+						sql += "' ', ";
+					}
+
+					sql += req.params.unversityId + "') RETURNING id";  //org_id
+
+				client.query(sql, function(err, result) {
+					done();
+					//Return if an error occurs
+					if(err) { //connection failed
+						console.error(err);
+						res.send(503, {code: 503, message: 'Database error', description: err});
+						return next();
+					}
+					res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/addresses/' + result.rows[0].id);
+					res.send(201);
+				});
+
+			});
+		}
+	);
+
+  /* Get a sigle university address */
+  server.del({path : '/universities/:id/addresses/:addressId', version : '0.0.1'} , function(req, res , next){
+
+  	var sql="SELECT * FROM kuntur.org_address WHERE id='" + req.params.addressId + "'";
+
+  	pg.connect(conString, function(err, client, done){
+  		var query = client.query(sql);
+
+  		query.on("row", function(row, result){
+  			result.addRow(row);
+  		});
+
+  		query.on("end",function(result){
+  			done();
+  			res.send(200,result.rows);
+  		});
+
+  		if(err) {
+
+          }
+  	});
+  });
 
 server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} , function(req, res , next){
 
