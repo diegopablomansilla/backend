@@ -839,7 +839,7 @@ server.post(
 					sql += "'" + req.body.country_code + "', ";        //country_code
 
 					if(!!req.body.admin_area_level1_code){            //admin_area_level_1_code
-						sql += "'" + req.body.admin_area_level1_code + "', '";
+						sql += "'" + req.body.admin_area_level1_code + "', ";
 					}else{
 						sql += "' ', ";
 					}
@@ -848,13 +848,13 @@ server.post(
           sql += "'" + req.body.street + "', ";             //street
 
           if(!!req.body.street_number){                     //street_number
-						sql += "'" + req.body.street_number + "', '";
+						sql += "'" + req.body.street_number + "', ";
 					}else{
 						sql += "'s/n', ";
 					}
 
           if(!!req.body.building){                         //building
-						sql += "'" + req.body.building + "', '";
+						sql += "'" + req.body.building + "', ";
 					}else{
 						sql += "' ', ";
 					}
@@ -862,12 +862,12 @@ server.post(
           sql += "'" + req.body.postal_code + "', ";      //postal_code
 
           if(!!req.body.comment){                         //comment
-						sql += "'" + req.body.comment + "', '";
+						sql += "'" + req.body.comment + "', ";
 					}else{
 						sql += "' ', ";
 					}
 
-					sql += req.params.unversityId + "') RETURNING id";  //org_id
+					sql += "'" +req.params.unversityId + "') RETURNING id";  //org_id
 
 				client.query(sql, function(err, result) {
 					done();
@@ -1991,12 +1991,12 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
 
-	var sql = "UPDATE kuntur.agreement SET erased = true where id = '"+agreementId+"' RETURNING id;"; 
+	var sql = "UPDATE kuntur.agreement SET erased = true where id = '"+agreementId+"' RETURNING id;";
 
 	var query = client.query(sql);
 	pg.connect(conString, function(err, client, done){
 		client.query('BEGIN', function(err) {
-			
+
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
@@ -2014,7 +2014,7 @@ server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , 
 				rollback(client, done);
 				callbackInterno();
 			});
-			
+
 			if(err) {
 	          	done();
 	        }
@@ -2027,12 +2027,12 @@ server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , 
 server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
 
-	var sql = "UPDATE kuntur.agreement SET erased = false where id = '"+agreementId+"'  RETURNING id;"; 
+	var sql = "UPDATE kuntur.agreement SET erased = false where id = '"+agreementId+"'  RETURNING id;";
 
 	var query = client.query(sql);
 	pg.connect(conString, function(err, client, done){
 		client.query('BEGIN', function(err) {
-			
+
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
@@ -2050,7 +2050,7 @@ server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res 
 				rollback(client, done);
 				callbackInterno();
 			});
-			
+
 			if(err) {
 	          	done();
 	        }
