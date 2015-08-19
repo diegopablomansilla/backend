@@ -885,7 +885,96 @@ server.post(
 		}
 	);
 
-  /* Get a sigle university address */
+  /* Update a university address */
+  server.put(
+  		{path: '/universities/:unversityId/addresses/:addressId', version: '0.0.1'},
+  		function(req, res, next){
+
+  			// Body cannot be empty
+  			if(!req.body){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'Request body cannot be empty.'});
+  				return next();
+  			}
+
+        // Checking for required values
+  			if(!req.body.country_code){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'country_code value is required'});
+  				return next();
+  			}
+
+  			if(!req.body.locality){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'locality value is required'});
+  				return next();
+  			}
+
+  			if(!req.body.street){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'street value is required'});
+  				return next();
+  			}
+
+  			if(!req.body.postal_code){
+  				res.send(409, {code: 409, message: 'Conflict', description: 'postal_code value is required'});
+  				return next();
+  			}
+
+  			pg.connect(conString, function(err, client, done){
+  				if(err){
+  					done();
+  					console.error('error fetching client from pool', err);
+  					res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+  					return next();
+  				}
+
+          // sql base string
+  				var sql = 'UPDATE kuntur.org_address SET ';
+
+            //updated values
+            if(typeof req.body.erased !== "undefined"){
+                sql += "erased= '" + req.body.erased + "', ";
+            }
+
+  					sql += "country_code ='" + req.body.country_code + "', ";
+
+  					if(!!req.body.admin_area_level1_code){
+  						sql += "admin_area_level1_code = '" + req.body.admin_area_level1_code + "', ";
+  					}
+
+            sql += "locality ='" + req.body.locality + "', ";
+            sql += "street ='" + req.body.street + "', ";
+
+            if(!!req.body.street_number){
+  						sql += "street_number ='" + req.body.street_number + "', ";
+  					}
+
+            if(!!req.body.building){
+  						sql += "building ='" + req.body.building + "', ";
+  					}
+
+            sql += "postal_code ='" + req.body.postal_code + "', ";
+
+            if(!!req.body.comment){
+  						sql += "comment ='" + req.body.comment + "', ";
+  					}
+
+            sql = sql.substring(0, sql.length - 2); //removing the final ", " characters
+
+  					sql += " WHERE id ='" +req.params.addressId + "'";
+            
+  				client.query(sql, function(err, result) {
+  					done();
+  					//Return if an error occurs
+  					if(err) { //connection failed
+  						console.error(err);
+  						res.send(503, {code: 503, message: 'Database error', description: err});
+  						return next();
+  					}
+  					res.send(204);
+  				});
+  			});
+  		}
+  	);
+
+  /* Delete a university address */
   server.del({path : '/universities/:id/addresses/:addressId', version : '0.0.1'} , function(req, res , next){
 
   	var sql="SELECT * FROM kuntur.org_address WHERE id='" + req.params.addressId + "'";
