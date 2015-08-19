@@ -935,12 +935,19 @@ server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 
 
 server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , next){
-	if(req.params.busqueda){
-		var busqueda=req.params.busqueda;
+	var filtro=JSON.parse(req.params.filter);
+	if(filtro.cadenaBuscada){
+		var busqueda=filtro.cadenaBuscada;
 	}else{
 		var busqueda="";
 	}
-	var deleted = false;
+
+	if(filtro.showErased){
+		var deleted = filtro.showErased;
+	}else{
+		var deleted = false;
+	}
+	// var deleted = false;
 
 	sql="SELECT * FROM kuntur.findAgreements('"+busqueda+"',"+deleted+");";
 	pg.connect(conString, function(err, client, done){
@@ -955,6 +962,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 			query.on("end",function(result){
 
 				client.query('COMMIT', done);
+				done();
 				res.send(200,result.rows);
 			});
 
@@ -1616,13 +1624,14 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 	 		var sql="select kuntur.f_insertAgreementItem('"+agreementId+"', '"+elementAgreementItem.id+"','"+agreementItemDetail.in+"','"+agreementItemDetail.out+"');";//function que inserta el agreement si no exsite (puede estar borrado y en ese caso se revive)
 			newAgreementItem=true;
 		}else if(findFirstOccurrence(req.body.agreement.universitiesDelete,'id',elementAgreementItem.id)!=-1){// se debe borrar el agreement intem (erased = true)
-			var sql="UPDATE kuntur.agreement_item "+
-	   			"SET erased=true "+
-	 			"WHERE agreement_id = '"+agreementId+"' and org_id = '"+elementAgreementItem.id+"' RETURNING id;"
+			// var sql="UPDATE kuntur.agreement_item "+
+	  //  			"SET erased=true "+
+	 	// 		"WHERE agreement_id = '"+agreementId+"' and org_id = '"+elementAgreementItem.id+"' and erased = false RETURNING id;"
+	 		var sql="select kuntur.f_deleteAgreement_item('"+agreementId+"', '"+elementAgreementItem.id+"');"
 		}else{//como la universidad no esta en el arreglo de insersiones ni el de eliminaciones, solo se hace un update.
 			var sql="UPDATE kuntur.agreement_item "+
 	   			"SET erased=false, in_units='"+agreementItemDetail.in+"', out_units='"+agreementItemDetail.out+"' "+
-	 			"WHERE agreement_id = '"+agreementId+"' and org_id = '"+elementAgreementItem.id+"' RETURNING id;"
+	 			"WHERE agreement_id = '"+agreementId+"' and org_id = '"+elementAgreementItem.id+"' and erased = false RETURNING id;"
 		}
 		console.log("AgreementItem");
 		console.log(sql);
@@ -1648,13 +1657,12 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 								if((findFirstOccurrence(req.body.agreement.selectedOrgs2LvlInsert,'id',elementAgreementItemOu.id)!=-1) || (newAgreementItem)){//insersion de agreement_item_ou, en caso que sea un nuevo agreementItem la insersion se realiza si o si
 									var sqlAgItOu="select kuntur.f_insertAgreementItemOu('"+agreementItemId+"','"+elementAgreementItemOu.id+"', '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"');";
 								}else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'org_id',elementAgreementItemOu.id)!=-1){
-									var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
-						   			" SET erased=true "+
+									var sqlAgItOu="DELETE kuntur.agreement_item_ou "+
 									"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
 								}else{
 									var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
 						   			" SET erased=false, in_units='"+elementAgreementItemOu.in+"', out_units='"+elementAgreementItemOu.out+"' "+
-									"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
+									"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"' and erased = false;"
 								}
 
 								console.log("Agreement_item_ou");
@@ -1803,7 +1811,79 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
  	});
 });
 
- server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
+server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , next){
+	var agreementId=req.params.agrId;
+
+	var sql = "UPDATE kuntur.agreement SET erased = true where id = '"+agreementId+"' RETURNING id;"; 
+
+	var query = client.query(sql);
+	pg.connect(conString, function(err, client, done){
+		client.query('BEGIN', function(err) {
+			
+			var query = client.query(sql);
+
+			query.on("row", function(row, result){
+				result.addRow(row);
+			});
+
+			query.on("end",function(result){
+				client.query('COMMIT', done);
+				done();
+				res.send(200,result);
+			});
+
+			query.on("error",function(error){
+				res.send(500,error.message);
+				rollback(client, done);
+				callbackInterno();
+			});
+			
+			if(err) {
+	          	done();
+	        }
+
+		});
+	});
+
+});
+
+server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res , next){
+	var agreementId=req.params.agrId;
+
+	var sql = "UPDATE kuntur.agreement SET erased = false where id = '"+agreementId+"'  RETURNING id;"; 
+
+	var query = client.query(sql);
+	pg.connect(conString, function(err, client, done){
+		client.query('BEGIN', function(err) {
+			
+			var query = client.query(sql);
+
+			query.on("row", function(row, result){
+				result.addRow(row);
+			});
+
+			query.on("end",function(result){
+				client.query('COMMIT', done);
+				done();
+				res.send(200,result);
+			});
+
+			query.on("error",function(error){
+				res.send(500,error.message);
+				rollback(client, done);
+				callbackInterno();
+			});
+			
+			if(err) {
+	          	done();
+	        }
+
+		});
+	});
+
+});
+
+server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
 
 	var agreementId=req.params.agrId;
 
@@ -1836,7 +1916,7 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 
 					async.parallel([
 						function(callbackInterno){
-							var sqlItem="select ac.id, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id where agreement_item_id='"+agreementItemId+"' and ac.erased=false;"
+							var sqlItem="select ac.id, o.short_name, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id join kuntur.org o on o.id = c.org_id where agreement_item_id='"+agreementItemId+"' and ac.erased=false;"
 							var queryContact = client.query(sqlItem);
 
 							queryContact.on("row", function(row, result){
