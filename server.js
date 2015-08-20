@@ -92,7 +92,9 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	}
 
 	if(req.params.searchText){
-		sql += "AND (org.short_name ILIKE '%" + req.params.searchText + "%' OR org.original_name ILIKE '%" + req.params.searchText + "%')";
+		sql += "AND (org.short_name ILIKE '%" + req.params.searchText + "%'" ;
+    sql += " OR translate(coalesce(org.original_name::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + req.params.searchText + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN'))" ;
+    // translate(coalesce('%'||busqueda||'%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')
 	}
 
   if(!req.params.showErased){
@@ -364,7 +366,7 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 /* GET list of emails from a given university */
 server.get({path : '/universities/:id/mails', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_email WHERE org_id='" + req.params.id + "' AND erased='false'";
+	var sql="SELECT * FROM kuntur.org_email WHERE org_id='" + req.params.id + "' AND erased='false' ORDER BY comment";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -379,8 +381,7 @@ server.get({path : '/universities/:id/mails', version : '0.0.1'} , function(req,
 		});
 
 		if(err) {
-
-        }
+    }
 	});
 });
 
@@ -417,8 +418,6 @@ server.post(
 						sql += "' ', '";
 					}
 					sql += req.params.unversityId + "') RETURNING id";
-
-
 
 				client.query(sql, function(err, result) {
 					done();
@@ -523,14 +522,13 @@ server.del(
             res.send(204);
           }
         });
-
 		});
 	}
 );
 
 server.get({path : '/universities/:id/phones', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_phone WHERE org_id='" + req.params.id + "' AND erased='false'";
+	var sql="SELECT * FROM kuntur.org_phone WHERE org_id='" + req.params.id + "' AND erased='false' ORDER BY comment";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -652,8 +650,6 @@ server.post(
   					}
           sql += " WHERE id='" + req.params.phoneId + "'";
 
-
-
   				client.query(sql, function(err, result) {
   					done();
   					//Return if an error occurs
@@ -709,7 +705,7 @@ server.del(
 
 server.get({path : '/universities/:id/addresses', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "' and erased=false";
+	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "' and erased=false ORDER BY comment";
 
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
@@ -835,7 +831,7 @@ server.post(
         // sql base string
 				var sql = 'INSERT INTO kuntur.org_address ';
           //columns to be inserted
-          sql += '(id, erased, country_code, admin_area_level1_code, locality, street, street_number, building, postal_code, comment, org_id) VALUES ';
+          sql += '(id, erased, country_code, admin_area_level1_code, locality, street, street_number, building, neighbourhood, postal_code, comment, org_id) VALUES ';
 
           //values inserted
           sql += "(uuid_generate_v4()::varchar, false, ";    //id, erased
@@ -858,6 +854,12 @@ server.post(
 
           if(!!req.body.building){                         //building
 						sql += "'" + req.body.building + "', ";
+					}else{
+						sql += "' ', ";
+					}
+
+          if(!!req.body.neighbourhood){                         //neighbourhood
+						sql += "'" + req.body.neighbourhood + "', ";
 					}else{
 						sql += "' ', ";
 					}
@@ -951,6 +953,10 @@ server.post(
 
             if(!!req.body.building){
   						sql += "building ='" + req.body.building + "', ";
+  					}
+
+            if(!!req.body.neighbourhood){
+  						sql += "neighbourhood ='" + req.body.neighbourhood + "', ";
   					}
 
             sql += "postal_code ='" + req.body.postal_code + "', ";
@@ -1211,7 +1217,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 	if(req.params.filter){
 		var filtro=JSON.parse(req.params.filter);
 		console.log(filtro);
-		
+
 		if(filtro.cadenaBuscada){
 			busqueda=filtro.cadenaBuscada;
 		}
@@ -2266,7 +2272,7 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 					});
 
 
-					
+
 
 				});
 
