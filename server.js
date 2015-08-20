@@ -99,6 +99,9 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 		sql += "AND org.erased=false "; // FIXME when showErased is setted to false, it doesnt add this bit to the sql.
 	}
 
+    sql += ' order by primary_org desc, original_name asc ';
+
+
 	if(req.params.offset && req.params.limit){
 		sql += "OFFSET '"+req.params.offset+"' LIMIT '"+req.params.limit+"'";
 	}
@@ -959,7 +962,7 @@ server.post(
             sql = sql.substring(0, sql.length - 2); //removing the final ", " characters
 
   					sql += " WHERE id ='" +req.params.addressId + "'";
-            
+
   				client.query(sql, function(err, result) {
   					done();
   					//Return if an error occurs
