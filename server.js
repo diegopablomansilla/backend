@@ -1112,17 +1112,18 @@ server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 
 
 server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , next){
-	var filtro=JSON.parse(req.params.filter);
-	if(filtro.cadenaBuscada){
-		var busqueda=filtro.cadenaBuscada;
-	}else{
-		var busqueda="";
-	}
-
-	if(filtro.showErased){
-		var deleted = filtro.showErased;
-	}else{
-		var deleted = false;
+	var busqueda="";
+	var deleted = false;
+	if(req.params.filter){
+		var filtro=JSON.parse(req.params.filter);
+		console.log(filtro);
+		
+		if(filtro.cadenaBuscada){
+			busqueda=filtro.cadenaBuscada;
+		}
+		if(filtro.showErased){
+			deleted = filtro.showErased;
+		}
 	}
 	// var deleted = false;
 
@@ -1137,18 +1138,19 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 			});
 
 			query.on("end",function(result){
-
+				console.log("bien");
 				client.query('COMMIT', done);
 				done();
 				res.send(200,result.rows);
 			});
 
 			query.on("error",function(){
+				console.log("err");
 				return rollback(client, done);
 			});
 
 			if(err) {
-
+				console.log(err);
 	          return rollback(client, done);
 	        }
 	    });
@@ -2141,9 +2143,36 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 				}, function(err){
 
 
+					//tengo que busar el resto de info del agreement (nombre, fechas, etc...)
+					var sqlA="  select a.title, a.from_date, a.to_date, a.agreement_type_id, a.agreement_status_id, ty.name as type_name, st.name as status_name from kuntur.agreement a "+
+					" left join kuntur.agreement_type ty on ty.id = a.agreement_type_id"+
+					" left join kuntur.agreement_status st on st.id = a.agreement_status_id"+
+ 					" where a.id = '"+agreementId+"';";
+ 					var queryA = client.query(sqlA);
 
-					res.send(200, agreement);
-					done();
+ 					queryA.on("row", function(row, result){
+						result.addRow(row);
+					});
+
+					queryA.on("end", function(result){
+						agreement.title=result.rows[0].title;
+						agreement.from_date=result.rows[0].from_date;
+						agreement.to_date=result.rows[0].to_date;
+						agreement.agreement_type_id=result.rows[0].agreement_type_id;
+						agreement.agreement_status_id=result.rows[0].agreement_status_id;
+						agreement.type_name=result.rows[0].type_name;
+						agreement.status_name=result.rows[0].status_name;
+						res.send(200, agreement);
+						done();
+					});
+
+					queryA.on("error",function(error){
+						res.send(500,error.message);
+						rollback(client, done);
+					});
+
+
+					
 
 				});
 
