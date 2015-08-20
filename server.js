@@ -1206,6 +1206,8 @@ server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , next){
 	var busqueda="";
 	var deleted = false;
+	var pageSize = req.params.pageSize;
+	var offset = req.params.offset;
 	if(req.params.filter){
 		var filtro=JSON.parse(req.params.filter);
 		console.log(filtro);
@@ -1219,7 +1221,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 	}
 	// var deleted = false;
 
-	sql="SELECT * FROM kuntur.findAgreements('"+busqueda+"',"+deleted+");";
+	sql="SELECT * FROM kuntur.findAgreements('"+busqueda+"',"+deleted+","+offset+","+pageSize+");";
 	pg.connect(conString, function(err, client, done){
 		client.query('BEGIN', function(err) {
 
