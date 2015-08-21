@@ -1232,7 +1232,6 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 			});
 
 			query.on("end",function(result){
-				console.log("bien");
 				client.query('COMMIT', done);
 				done();
 				res.send(200,result.rows);
