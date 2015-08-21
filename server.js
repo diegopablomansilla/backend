@@ -85,7 +85,7 @@ var rollback = function(client, done) {
 */
 server.get({path : '/universities', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT org.id, org.short_name, org.original_name, org.url_photo, org.web_site, org.country_code, org.erased FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' ";
+	var sql="SELECT org.id, org.short_name, org.original_name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.erased FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='U' ";
 
 	if(req.params.countryCode){
 		sql += "AND country_code='"+req.params.countryCode.toUpperCase()+"' ";
