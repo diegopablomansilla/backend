@@ -331,24 +331,39 @@ server.del(
 
 
 server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function(req, res , next){
-//
-	var sql = "SELECT a.*, ai.*, null::varchar AS agreement_contact ";
+// SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, ac.id as contact_id, reception_student, sending_student
+// FROM kuntur.agreement_item ai
+// LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id
+// LEFT JOIN kuntur.v_agreement a ON a.id = ai.agreement_id
+// WHERE ai.org_id='4c49e860-e88f-48cb-aebb-67c6a729f548' AND a.erased=false ORDER BY number_agreement;
+	var sql = "SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, ac.id as contact_id, reception_student, sending_student ";
 		sql += "FROM kuntur.agreement_item ai ";
-		sql += "JOIN kuntur.v_agreement a ON a.id = ai.agreement_id ";
-		sql += "WHERE ai.org_id='" + req.params.id + "'";
+		sql += "LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id ";
+		sql += "LEFT JOIN kuntur.v_agreement a ON a.id = ai.agreement_id ";
+		sql += "WHERE ai.org_id='" + req.params.id + "' AND a.erased=false ORDER BY number_agreement";
 
  	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
 		var agreements = []
 		query.on("row", function(row, result){
 			var agreement = {
+        id: row.id,
 				code: row.number_agreement,
 				title: row.title,
 				type: row.agreement_type_name,
 				status: row.agreement_status_name,
-				universitiesCount: row.orgs
+				universitiesCount: row.orgs,
+        contacts: {
+          in: [],
+          out: []
+        }
 			}
-			result.addRow(row);
+      if(row.contact_id){
+        if(row.reception_student)
+          agreement.contacts.in.push(row.contact_id);
+        if(row.sending_student)
+          agreement.contacts.out.push(row.contact_id);
+      }
 			agreements.push(agreement);
 		});
 
@@ -1006,6 +1021,16 @@ server.post(
   	});
   });
 
+  //
+  // SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, *
+  // FROM kuntur.agreement_item ai
+  // LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id
+  // LEFT JOIN kuntur.contact c ON c.id = ac.contact_id
+  // LEFT JOIN kuntur.person p ON p.id = c.person_id
+  // LEFT JOIN kuntur.person_email pm ON pm.person_id = p.id
+  // LEFT JOIN kuntur.person_phone pp ON pp.person_id = p.id
+  // LEFT JOIN kuntur.v_agreement a ON a.id = ai.agreement_id
+  // WHERE ai.org_id='4c49e860-e88f-48cb-aebb-67c6a729f548' order by number_agreement;
 server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} , function(req, res , next){
 
 	var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id_university+"'";
@@ -1016,7 +1041,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-
+      result.addRow(row);
 		});
 
 		query.on("end",function(result){
