@@ -1016,7 +1016,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-
+			result.addRow(row);
 		});
 
 		query.on("end",function(result){
