@@ -331,11 +331,7 @@ server.del(
 
 
 server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function(req, res , next){
-// SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, ac.id as contact_id, reception_student, sending_student
-// FROM kuntur.agreement_item ai
-// LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id
-// LEFT JOIN kuntur.v_agreement a ON a.id = ai.agreement_id
-// WHERE ai.org_id='4c49e860-e88f-48cb-aebb-67c6a729f548' AND a.erased=false ORDER BY number_agreement;
+
 	var sql = "SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, ac.id as contact_id, reception_student, sending_student ";
 		sql += "FROM kuntur.agreement_item ai ";
 		sql += "LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id ";
@@ -358,13 +354,26 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
           out: []
         }
 			}
+
       if(row.contact_id){
         if(row.reception_student)
           agreement.contacts.in.push(row.contact_id);
         if(row.sending_student)
           agreement.contacts.out.push(row.contact_id);
       }
-			agreements.push(agreement);
+
+      if(agreements.length > 0){
+        if(agreements[agreements.length-1].id == agreement.id){ //duplicate agreement (due to having more than one agreement contact)
+          agreements[agreements.length-1].contacts.in = agreements[agreements.length-1].contacts.in.concat(agreement.contacts.in);
+          agreements[agreements.length-1].contacts.out = agreements[agreements.length-1].contacts.out.concat(agreement.contacts.out);
+        }
+        else {
+          agreements.push(agreement);
+        }
+      }
+      else {
+        agreements.push(agreement);
+      }
 		});
 
 		query.on("end",function(result){
