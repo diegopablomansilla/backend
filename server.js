@@ -332,7 +332,7 @@ server.del(
 
 server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function(req, res , next){
 
-	var sql = "SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, ac.id as contact_id, reception_student, sending_student ";
+	var sql = "SELECT a.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, ac.contact_id as contact_id, reception_student, sending_student ";
 		sql += "FROM kuntur.agreement_item ai ";
 		sql += "LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id ";
 		sql += "LEFT JOIN kuntur.v_agreement a ON a.id = ai.agreement_id ";
@@ -377,12 +377,110 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 		});
 
 		query.on("end",function(result){
-			done();
+			var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id+"'"; // new select, getting contacts for the given university
+
+			var query2 = client.query(sql);
+		
+			query2.on("row", function(row, result2){
+      			result2.addRow(row);
+			});
+
+			var contacts=[];
+			query2.on("end",function(result2){
+				done();
+				
+				result2.rows.forEach(function(element){
+
+				for (var i = 0; i < contacts.length; i++) {
+					if(contacts[i].id == element.id){ //contact already added
+						if(element.person_email_email){
+							var emailRepeated = false;
+							for (var j = 0; j < contacts[i].emails.length; j++) {
+								if(contacts[i].emails[j].id == element.person_email_id){ //email already added
+									emailRepeated = true;
+									break;
+								}
+							};
+							if(!emailRepeated)
+								contacts[i].emails.push(
+									{
+										id: element.person_email_id,
+										email: element.person_email_email,
+									}
+								);
+						}
+						if(element.person_phone_phone_number){
+							var phoneRepeated = false;
+							for (var j = 0; j < contacts[i].phones.length; j++){
+								if(contacts[i].phones[j].id == element.person_phone_id){ //phone already added
+									phoneRepeated = true;
+									break;
+								}
+							};
+							if(!phoneRepeated){
+								contacts[i].phones.push(
+									{
+										id: element.person_phone_id,
+										countryCode: element.person_phone_country_code,
+										phone: element.person_phone_phone_number,
+									}
+								);
+							}
+						}
+						return;
+					}
+				};
+
+				var contact = {
+					id: element.id,
+					firstName: element.person_given_name,
+					surname: element.person_family_name,
+					emails: [],
+					phones: []
+				}
+
+				if(element.person_email_email){
+					contact.emails.push(
+						{
+							id: element.person_email_id,
+							email: element.person_email_email,
+						});
+				}
+
+				if(element.person_phone_phone_number){
+					contact.phones.push(
+						{
+							id: element.person_phone_id,
+							countryCode: element.person_phone_country_code,
+							phone: element.person_phone_phone_number,
+						});
+				}
+
+				contacts.push(contact);
+			});
+			console.log(contacts);
+
+			agreements.forEach(function(agreement){
+				agreement.contacts.in.forEach(function(contact_id, index, array){
+					for (var i = 0; i < contacts.length; i++) {
+						if(contacts[i].id == contact_id)
+							array[i] = contacts[i];
+					};
+				});
+				agreement.contacts.out.forEach(function(contact_id, index, array){
+					for (var i = 0; i < contacts.length; i++) {
+						if(contacts[i].id == contact_id)
+							array[i] = contacts[i];
+					};
+				});
+			});
+
 			res.send(200,agreements);
+		});
 		});
 
 		if(err) {
-      console.log(err);
+      		console.log(err);
         }
 	});
 });
@@ -1030,16 +1128,6 @@ server.post(
   	});
   });
 
-  //
-  // SELECT ai.id, number_agreement, title, agreement_type_name, agreement_status_name, orgs, *
-  // FROM kuntur.agreement_item ai
-  // LEFT JOIN kuntur.agreement_contact ac ON ac.agreement_item_id = ai.id
-  // LEFT JOIN kuntur.contact c ON c.id = ac.contact_id
-  // LEFT JOIN kuntur.person p ON p.id = c.person_id
-  // LEFT JOIN kuntur.person_email pm ON pm.person_id = p.id
-  // LEFT JOIN kuntur.person_phone pp ON pp.person_id = p.id
-  // LEFT JOIN kuntur.v_agreement a ON a.id = ai.agreement_id
-  // WHERE ai.org_id='4c49e860-e88f-48cb-aebb-67c6a729f548' order by number_agreement;
 server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} , function(req, res , next){
 
 	var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id_university+"'";
