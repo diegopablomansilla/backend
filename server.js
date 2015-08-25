@@ -461,19 +461,20 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 			console.log(contacts);
 
 			agreements.forEach(function(agreement){
-				agreement.contacts.in.forEach(function(contact_id, index, array){
+				for (var j = 0; j < agreement.contacts.in.length; j++) {
 					for (var i = 0; i < contacts.length; i++) {
-						if(contacts[i].id == contact_id)
-							array[i] = contacts[i];
+						if(contacts[i].id == agreement.contacts.in[j])
+							agreement.contacts.in[j] = contacts[i];
 					};
-				});
-				agreement.contacts.out.forEach(function(contact_id, index, array){
+				};
+				for (var j = 0; j < agreement.contacts.out.length; j++) {
 					for (var i = 0; i < contacts.length; i++) {
-						if(contacts[i].id == contact_id)
-							array[i] = contacts[i];
+						if(contacts[i].id == agreement.contacts.out[j])
+							agreement.contacts.out[j] = contacts[i];
 					};
-				});
+				};
 			});
+
 
 			res.send(200,agreements);
 		});
