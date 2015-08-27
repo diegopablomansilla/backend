@@ -1545,6 +1545,158 @@ server.get({path : '/getFullOrganizations', version : '0.0.1'} , function(req, r
 	// });
 });
 
+server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , function(req, res, next){
+	var idUniversity=req.params.id_university;
+	var contactId;
+	
+
+	var sql = "INSERT INTO kuntur.person(" +
+            "id, erased, given_name, family_name, comment) "+
+    "VALUES (uuid_generate_v4()::varchar, false, '"+req.body.firstName+"', '"+req.body.surname+"', '"+req.body.comment+"') RETURNING id;"
+
+    pg.connect(conString, function(err, client, done){
+    	client.query('BEGIN', function(err) {
+
+			var query = client.query(sql);
+
+			query.on("row", function(row, result){
+
+				var personId=row.id;
+				async.parallel([
+
+					function(callback){//insert contact
+
+						var sqlContact = "INSERT INTO kuntur.contact( "+
+            								"id, erased, reception_student, sending_student, org_id, person_id) "+
+   											"VALUES (uuid_generate_v4()::varchar, false, '"+req.body.receptionStudent+"', '"+req.body.sendingStudent+"',"+
+   											" '"+idUniversity+"', '"+personId+"') RETURNING id;"
+						console.log(sqlContact);
+
+						var queryContact = client.query(sqlContact);
+
+						queryContact.on("row", function(row, result){
+							contactId=row.id;
+						});
+
+						queryContact.on("end",function(result){
+							callback();
+						});
+
+						queryContact.on("error",function(error){
+							res.send(500,error);
+							return rollback(client, done);
+						});
+
+						if(err) {
+	          				rollback(client, done);
+	          				res.send(500,err);
+	        			}
+
+
+					},
+
+					function(callback){//insert emails
+
+						async.forEach(req.body.emails,function(mail, callbackInterno){
+
+							var sqlMail = "INSERT INTO kuntur.person_email( "+
+            								"id, erased, email, comment, person_id) "+
+    										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
+
+    						var queryMail = client.query(sqlMail);
+
+    						queryMail.on("row", function(row, result){
+
+							});
+
+							queryMail.on("end",function(result){
+								callbackInterno();
+							});
+
+							queryMail.on("error",function(error){
+								res.send(500,error);
+								return rollback(client, done);
+							});
+
+							if(err) {
+		          				rollback(client, done);
+		          				res.send(500,err);
+		        			}
+
+
+						},function(err){
+							callback();
+						});
+					},
+
+					function(callback){//insert tel
+						async.forEach(req.body.phones,function(tel, callbackInterno){
+
+							var sqlTel = "INSERT INTO kuntur.person_phone( "+
+            								"id, erased, country_code, phone_number, comment, person_id) "+
+    										"VALUES (uuid_generate_v4()::varchar, false, '"+tel.countryCode+"', '"+tel.phone+"', '"+tel.comment+"', '"+personId+"');"
+
+    						var queryTel = client.query(sqlTel);
+
+    						queryTel.on("row", function(row, result){
+
+							});
+
+							queryTel.on("end",function(result){
+								callbackInterno();
+							});
+
+							queryTel.on("error",function(error){
+								res.send(500,error);
+								return rollback(client, done);
+							});
+
+							if(err) {
+		          				rollback(client, done);
+		          				res.send(500,err);
+		        			}
+
+						},function(err){
+							callback();
+						});
+					}
+
+					],function(err){
+					done();
+					if(err){
+						rollback(client, done);
+						res.send(500,err.message);
+					}else{
+						client.query('COMMIT', done);
+						res.send(200,contactId);
+					}
+				});
+				
+			});
+
+
+			query.on("end",function(result){
+			
+			});
+
+			query.on("error",function(error){
+				res.send(500,error);
+				return rollback(client, done);
+			});
+
+			if(err) {
+	          rollback(client, done);
+	          res.send(500,err);
+	        }
+
+    	});
+    });
+
+});
+
+
+
+
 server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 
@@ -1837,6 +1989,8 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 	// 	//res.send(200,result.rows);
 	// });
 });
+
+
 
 server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
