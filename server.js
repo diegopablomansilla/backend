@@ -458,7 +458,7 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 
 				contacts.push(contact);
 			});
-			console.log(contacts);
+			// console.log(contacts);
 
 			agreements.forEach(function(agreement){
 				for (var j = 0; j < agreement.contacts.in.length; j++) {
@@ -1133,13 +1133,17 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 
 	var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id_university+"'";
 
-	var query = client.query(sql);
 
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+			done();
+			return res.send(500,err);
+        }
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-      result.addRow(row);
+      		result.addRow(row);
 		});
 
 		query.on("end",function(result){
@@ -1225,9 +1229,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 			res.send(200, contacts);
 		});
 
-		if(err) {
-
-        }
+		
 	});
 });
 
@@ -1238,6 +1240,12 @@ server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 	var query = client.query(sql);
 
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+			done();
+			return res.send(500,err);
+        }
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -1323,11 +1331,16 @@ server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 				contacts.push(contact);
 			});
 			res.send(200, contacts);
+			done();
 		});
 
-		if(err) {
+		query.on("error",function(error){
+			console.log(error)
+			res.send(500,error);
+			return done();
+		});
 
-        }
+		
 	});
 });
 
@@ -1339,7 +1352,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 	var offset = req.params.offset;
 	if(req.params.filter){
 		var filtro=JSON.parse(req.params.filter);
-		console.log(filtro);
+		// console.log(filtro);
 
 		if(filtro.cadenaBuscada){
 			busqueda=filtro.cadenaBuscada;
@@ -1350,9 +1363,20 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 	}
 	// var deleted = false;
 
-	sql="SELECT * FROM kuntur.findAgreements('"+busqueda+"',"+deleted+","+offset+","+pageSize+");";
+	sql="SELECT * FROM kuntur.findAgreements('"+busqueda+"',"+deleted+","+offset+","+pageSize+") ORDER BY number_agreement DESC;";
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+			res.send(500,err);
+	       	return done();
+	    }
+		
 		client.query('BEGIN', function(err) {
+			if(err) {
+				console.log(err);
+				done();
+				return res.send(500,err);
+	        }
 
 			var query = client.query(sql);
 
@@ -1362,19 +1386,15 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 
 			query.on("end",function(result){
 				client.query('COMMIT', done);
-				done();
 				res.send(200,result.rows);
 			});
 
-			query.on("error",function(){
-				console.log("err");
+			query.on("error",function(error){
+				console.log(error)
+				res.send(500,error);
 				return rollback(client, done);
 			});
 
-			if(err) {
-				console.log(err);
-	          return rollback(client, done);
-	        }
 	    });
 
 	});
@@ -1385,8 +1405,19 @@ server.get({path:'/findAgreementById', version:'0.0.1'}, function(req,res,next){
 	var sql="SELECT * FROM kuntur.f_findagreementsById('"+req.params.idAgreement+"');";
 
 		pg.connect(conString, function(err, client, done){
+			if(err) {
+			  console.log(err);
+			  res.send(500,err);
+	          return done();
+	        }
+
 			client.query('BEGIN', function(err) {
 
+			if(err) {
+			  console.log(err);
+			  res.send(500,err);
+	          return done();
+	        }
 
 			var query = client.query(sql);
 
@@ -1400,14 +1431,14 @@ server.get({path:'/findAgreementById', version:'0.0.1'}, function(req,res,next){
 				res.send(200,result.rows);
 			});
 
-			query.on("error",function(){
+			query.on("error",function(error){
+				console.log(error)
+				res.send(500,err);
 				return rollback(client, done);
 			});
+								
 
-			if(err) {
 
-	          return rollback(client, done);
-	        }
 	    });
 
 	});
@@ -1418,6 +1449,13 @@ server.get({path : '/getAgreementsTypes', version : '0.0.1'} , function(req, res
 	var sql="SELECT id, name FROM kuntur.agreement_type where erased = false";
 
 	pg.connect(conString, function(err, client, done){
+
+		if(err) {
+			console.log(err)
+			res.send(500,err);
+			return done();
+        }
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -1429,9 +1467,12 @@ server.get({path : '/getAgreementsTypes', version : '0.0.1'} , function(req, res
 			res.send(200,result.rows);
 		});
 
-		if(err) {
+		query.on("error",function(error){
+			console.log(error)
+			res.send(500,error);
+			done();
+		});
 
-        }
 
 	});
 
@@ -1443,6 +1484,12 @@ server.get({path : '/getOrganizations', version : '0.0.1'} , function(req, res ,
 	var sql="SELECT id, name FROM kuntur.org";
 
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+	    	rollback(client, done);
+	    	return res.send(500,err);
+        }
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -1453,22 +1500,15 @@ server.get({path : '/getOrganizations', version : '0.0.1'} , function(req, res ,
 			done();
 			res.send(200,result.rows);
 		});
-
-		if(err) {
-
-        }
+		
+		query.on("error",function(error){
+			console.log(error);
+			res.send(500,error);
+			return done();
+		});
 
 	});
 
-	// var query = client.query("SELECT id, name FROM kuntur.org");
-	// query.on("row", function(row, result){
-	// 	result.addRow(row);
-	// });
-
-	// query.on("end",function(result){
-
-	// 	res.send(200,result.rows);
-	// });
 
 });
 
@@ -1477,6 +1517,14 @@ server.get({path : '/getStatus', version : '0.0.1'} , function(req, res , next){
 	var sql="SELECT id, name FROM kuntur.agreement_status where erased = false";
 
 	pg.connect(conString, function(err, client, done){
+
+		if(err) {
+			console.log(err);
+	    	done();
+	    	return res.send(500,err);
+        }
+
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -1488,21 +1536,15 @@ server.get({path : '/getStatus', version : '0.0.1'} , function(req, res , next){
 			res.send(200,result.rows);
 		});
 
-		if(err) {
-
-        }
+		query.on("error",function(error){
+			console.log(error);
+			res.send(500,error);
+			return done();
+		});
 
 	});
 
-	// var query = client.query("SELECT id, name FROM kuntur.agreement_status");
-	// query.on("row", function(row, result){
-	// 	result.addRow(row);
-	// });
 
-	// query.on("end",function(result){
-
-	// 	res.send(200,result.rows);
-	// });
 
 });
 
@@ -1519,6 +1561,12 @@ server.get({path : '/getFullOrganizations', version : '0.0.1'} , function(req, r
 	}
 
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+	    	done();
+	    	return res.send(500,err);
+        }
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -1530,9 +1578,11 @@ server.get({path : '/getFullOrganizations', version : '0.0.1'} , function(req, r
 			res.send(200,result.rows);
 		});
 
-		if(err) {
-
-        }
+		query.on("error",function(error){
+			console.log(error);
+			res.send(500,error);
+			return rollback(client, done);
+		});
 
 	});
 
@@ -1555,7 +1605,17 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
     "VALUES (uuid_generate_v4()::varchar, false, '"+req.body.firstName+"', '"+req.body.surname+"', '"+req.body.comment+"') RETURNING id;"
 
     pg.connect(conString, function(err, client, done){
+    	if(err) {
+			console.log(err);
+	    	done();
+	    	return res.send(500,err);
+	    }
     	client.query('BEGIN', function(err) {
+    		if(err) {
+				console.log(err);
+		    	done();
+		    	return res.send(500,err);
+	    	}
 
 			var query = client.query(sql);
 
@@ -1570,7 +1630,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
             								"id, erased, reception_student, sending_student, org_id, person_id) "+
    											"VALUES (uuid_generate_v4()::varchar, false, '"+req.body.receptionStudent+"', '"+req.body.sendingStudent+"',"+
    											" '"+idUniversity+"', '"+personId+"') RETURNING id;"
-						console.log(sqlContact);
+						// console.log(sqlContact);
 
 						var queryContact = client.query(sqlContact);
 
@@ -1583,13 +1643,15 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 						});
 
 						queryContact.on("error",function(error){
+							console.log(error);
 							res.send(500,error);
 							return rollback(client, done);
 						});
 
 						if(err) {
+							console.log(err);
 	          				rollback(client, done);
-	          				res.send(500,err);
+	          				return res.send(500,err);
 	        			}
 
 
@@ -1614,17 +1676,24 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 							});
 
 							queryMail.on("error",function(error){
+								console.log(err);
 								res.send(500,error);
 								return rollback(client, done);
 							});
 
 							if(err) {
+								console.log(err);
 		          				rollback(client, done);
-		          				res.send(500,err);
+		          				return res.send(500,err);
 		        			}
 
 
 						},function(err){
+							if(err){
+								console.log(err);
+								rollback(client, done);
+		          				return res.send(500,err);
+							}
 							callback();
 						});
 					},
@@ -1647,16 +1716,23 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 							});
 
 							queryTel.on("error",function(error){
+								console.log(error);
 								res.send(500,error);
 								return rollback(client, done);
 							});
 
 							if(err) {
+								console.log(err);
 		          				rollback(client, done);
-		          				res.send(500,err);
+		          				return res.send(500,err);
 		        			}
 
 						},function(err){
+							if(err){
+								console.log(err);
+								rollback(client, done);
+		          				return res.send(500,err);
+							}
 							callback();
 						});
 					}
@@ -1664,8 +1740,9 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 					],function(err){
 					done();
 					if(err){
+						console.log(err);
 						rollback(client, done);
-						res.send(500,err.message);
+						return res.send(500,err.message);
 					}else{
 						client.query('COMMIT', done);
 						res.send(200,contactId);
@@ -1680,13 +1757,15 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 			});
 
 			query.on("error",function(error){
+				console.log(error);
 				res.send(500,error);
 				return rollback(client, done);
 			});
 
 			if(err) {
+			  console.log(error);
 	          rollback(client, done);
-	          res.send(500,err);
+	          return res.send(500,err);
 	        }
 
     	});
@@ -1707,7 +1786,19 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 	"'"+req.body.agreement.status+"', 'b57e010c-426a-45d4-b218-f819fd1bf4e7') RETURNING id;"
 
     pg.connect(conString, function(err, client, done){
+    	if(err) {
+			console.log(err)
+			done();
+			return res.send(500,err);
+        }
+
     	client.query('BEGIN', function(err) {
+    		if(err) {
+				console.log(err)
+				done();
+				return res.send(500,err);
+        	}	
+
     		var agreementId;
 			var query = client.query(sql);
 
@@ -1759,7 +1850,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 									});
 
 									queryAgItOu.on("error",function(error){
-
+										console.log(error);
 										res.send(500,error.message);
 										return rollback(client, done);
 									});
@@ -1804,7 +1895,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 								});
 
 								queryAgrCon.on("error",function(error){
-
+									console.log(error);
 									res.send(500,error);
 									return rollback(client, done);
 								});
@@ -1812,9 +1903,9 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 							},function(err){
 								if(err){
-
+									console.log(err);
 									res.send(500,err.message);
-									rollback(client, done);
+									return rollback(client, done);
 								}
 
 								callback();
@@ -1822,9 +1913,9 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 						}], function(err){
 							done();
 							if(err){
-
+								console.log(err);
 								rollback(client, done);
-								res.send(500,err.message);
+								return res.send(500,err.message);
 
 							}else{
 								client.query('COMMIT', done);
@@ -1840,7 +1931,7 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 					});
 
 					query2.on("error",function(error){
-
+						console.log(error);
 						res.send(500,error.message);
 						return rollback(client, done);
 
@@ -1859,42 +1950,21 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 			});
 
 			query.on("error",function(error){
-
+				console.log(error);
 				res.send(500,error.message);
 				return rollback(client, done);
 
 			});
 
 			if(err) {
-
+			  console.log(error);
 	          rollback(client, done);
-	          res.send(500,err);
+	          return res.send(500,err);
 	        }
 
 		});
 
 	});
-
-	// for(i in req.body.agreement.agreementItem){
-
-
- //        for(j in req.body.agreement.agreementItem[i].agreementItemOu){
-
-
-
-
-
-
- //    	}
- //    	for(j in req.body.agreement.agreementItem[i].contactIn){
-
-
-	//     }
-	//     for(j in req.body.agreement.agreementItem[i].contactOut){
-
-
-	//     }
- //    }
 
 
 });
@@ -1907,6 +1977,12 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 	//var query = client.query("SELECT org.short_name FROM kuntur.agreement_item ai join kuntur.org on org.id=ai.org_unit_id where ai.agreement_id='"+agreementId+"' group by org.id order by org.id;");
 
 	pg.connect(conString, function(err, client, done){
+
+		if(err) {
+			console.log(err)
+			return res.send(500,err);
+        }
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -1915,84 +1991,19 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 
 		query.on("end",function(result){
 
-			// if(result.rows.length<1){
-			// 	done();
-			// 	res.send(200,[]);
-			// }else{
-			// 	sql="CREATE EXTENSION IF NOT EXISTS tablefunc;"+
-			// 	"select * from crosstab("+
-			// 		 "'select org2.name, org.id, w.in_units || ''-'' || w.out_units from kuntur.agreement_item w join kuntur.org org ON w.org_unit_id = org.id join kuntur.org org2 ON w.org_id = org2.id  where w.agreement_id=''"+agreementId+"''',"+
-			// 		 "'select org.id from kuntur.agreement_item w join kuntur.org org on w.org_unit_id = org.id where w.agreement_id=''"+agreementId+"'' group by org.id order by org.id'"+
-			// 	") as ("+
-			// 	 "Universidad character varying";
-			// 	for(var i = 0 ; i < result.rows.length ; i++){
-			// 		sql+=",\""+result.rows[i].short_name+"\" text";
-			// 	}
-			// 	sql+=");";
-
-
-			// 	var query2 = client.query(sql);
-
-			// 	query2.on("row", function(row, result){
-
-			// 		result.addRow(row);
-			// 	});
-
-			// 	query2.on("end",function(result){
-
-
-			// 		done();
-			// 		res.send(200,result);
-			// 	});
-			// }
-
-			console.log(result.rows[0]);
+			// console.log(result.rows[0]);
 			done();
 			res.send(200,JSON.parse(result.rows[0].f_plazas));
 		});
 
-		if(err) {
-
-        }
+		query.on("error",function(error){
+			console.log(error);
+			res.send(500,error.message);
+			done();
+		});
 
 	});
 
-
-	// query.on("row", function(row, result){
-	// 	result.addRow(row);
-	// });
-	// query.on("end",function(result){
-
-	// 	var sql="CREATE EXTENSION IF NOT EXISTS tablefunc;"+
-	// 			"select * from crosstab("+
-	// 				 "'select org2.name, org.id, w.in_units || ''-'' || w.out_units from kuntur.agreement_item w join kuntur.org org ON w.org_unit_id = org.id join kuntur.org org2 ON w.org_id = org2.id  where w.agreement_id=''"+agreementId+"''',"+
-	// 				 "'select org.id from kuntur.agreement_item w join kuntur.org org on w.org_unit_id = org.id where w.agreement_id=''"+agreementId+"'' group by org.id order by org.id'"+
-	// 			") as ("+
-	// 			 "Universidad character varying";
-
-	// 	if(result.rows.length<1){
-	// 		res.send(200,[]);
-	// 	}else{
-	// 		for(var i = 0 ; i < result.rows.length ; i++){
-	// 			sql+=",\""+result.rows[i].short_name+"\" text";
-	// 		}
-	// 		sql+=");";
-
-
-	// 		query = client.query(sql);
-
-	// 		query.on("row", function(row, result){
-	// 			result.addRow(row);
-	// 		});
-
-	// 		query.on("end",function(result){
-
-
-	// 			res.send(200,result);
-	// 		});
-	// 	}
-	// 	//res.send(200,result.rows);
-	// });
 });
 
 
@@ -2000,7 +2011,7 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
 
-var sql = "SELECT org_id,org_short_name, person_family_name || ',' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg(person_phone_phone_number, ' ') AS tel,"+
+var sql = "SELECT org_id,org_short_name, person_family_name || ', ' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg('(' || person_phone_country_code || ')' || person_phone_phone_number, ' ') AS tel,"+
  "agreement_contact_reception_student AS reception_student, agreement_contact_sending_student AS sending_student "
 +"FROM kuntur.v_responsables "
 +"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false AND agreement_item_erased = false "
@@ -2008,6 +2019,12 @@ var sql = "SELECT org_id,org_short_name, person_family_name || ',' || person_giv
 
 
 	pg.connect(conString, function(err, client, done){
+		
+		if(err) {
+			console.log(err)
+			return res.send(500,err);
+        }
+
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
@@ -2019,12 +2036,13 @@ var sql = "SELECT org_id,org_short_name, person_family_name || ',' || person_giv
 			res.send(200,result.rows);
 		});
 
-		if(err) {
-
-        }
+		query.on("error",function(error){
+			console.log(error)
+			res.send(500,error.message);
+			done();
+		});
 
 	});
-
 
 });
 
@@ -2151,7 +2169,17 @@ server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res ,
 
  	pg.connect(conString, function(err, client, done){
  		client.query('BEGIN', function(err) {
+	 		if(err) {
+			    console.log(err);
+			    res.send(500,err);
+			    return done();
+			}
 	 		var query = client.query(sql);
+	 		if(err) {
+			    console.log(err);
+			    res.send(500,err);
+			    return done();
+			}
 
 			query.on("end",function(result){
 				client.query('COMMIT', done);
@@ -2159,14 +2187,11 @@ server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res ,
 			});
 
 			query.on("error",function(error){
+				console.log(error);
 				res.send(500,error.message);
 				return rollback(client, done);
 			});
 
-			if(err) {
-	          res.send(500,err);
-	          return rollback(client, done);
-	        }
 	    });
  	});
 });
@@ -2174,8 +2199,18 @@ server.post({path : '/updateAgreement', version : '0.0.1'} , function(req, res ,
 server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, res , next){
 
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+			res.send(500,err);
+			return done();
+		}
 
 		client.query('BEGIN', function(err) {
+			if(err) {
+				console.log(err);
+			    res.send(500,err);
+			    return done();
+			}
 
 			var sqlCount = "select count(*) from kuntur.admission_period_agreement where agreement_id = '"+req.body.agreement.id+"';";
 
@@ -2264,6 +2299,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 											});
 
 											queryAgItOu.on("error",function(error){
+												console.log(error);
 												res.send(500,error.message);
 												return rollback(client, done);
 											});
@@ -2272,7 +2308,8 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 											callbackInterno();//Para que termine el elemento UNC
 										}
 									},function(err){
-
+										console.log(err);
+										res.send(500,err);
 										callback();
 									});
 								},
@@ -2301,8 +2338,6 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 												"WHERE agreement_item_id='"+agreementItemId+"' and contact_id='"+contacts.contact_id+"';"
 										}
 
-										// console.log("agreement_contact");
-										// console.log(sqlAgrCon);
 
 
 										var queryAgrCon = client.query(sqlAgrCon);
@@ -2315,7 +2350,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 										});
 
 										queryAgrCon.on("error",function(error){
-
+											console.log(error);
 											res.send(500,error);
 											return rollback(client, done);
 										});
@@ -2323,7 +2358,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 
 									},function(err){
 										if(err){
-
+											console.log(err);
 											res.send(500,err.message);
 											rollback(client, done);
 										}
@@ -2333,9 +2368,9 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 								}], function(err){
 									done();
 									if(err){
-
+										console.log(err);
 										rollback(client, done);
-										res.send(500,err.message);
+										return res.send(500,err.message);
 
 									}else{
 										client.query('COMMIT', done);
@@ -2352,7 +2387,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 							});
 
 							query2.on("error",function(error){
-
+								console.log(error);
 								res.send(500,error.message);
 								return rollback(client, done);
 
@@ -2367,11 +2402,13 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 
 
 					queryAgreement.on("error",function(error){
+						console.log(error);
 						res.send(500,error.message);
 						return rollback(client, done);
 					});
 
 					if(err) {//del queryAgreement
+					  console.log(err);
 			          res.send(500,err);
 			          return rollback(client, done);
 			        }
@@ -2384,6 +2421,7 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 			});
 
 			queryCount.on("error",function(error){
+				console.log(error);
 				res.send(500,error.message);
 				rollback(client, done);
 			});
@@ -2408,7 +2446,21 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 	var sql = "select * from kuntur.org o join kuntur.v_agreement_data ai on ai.org_id=o.id where ai.agreement_id='"+req.params.id+"' AND ai.erased = false;"
 
  	pg.connect(conString, function(err, client, done){
+ 		
+ 		if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	    }
+
  		client.query('BEGIN', function(err) {
+
+			if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	    	}
+
 	 		var query = client.query(sql);
 
 	 		query.on("row", function(row, result){
@@ -2421,14 +2473,11 @@ server.get({path : '/getSelectedOrgs', version : '0.0.1'} , function(req, res , 
 			});
 
 			query.on("error",function(error){
+				console.log(error);
 				res.send(500,error.message);
 				return rollback(client, done);
 			});
 
-			if(err) {
-	          res.send(500,err);
-	          return rollback(client, done);
-	        }
 	    });
  	});
 });
@@ -2445,7 +2494,17 @@ server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , 
 	
 
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+			res.send(500,err);
+			console.log(err);
+	        return done();
+	    }
 		client.query('BEGIN', function(err) {
+			if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	   		}
 
 			var queryCount = client.query(sqlCount);
 
@@ -2473,14 +2532,10 @@ server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , 
 					});
 
 					query.on("error",function(error){
+						console.log(error);
 						res.send(500,error.message);
 						rollback(client, done);
 					});
-
-					if(err) {
-			          	done();
-			        }
-
 
 				}
 			});
@@ -2489,8 +2544,9 @@ server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , 
 			});
 
 			queryCount.on("error",function(error){
+				console.log(error)
 				res.send(500,error.message);
-				rollback(client, done);
+				return rollback(client, done);
 			});
 
 
@@ -2510,7 +2566,17 @@ server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res 
 
 	var query = client.query(sql);
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	    }
 		client.query('BEGIN', function(err) {
+			if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	    	}
 
 			var query = client.query(sql);
 
@@ -2525,14 +2591,10 @@ server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res 
 			});
 
 			query.on("error",function(error){
+				console.log(error)
 				res.send(500,error.message);
 				rollback(client, done);
-				callbackInterno();
 			});
-
-			if(err) {
-	          	done();
-	        }
 
 		});
 	});
@@ -2548,7 +2610,20 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 
 	var query = client.query(sql);
 	pg.connect(conString, function(err, client, done){
+		if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	    }
+
 		client.query('BEGIN', function(err) {
+
+			if(err) {
+				res.send(500,err);
+				console.log(err);
+	          	return done();
+	        }
+
 			var query = client.query(sql);
 			var agreement={}
 			agreement.agreementItem=[];
@@ -2584,6 +2659,7 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 							});
 
 							queryContact.on("error",function(error){
+								console.log(error);
 								res.send(500,error.message);
 								rollback(client, done);
 								callbackInterno();
@@ -2603,6 +2679,7 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 							});
 
 							queryItemOu.on("error",function(error){
+								console.log(error);
 								res.send(500,error.message);
 								rollback(client, done);
 								callbackInterno();
@@ -2610,7 +2687,11 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 						}
 					], function(err, results){
 
-
+						if(err){
+							console.log(err);
+							res.send(500,err);
+							return rollback(client, done);
+						}
 						agreementItem.contacts=results[0];
 						agreementItem.agreementItemOu=results[1];
 
@@ -2618,7 +2699,11 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 						callbackForEach(null);
 					});
 				}, function(err){
-
+					if(err){
+						console.log(err);
+						res.send(500,err);
+						return rollback(client, done);
+					}
 
 					//tengo que busar el resto de info del agreement (nombre, fechas, etc...)
 					var sqlA="  select a.title, a.from_date, a.to_date, a.agreement_type_id, a.agreement_status_id, ty.name as type_name, st.name as status_name from kuntur.agreement a "+
@@ -2644,8 +2729,9 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 					});
 
 					queryA.on("error",function(error){
+						console.log(error);
 						res.send(500,error.message);
-						rollback(client, done);
+						return rollback(client, done);
 					});
 
 
@@ -2657,10 +2743,7 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 
 			});
 
-			if(err) {
 
-	          	done();
-	        }
 	    });
 	});
 
