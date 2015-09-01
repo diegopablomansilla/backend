@@ -94,7 +94,7 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 	if(req.params.searchText){
     // search by short_name, original_name, name, comment or web_site
 		sql += "AND (org.short_name ILIKE '%" + req.params.searchText + "%'" ;
-    sql += " OR translate(coalesce(org.original_name::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + req.params.searchText + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN'))" ;
+    sql += " OR translate(coalesce(org.original_name::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + req.params.searchText + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
     sql += " OR translate(coalesce(org.name::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + req.params.searchText + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
     sql += " OR translate(coalesce(org.comment::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + req.params.searchText + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
     sql += " OR translate(coalesce(org.web_site::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + req.params.searchText + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN'))" ;
@@ -2653,7 +2653,7 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 
 					async.parallel([
 						function(callbackInterno){
-							var sqlItem="select ac.id, o.short_name, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id join kuntur.org o on o.id = c.org_id where agreement_item_id='"+agreementItemId+"' and ac.erased=false;"
+							var sqlItem="select ac.id, o.short_name, o.original_name, o.web_site, ac.reception_student, ac.sending_student, c.org_id, p.given_name, p.middle_name, p.family_name, p.id as person_id, c.id as contact_id from kuntur.agreement_contact ac join kuntur.contact c on c.id = ac.contact_id join kuntur.person p on p.id = c.person_id join kuntur.org o on o.id = c.org_id where agreement_item_id='"+agreementItemId+"' and ac.erased=false ORDER BY o.original_name;"
 							var queryContact = client.query(sqlItem);
 
 							queryContact.on("row", function(row, result){
