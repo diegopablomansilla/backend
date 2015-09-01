@@ -2011,11 +2011,11 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
 
-var sql = "SELECT org_id,org_short_name, person_family_name || ', ' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg('(' || person_phone_country_code || ')' || person_phone_phone_number, ' ') AS tel,"+
+var sql = "SELECT org_id,org_original_name,org_short_name, person_family_name || ', ' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg('(' || person_phone_country_code || ')' || person_phone_phone_number, ' ') AS tel,"+
  "agreement_contact_reception_student AS reception_student, agreement_contact_sending_student AS sending_student "
 +"FROM kuntur.v_responsables "
 +"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false AND agreement_item_erased = false "
-+"GROUP BY org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name, org_id, erased ORDER BY org_short_name";
++"GROUP BY org_original_name, org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name, org_id, erased ORDER BY org_original_name";
 
 
 	pg.connect(conString, function(err, client, done){
