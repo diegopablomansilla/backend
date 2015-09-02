@@ -1415,7 +1415,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 });
 
 server.del(
-  {path:'/universities/:id_university/contacts/:id', function (req, res, next) {
+  {path:'/universities/:id_university/contacts/:id', version : '0.0.1'}, function (req, res, next) {
     pg.connect(conString, function (err, client, done) {
 
       //Return if an error occurs
@@ -1447,7 +1447,7 @@ server.del(
           }
         });
     });
-  }}
+  }
 );
 
 server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
