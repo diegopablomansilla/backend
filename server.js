@@ -1137,10 +1137,11 @@ server.post(
   	});
   });
 
+
+// Get list of contacts
 server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} , function(req, res , next){
 
-	var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id_university+"'";
-
+	var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id_university+"' and erased='false'";
 
 	pg.connect(conString, function(err, client, done){
 		if(err) {
@@ -1236,10 +1237,218 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 			});
 			res.send(200, contacts);
 		});
-
-
 	});
 });
+
+/* Create a new contact */
+server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , function(req, res, next){
+	var idUniversity=req.params.id_university;
+	var contactId;
+
+	var sql = "INSERT INTO kuntur.person(" +
+            "id, erased, given_name, family_name, comment) "+
+    "VALUES (uuid_generate_v4()::varchar, false, '"+req.body.firstName+"', '"+req.body.surname+"', '"+req.body.comment+"') RETURNING id;"
+
+    pg.connect(conString, function(err, client, done){
+    	if(err) {
+			console.log(err);
+	    	done();
+	    	return res.send(500,err);
+	    }
+    	client.query('BEGIN', function(err) {
+    		if(err) {
+				console.log(err);
+		    	done();
+		    	return res.send(500,err);
+	    	}
+
+			var query = client.query(sql);
+
+			query.on("row", function(row, result){
+
+				var personId=row.id;
+				async.parallel([
+
+					function(callback){//insert contact
+
+						var sqlContact = "INSERT INTO kuntur.contact( "+
+            								"id, erased, reception_student, sending_student, org_id, person_id) "+
+   											"VALUES (uuid_generate_v4()::varchar, false, '"+req.body.receptionStudent+"', '"+req.body.sendingStudent+"',"+
+   											" '"+idUniversity+"', '"+personId+"') RETURNING id;"
+						// console.log(sqlContact);
+
+						var queryContact = client.query(sqlContact);
+
+						queryContact.on("row", function(row, result){
+							contactId=row.id;
+						});
+
+						queryContact.on("end",function(result){
+							callback();
+						});
+
+						queryContact.on("error",function(error){
+							console.log(error);
+							res.send(500,error);
+							return rollback(client, done);
+						});
+
+						if(err) {
+							console.log(err);
+	          				rollback(client, done);
+	          				return res.send(500,err);
+	        			}
+					},
+
+					function(callback){//insert emails
+
+						async.forEach(req.body.emails,function(mail, callbackInterno){
+
+							var sqlMail = "INSERT INTO kuntur.person_email( "+
+            								"id, erased, email, comment, person_id) "+
+    										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
+
+    						var queryMail = client.query(sqlMail);
+
+    						queryMail.on("row", function(row, result){
+
+							});
+
+							queryMail.on("end",function(result){
+								callbackInterno();
+							});
+
+							queryMail.on("error",function(error){
+								console.log(err);
+								res.send(500,error);
+								return rollback(client, done);
+							});
+
+							if(err) {
+								console.log(err);
+		          				rollback(client, done);
+		          				return res.send(500,err);
+		        			}
+
+						},function(err){
+							if(err){
+								console.log(err);
+								rollback(client, done);
+		          				return res.send(500,err);
+							}
+							callback();
+						});
+					},
+
+					function(callback){//insert tel
+						async.forEach(req.body.phones,function(tel, callbackInterno){
+
+							var sqlTel = "INSERT INTO kuntur.person_phone( "+
+            								"id, erased, country_code, phone_number, comment, person_id) "+
+    										"VALUES (uuid_generate_v4()::varchar, false, '"+tel.countryCode+"', '"+tel.phone+"', '"+tel.comment+"', '"+personId+"');"
+
+    						var queryTel = client.query(sqlTel);
+
+    						queryTel.on("row", function(row, result){
+
+							});
+
+							queryTel.on("end",function(result){
+								callbackInterno();
+							});
+
+							queryTel.on("error",function(error){
+								console.log(error);
+								res.send(500,error);
+								return rollback(client, done);
+							});
+
+							if(err) {
+								console.log(err);
+		          				rollback(client, done);
+		          				return res.send(500,err);
+		        			}
+
+						},function(err){
+							if(err){
+								console.log(err);
+								rollback(client, done);
+		          				return res.send(500,err);
+							}
+							callback();
+						});
+					}
+
+					],function(err){
+					done();
+					if(err){
+						console.log(err);
+						rollback(client, done);
+						return res.send(500,err.message);
+					}else{
+						client.query('COMMIT', done);
+						res.send(200,contactId);
+					}
+				});
+
+			});
+
+
+			query.on("end",function(result){
+
+			});
+
+			query.on("error",function(error){
+				console.log(error);
+				res.send(500,error);
+				return rollback(client, done);
+			});
+
+			if(err) {
+			  console.log(error);
+	          rollback(client, done);
+	          return res.send(500,err);
+	        }
+
+    	});
+    });
+});
+
+server.del(
+  {path:'/universities/:id_university/contacts/:id', function (req, res, next) {
+    pg.connect(conString, function (err, client, done) {
+
+      //Return if an error occurs
+      if(err) {
+        done(); //release the pg client back to the pool
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      //querying database
+      var sql = "UPDATE kuntur.contact SET erased='true' WHERE id=";
+        sql += "'" + req.params.id + "'";
+
+        client.query(sql, function(err, result) {
+          done(); //release the pg client back to the pool
+          //Return if an error occurs
+          if(err) {//falta de conexion
+            console.error('error fetching client from pool', err);
+            res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+            return next();
+          }
+          if (result.rowCount == 0) {
+            console.error('result not found', err);
+            res.send(404, {code: 404, message: 'Not Found', description: 'Cannot delete a non existent resource'});
+            return next();
+          }else{
+            res.send(204);
+          }
+        });
+    });
+  }}
+);
 
 server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 
@@ -1602,187 +1811,6 @@ server.get({path : '/getFullOrganizations', version : '0.0.1'} , function(req, r
 	// 	res.send(200,result.rows);
 	// });
 });
-
-server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , function(req, res, next){
-	var idUniversity=req.params.id_university;
-	var contactId;
-
-
-	var sql = "INSERT INTO kuntur.person(" +
-            "id, erased, given_name, family_name, comment) "+
-    "VALUES (uuid_generate_v4()::varchar, false, '"+req.body.firstName+"', '"+req.body.surname+"', '"+req.body.comment+"') RETURNING id;"
-
-    pg.connect(conString, function(err, client, done){
-    	if(err) {
-			console.log(err);
-	    	done();
-	    	return res.send(500,err);
-	    }
-    	client.query('BEGIN', function(err) {
-    		if(err) {
-				console.log(err);
-		    	done();
-		    	return res.send(500,err);
-	    	}
-
-			var query = client.query(sql);
-
-			query.on("row", function(row, result){
-
-				var personId=row.id;
-				async.parallel([
-
-					function(callback){//insert contact
-
-						var sqlContact = "INSERT INTO kuntur.contact( "+
-            								"id, erased, reception_student, sending_student, org_id, person_id) "+
-   											"VALUES (uuid_generate_v4()::varchar, false, '"+req.body.receptionStudent+"', '"+req.body.sendingStudent+"',"+
-   											" '"+idUniversity+"', '"+personId+"') RETURNING id;"
-						// console.log(sqlContact);
-
-						var queryContact = client.query(sqlContact);
-
-						queryContact.on("row", function(row, result){
-							contactId=row.id;
-						});
-
-						queryContact.on("end",function(result){
-							callback();
-						});
-
-						queryContact.on("error",function(error){
-							console.log(error);
-							res.send(500,error);
-							return rollback(client, done);
-						});
-
-						if(err) {
-							console.log(err);
-	          				rollback(client, done);
-	          				return res.send(500,err);
-	        			}
-
-
-					},
-
-					function(callback){//insert emails
-
-						async.forEach(req.body.emails,function(mail, callbackInterno){
-
-							var sqlMail = "INSERT INTO kuntur.person_email( "+
-            								"id, erased, email, comment, person_id) "+
-    										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
-
-    						var queryMail = client.query(sqlMail);
-
-    						queryMail.on("row", function(row, result){
-
-							});
-
-							queryMail.on("end",function(result){
-								callbackInterno();
-							});
-
-							queryMail.on("error",function(error){
-								console.log(err);
-								res.send(500,error);
-								return rollback(client, done);
-							});
-
-							if(err) {
-								console.log(err);
-		          				rollback(client, done);
-		          				return res.send(500,err);
-		        			}
-
-
-						},function(err){
-							if(err){
-								console.log(err);
-								rollback(client, done);
-		          				return res.send(500,err);
-							}
-							callback();
-						});
-					},
-
-					function(callback){//insert tel
-						async.forEach(req.body.phones,function(tel, callbackInterno){
-
-							var sqlTel = "INSERT INTO kuntur.person_phone( "+
-            								"id, erased, country_code, phone_number, comment, person_id) "+
-    										"VALUES (uuid_generate_v4()::varchar, false, '"+tel.countryCode+"', '"+tel.phone+"', '"+tel.comment+"', '"+personId+"');"
-
-    						var queryTel = client.query(sqlTel);
-
-    						queryTel.on("row", function(row, result){
-
-							});
-
-							queryTel.on("end",function(result){
-								callbackInterno();
-							});
-
-							queryTel.on("error",function(error){
-								console.log(error);
-								res.send(500,error);
-								return rollback(client, done);
-							});
-
-							if(err) {
-								console.log(err);
-		          				rollback(client, done);
-		          				return res.send(500,err);
-		        			}
-
-						},function(err){
-							if(err){
-								console.log(err);
-								rollback(client, done);
-		          				return res.send(500,err);
-							}
-							callback();
-						});
-					}
-
-					],function(err){
-					done();
-					if(err){
-						console.log(err);
-						rollback(client, done);
-						return res.send(500,err.message);
-					}else{
-						client.query('COMMIT', done);
-						res.send(200,contactId);
-					}
-				});
-
-			});
-
-
-			query.on("end",function(result){
-
-			});
-
-			query.on("error",function(error){
-				console.log(error);
-				res.send(500,error);
-				return rollback(client, done);
-			});
-
-			if(err) {
-			  console.log(error);
-	          rollback(client, done);
-	          return res.send(500,err);
-	        }
-
-    	});
-    });
-
-});
-
-
-
 
 server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
