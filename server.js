@@ -112,8 +112,6 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 		sql += "OFFSET '"+req.params.offset+"' LIMIT '"+req.params.limit+"'";
 	}
 
-  console.log(sql);
-
 	var query = client.query(sql);
 
 	pg.connect(conString, function(err, client, done){
@@ -206,7 +204,7 @@ server.post(
           res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
           return next();
         }
-        var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, web_site, country_code, primary_org, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
+        var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
           if(!!req.body.short_name){ //column short_name
             sql += "'" + req.body.short_name + "', ";
           }
@@ -217,6 +215,7 @@ server.post(
             sql += "'" + req.body.web_site + "', ";       // column web_site
             sql += "'" + req.body.country_code + "', ";   // column country_code
             sql += 'false, ';                             // column primary_org
+            sql += "'" + req.body.comment + "', ";        // column comment
             sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
 
             client.query(sql, function(err, result) {
@@ -275,6 +274,9 @@ server.put({path:'/universities/:universityId', version:'0.0.1'}, function(req, 
       sql += "web_site= '" + req.body.web_site + "' ";
       if(!!req.body.short_name){
         sql += ", short_name= '" + req.body.short_name + "' ";
+      }
+      if(!!req.body.comment){
+        sql += ", comment= '" + req.body.comment + "' ";
       }
       if(typeof req.body.erased !== "undefined"){
           sql += ", erased= '" + req.body.erased + "' ";
