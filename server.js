@@ -1208,8 +1208,6 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 					surname: element.person_family_name,
 					male: element.person_masculine,
 					comment: element.person_comment,
-					receptionStudent: element.reception_student,
-					sendingStudent: element.sending_student,
 					emails: [],
 					phones: []
 				}
@@ -1272,9 +1270,8 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 					function(callback){//insert contact
 
 						var sqlContact = "INSERT INTO kuntur.contact( "+
-            								"id, erased, reception_student, sending_student, org_id, person_id) "+
-   											"VALUES (uuid_generate_v4()::varchar, false, '"+req.body.receptionStudent+"', '"+req.body.sendingStudent+"',"+
-   											" '"+idUniversity+"', '"+personId+"') RETURNING id;"
+            								"id, erased, org_id, person_id) "+
+   											"VALUES (uuid_generate_v4()::varchar, false, "+" '"+idUniversity+"', '"+personId+"') RETURNING id;"
 						// console.log(sqlContact);
 
 						var queryContact = client.query(sqlContact);
@@ -1447,6 +1444,56 @@ server.del(
           }
         });
     });
+  }
+);
+
+
+/*Update a contact*/
+server.put(
+  {path:'/universities/:id_university/contacts/:id'},
+  function (req, res, next) {
+
+    // Body cannot be empty
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      var sql = 'UPDATE kuntur.org SET ';
+        if(!!req.body.firstName){
+          sql += " short_name= '" + req.body.short_name + "' ";
+        }
+        if(!!req.body.surname){
+          sql += " short_name= '" + req.body.short_name + "' ";
+        }
+        if(!!req.body.comment){
+          sql += ", comment= '" + req.body.comment + "' ";
+        }
+        if(typeof req.body.erased !== "undefined"){
+            sql += ", erased= '" + req.body.erased + "' ";
+        }
+      sql += " WHERE id='" + req.params.universityId + "'";
+
+      client.query(sql, function(err, result) {
+        done();
+        //Return if an error occurs
+        if(err) { //connection failed
+          console.error(err);
+          res.send(503, {code: 503, message: 'Database error', description: err});
+          return next();
+        }
+        res.send(204);
+      });
+    }
+
   }
 );
 
