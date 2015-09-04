@@ -1260,6 +1260,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 		    	return res.send(500,err);
 	    	}
 
+	    	console.log(sql);
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
@@ -1274,6 +1275,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
    											"VALUES (uuid_generate_v4()::varchar, false, "+" '"+idUniversity+"', '"+personId+"') RETURNING id;"
 						// console.log(sqlContact);
 
+						console.log(sqlContact);
 						var queryContact = client.query(sqlContact);
 
 						queryContact.on("row", function(row, result){
@@ -1305,6 +1307,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
             								"id, erased, email, comment, person_id) "+
     										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
 
+    						console.log(sqlMail);
     						var queryMail = client.query(sqlMail);
 
     						queryMail.on("row", function(row, result){
@@ -1344,6 +1347,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
             								"id, erased, country_code, phone_number, comment, person_id) "+
     										"VALUES (uuid_generate_v4()::varchar, false, '"+tel.countryCode+"', '"+tel.phone+"', '"+tel.comment+"', '"+personId+"');"
 
+    						console.log(sqlTel);
     						var queryTel = client.query(sqlTel);
 
     						queryTel.on("row", function(row, result){
@@ -1384,7 +1388,7 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 						return res.send(500,err.message);
 					}else{
 						client.query('COMMIT', done);
-						res.send(200,contactId);
+						res.send(201,contactId);
 					}
 				});
 
@@ -2094,7 +2098,7 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 server.get({path : '/getResponsableXOrgXConvenio', version : '0.0.1'} , function(req, res , next){
 	var agreementId=req.params.agrId;
 
-var sql = "SELECT org_id,org_original_name,org_short_name, person_family_name || ', ' || person_given_name AS name,string_agg(person_email_email, ' ') AS email,string_agg('(' || person_phone_country_code || ')' || person_phone_phone_number, ' ') AS tel,"+
+var sql = "SELECT org_id,org_original_name,org_short_name, person_family_name || ', ' || person_given_name AS name,string_agg(person_email_email, ' | ') AS email,string_agg('(' || person_phone_country_code || ')' || person_phone_phone_number, ' | ') AS tel,"+
  "agreement_contact_reception_student AS reception_student, agreement_contact_sending_student AS sending_student "
 +"FROM kuntur.v_responsables "
 +"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false AND agreement_item_erased = false "
