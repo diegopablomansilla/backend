@@ -1238,6 +1238,106 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 	});
 });
 
+// Get a single contact
+server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1'} , function(req, res , next){
+
+	var sql="SELECT * FROM kuntur.v_contacts WHERE org_id='" + req.params.id_university+"' and erased='false' and id='" +req.params.id+"'";
+
+	pg.connect(conString, function(err, client, done){
+		if(err) {
+			console.log(err);
+			done();
+			return res.send(500,err);
+        }
+		var query = client.query(sql);
+
+		query.on("row", function(row, result){
+      		result.addRow(row);
+		});
+
+		query.on("end",function(result){
+			done();
+			var contacts=[];
+			result.rows.forEach(function(element){
+
+				for (var i = 0; i < contacts.length; i++) {
+					if(contacts[i].id == element.id){ //contact already added
+						if(element.person_email_email){
+							var emailRepeated = false;
+							for (var j = 0; j < contacts[i].emails.length; j++) {
+								if(contacts[i].emails[j].id == element.person_email_id){ //email already added
+									emailRepeated = true;
+									break;
+								}
+							};
+							if(!emailRepeated)
+								contacts[i].emails.push(
+									{
+										id: element.person_email_id,
+										email: element.person_email_email,
+										comment:element.person_email_comment
+									}
+								);
+						}
+						if(element.person_phone_phone_number){
+							var phoneRepeated = false;
+							for (var j = 0; j < contacts[i].phones.length; j++){
+								if(contacts[i].phones[j].id == element.person_phone_id){ //phone already added
+									phoneRepeated = true;
+									break;
+								}
+							};
+							if(!phoneRepeated){
+								contacts[i].phones.push(
+									{
+										id: element.person_phone_id,
+										countryCode: element.person_phone_country_code,
+										phone: element.person_phone_phone_number,
+										comment:element.person_phone_comment
+									}
+								);
+							}
+						}
+						return;
+					}
+				};
+
+				var contact = {
+					id: element.id,
+					firstName: element.person_given_name,
+					surname: element.person_family_name,
+					male: element.person_masculine,
+					comment: element.person_comment,
+					emails: [],
+					phones: []
+				}
+
+				if(element.person_email_email){
+					contact.emails.push(
+						{
+							id: element.person_email_id,
+							email: element.person_email_email,
+							comment:element.person_email_comment
+						});
+				}
+
+				if(element.person_phone_phone_number){
+					contact.phones.push(
+						{
+							id: element.person_phone_id,
+							countryCode: element.person_phone_country_code,
+							phone: element.person_phone_phone_number,
+							comment:element.person_phone_comment
+						});
+				}
+
+				contacts.push(contact);
+			});
+			res.send(200, contacts);
+		});
+	});
+});
+
 /* Create a new contact */
 server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , function(req, res, next){
 	var idUniversity=req.params.id_university;
@@ -1459,7 +1559,7 @@ server.put(
 
     // Body cannot be empty
     if(!req.body){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      res.send(409, {code: 409, message: 'Caonflict', description: 'No body found in request.'});
       return next();
     }
 
@@ -1471,32 +1571,132 @@ server.put(
         return next();
       }
 
-      var sql = 'UPDATE kuntur.org SET ';
-        if(!!req.body.firstName){
-          sql += " short_name= '" + req.body.short_name + "' ";
-        }
-        if(!!req.body.surname){
-          sql += " short_name= '" + req.body.short_name + "' ";
-        }
-        if(!!req.body.comment){
-          sql += ", comment= '" + req.body.comment + "' ";
-        }
-        if(typeof req.body.erased !== "undefined"){
-            sql += ", erased= '" + req.body.erased + "' ";
-        }
-      sql += " WHERE id='" + req.params.universityId + "'";
+      var sql = "select person_id from kuntur.contact where id='"+ req.params.id +"'";
 
       client.query(sql, function(err, result) {
-        done();
+      	var personId = result.rows[0].person_id;
+        
         //Return if an error occurs
         if(err) { //connection failed
           console.error(err);
           res.send(503, {code: 503, message: 'Database error', description: err});
           return next();
         }
-        res.send(204);
+        sql = '';
+        //TODO update erased in contact (if needeed)
+        sql += 'UPDATE kuntur.person SET ';
+        if(!!req.body.firstName){
+          sql += " given_name= '" + req.body.firstName + "' ";
+        }
+        if(!!req.body.surname){
+          sql += ", family_name= '" + req.body.surname + "' ";
+        }
+        if(!!req.body.comment){
+          sql += ", comment= '" + req.body.comment + "' ";
+        }
+       
+      	sql += " WHERE id='" + personId + "'";
+
+      	client.query(sql, function (err, result){
+      		async.parallel([
+
+      			//update emails
+      			function(callback){
+      				async.forEach(
+      					//array
+      					req.body.emails, 
+      					//function
+      					function(email, callbackInterno){
+      						// first case, an email has been added
+      						if(!email.id){
+      							var sqlMail = "INSERT INTO kuntur.person_email( "+
+            								"id, erased, email, person_id) "+
+    										"VALUES (uuid_generate_v4()::varchar, false, '"+email.email+"', '"+personId+"');";
+    							client.query(sqlMail, function(){
+      								callbackInterno();
+    							});
+      						}
+      						else{
+	      						// second case, an email has been deleted
+	      						if(!!email.erased){
+	      							var sqlMail = "DELETE FROM kuntur.person_email WHERE id='"+email.id+"'";
+	      							client.query(sqlMail, function(){
+	      								callbackInterno();
+	    							});
+	      						}
+	      						else{
+		      						// default case, an email has been updated
+		      						var sqlMail ="UPDATE kuntur.person_email SET email ='"+ email.email +"' where id = '" + email.id + "'";
+		      						client.query(sqlMail, function(){
+		  								callbackInterno();
+		    						});
+	      						}
+      						}
+      					}, 
+      					//foreach callback
+      					function(){
+	      					callback(); //calling parallel callback
+      					}
+      				);
+      			},
+
+      			//update phones
+      			function(callback){
+      				async.forEach(
+      					//array
+      					req.body.phones, 
+      					//function
+      					function(phone, callbackInterno){
+      						// first case, an phone has been added
+      						if(!phone.id){
+      							var sqlPhone = "INSERT INTO kuntur.person_phone( "+
+            								"id, erased, country_code, phone_number, person_id) "+
+    										"VALUES (uuid_generate_v4()::varchar, false, '"+phone.countryCode+"', '"+phone.phone+"', '"+personId+"');";
+    							client.query(sqlPhone, function(){
+      								callbackInterno();
+    							});
+      						}
+      						else{
+	      						// second case, an email has been deleted
+	      						if(!!phone.erased){
+	      							var sqlPhone = "DELETE FROM kuntur.person_phone WHERE id='"+phone.id+"'";
+	      							client.query(sqlPhone, function(){
+	      								callbackInterno();
+	    							});
+	      						}
+	      						else{
+		      						// default case, an phone has been updated
+		      						var sqlPhone ="UPDATE kuntur.person_phone SET country_code + '"+phone.countryCode+"', phone_number ='"+ phone.phone +"' where id = '" + phone.id + "'";
+		      						client.query(sqlPhone, function(){
+		  								callbackInterno();
+		    						});
+	      						}
+      						}
+      					}, 
+      					//foreach callback
+      					function(){
+	      					callback(); //calling parallel callback
+      					}
+      				);
+      			},
+      			//restore delete contact
+      			function(callback){
+      				if(typeof req.body.erased !== "undefined"){
+          				var sql = "UPDATE kuntur.contact SET erased='"+req.body.erased+"'";
+          				client.query(sql, function(){
+          					callback();
+          				})
+      				}
+      				else
+      					callback();
+      			}
+  			], function(){
+	      		done();
+	        	res.send(204);
+      		});
+      	});
       });
-    }
+    });
 
   }
 );
@@ -2021,7 +2221,6 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 						console.log(error);
 						res.send(500,error.message);
 						return rollback(client, done);
-
 					});
 
 
@@ -2717,16 +2916,11 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 
 			query.on("row", function(row, result){
 
-
-				// row.prueba="lala";
 				result.addRow(row);
-
 
 			});
 
 			query.on("end",function(result){
-
-
 
 				async.forEach(result.rows, function(agreementItem, callbackForEach) {
 					var agreementItemId=agreementItem.id;
@@ -2820,20 +3014,10 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 						res.send(500,error.message);
 						return rollback(client, done);
 					});
-
-
-
-
 				});
-
-
-
 			});
-
-
 	    });
 	});
-
 });
 
 server.listen(port ,ip_addr, function(){
