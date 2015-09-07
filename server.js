@@ -2101,7 +2101,6 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 					// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
 					var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC')
 
-
 					var sql="INSERT INTO kuntur.agreement_item("+
 						    "id, erased, in_units, out_units, agreement_id, org_id)"+
 					"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemDetail.in+"', '"+agreementItemDetail.out+"', '"+agreementId+"', '"+elementAgreementItem.id+"')"+
@@ -2122,10 +2121,17 @@ server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
 								if(elementAgreementItemOu.id!="UNC"){//SON PARA LOS AGREEMENT ITEMS, LOS USE EN EL PASO ANTERIOR
 
+									if(elementAgreementItemOu.in=='*'){
+										elementAgreementItemOu.in='NULL';
+									}
+
+									if(elementAgreementItemOu.out=='*'){
+										elementAgreementItemOu.out='NULL';
+									}
 
 									var sqlAgItOu="INSERT INTO kuntur.agreement_item_ou("+
 							   		"id, erased, in_units, out_units, agreement_item_id, org_id)"+
-									"VALUES (uuid_generate_v4()::varchar, false, '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"', '"+agreementItemId+"', '"+elementAgreementItemOu.id+"');"
+									"VALUES (uuid_generate_v4()::varchar, false, "+elementAgreementItemOu.in+", "+elementAgreementItemOu.out+", '"+agreementItemId+"', '"+elementAgreementItemOu.id+"');"
 									var queryAgItOu = client.query(sqlAgItOu);
 
 									queryAgItOu.on("row", function(row, result){
@@ -2561,14 +2567,23 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 									async.forEach(elementAgreementItem.agreementItemOu,function(elementAgreementItemOu, callbackInterno){
 										if(elementAgreementItemOu.id!="UNC"){//SON PARA LOS AGREEMENT ITEMS, LOS USE EN EL PASO ANTERIOR
 
+
+											if(elementAgreementItemOu.in=='*'){
+												elementAgreementItemOu.in='NULL';
+											}
+
+											if(elementAgreementItemOu.out=='*'){
+												elementAgreementItemOu.out='NULL';
+											}
+
 											if((findFirstOccurrence(req.body.agreement.selectedOrgs2LvlInsert,'id',elementAgreementItemOu.id)!=-1) || (newAgreementItem)){//insersion de agreement_item_ou, en caso que sea un nuevo agreementItem la insersion se realiza si o si
-												var sqlAgItOu="select kuntur.f_insertAgreementItemOu('"+agreementItemId+"','"+elementAgreementItemOu.id+"', '"+elementAgreementItemOu.in+"', '"+elementAgreementItemOu.out+"');";
+												var sqlAgItOu="select kuntur.f_insertAgreementItemOu('"+agreementItemId+"','"+elementAgreementItemOu.id+"', "+elementAgreementItemOu.in+", "+elementAgreementItemOu.out+");";
 											}else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'org_id',elementAgreementItemOu.id)!=-1){
 												var sqlAgItOu="DELETE kuntur.agreement_item_ou "+
 												"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
 											}else{
 												var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
-									   			" SET erased=false, in_units='"+elementAgreementItemOu.in+"', out_units='"+elementAgreementItemOu.out+"' "+
+									   			" SET erased=false, in_units="+elementAgreementItemOu.in+", out_units="+elementAgreementItemOu.out+" "+
 												"WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"' and erased = false;"
 											}
 
@@ -2594,8 +2609,10 @@ server.post({path : '/updateAgreementData', version : '0.0.1'} , function(req, r
 											callbackInterno();//Para que termine el elemento UNC
 										}
 									},function(err){
-										console.log(err);
-										res.send(500,err);
+										if(err){
+											console.log(err);
+											res.send(500,err);
+										}
 										callback();
 									});
 								},
