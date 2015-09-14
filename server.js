@@ -1360,7 +1360,6 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
 		    	return res.send(500,err);
 	    	}
 
-	    	console.log(sql);
 			var query = client.query(sql);
 
 			query.on("row", function(row, result){
@@ -1375,7 +1374,6 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
    											"VALUES (uuid_generate_v4()::varchar, false, "+" '"+idUniversity+"', '"+personId+"') RETURNING id;"
 						// console.log(sqlContact);
 
-						console.log(sqlContact);
 						var queryContact = client.query(sqlContact);
 
 						queryContact.on("row", function(row, result){
@@ -1407,7 +1405,6 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
             								"id, erased, email, comment, person_id) "+
     										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
 
-    						console.log(sqlMail);
     						var queryMail = client.query(sqlMail);
 
     						queryMail.on("row", function(row, result){
@@ -1447,7 +1444,6 @@ server.post({path:'/universities/:id_university/contacts', version : '0.0.1'} , 
             								"id, erased, country_code, phone_number, comment, person_id) "+
     										"VALUES (uuid_generate_v4()::varchar, false, '"+tel.countryCode+"', '"+tel.phone+"', '"+tel.comment+"', '"+personId+"');"
 
-    						console.log(sqlTel);
     						var queryTel = client.query(sqlTel);
 
     						queryTel.on("row", function(row, result){
@@ -1575,7 +1571,7 @@ server.put(
 
       client.query(sql, function(err, result) {
       	var personId = result.rows[0].person_id;
-        
+
         //Return if an error occurs
         if(err) { //connection failed
           console.error(err);
@@ -1594,7 +1590,7 @@ server.put(
         if(!!req.body.comment){
           sql += ", comment= '" + req.body.comment + "' ";
         }
-       
+
       	sql += " WHERE id='" + personId + "'";
 
       	client.query(sql, function (err, result){
@@ -1604,7 +1600,7 @@ server.put(
       			function(callback){
       				async.forEach(
       					//array
-      					req.body.emails, 
+      					req.body.emails,
       					//function
       					function(email, callbackInterno){
       						// first case, an email has been added
@@ -1632,7 +1628,7 @@ server.put(
 		    						});
 	      						}
       						}
-      					}, 
+      					},
       					//foreach callback
       					function(){
 	      					callback(); //calling parallel callback
@@ -1644,7 +1640,7 @@ server.put(
       			function(callback){
       				async.forEach(
       					//array
-      					req.body.phones, 
+      					req.body.phones,
       					//function
       					function(phone, callbackInterno){
       						// first case, an phone has been added
@@ -1672,7 +1668,7 @@ server.put(
 		    						});
 	      						}
       						}
-      					}, 
+      					},
       					//foreach callback
       					function(){
 	      					callback(); //calling parallel callback
