@@ -1581,7 +1581,7 @@ server.put(
 
       client.query(sql, function(err, result) {
       	var personId = result.rows[0].person_id;
-        
+
         //Return if an error occurs
         if(err) { //connection failed
           console.error(err);
@@ -1600,7 +1600,7 @@ server.put(
         if(!!req.body.comment){
           sql += ", comment= '" + req.body.comment + "' ";
         }
-       
+
       	sql += " WHERE id='" + personId + "'";
 
       	client.query(sql, function (err, result){
@@ -1610,7 +1610,7 @@ server.put(
       			function(callback){
       				async.forEach(
       					//array
-      					req.body.emails, 
+      					req.body.emails,
       					//function
       					function(email, callbackInterno){
       						// first case, an email has been added
@@ -1638,7 +1638,7 @@ server.put(
 		    						});
 	      						}
       						}
-      					}, 
+      					},
       					//foreach callback
       					function(){
 	      					callback(); //calling parallel callback
@@ -1650,7 +1650,7 @@ server.put(
       			function(callback){
       				async.forEach(
       					//array
-      					req.body.phones, 
+      					req.body.phones,
       					//function
       					function(phone, callbackInterno){
       						// first case, an phone has been added
@@ -1678,7 +1678,7 @@ server.put(
 		    						});
 	      						}
       						}
-      					}, 
+      					},
       					//foreach callback
       					function(){
 	      					callback(); //calling parallel callback
