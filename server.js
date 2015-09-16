@@ -132,6 +132,13 @@ server.get({path : '/universities', version : '0.0.1'} , function(req, res , nex
 			res.send(200,result.rows);
 		});
 
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+
 
 	});
 });
@@ -154,6 +161,12 @@ server.get({path : '/universities/:universityId', version : '0.0.1'} , function(
 			done();
 			res.send(200,result.rows);
 		});
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
 
 		if(err) {
 
@@ -492,6 +505,12 @@ server.get({path : '/universities/:id/agreements', version : '0.0.1'} , function
 		});
 		});
 
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
 		if(err) {
       		console.log(err);
         }
@@ -504,19 +523,28 @@ server.get({path : '/universities/:id/mails', version : '0.0.1'} , function(req,
 	var sql="SELECT * FROM kuntur.org_email WHERE org_id='" + req.params.id + "' AND erased='false' ORDER BY comment";
 
 	pg.connect(conString, function(err, client, done){
-		var query = client.query(sql);
-
-		query.on("row", function(row, result){
-			result.addRow(row);
-		});
-
-		query.on("end",function(result){
-			done();
-			res.send(200,result.rows);
-		});
-
 		if(err) {
+      done();
+      res.send(500,err);
     }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      res.send(200,result.rows);
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+    
+
 	});
 });
 
@@ -666,20 +694,27 @@ server.get({path : '/universities/:id/phones', version : '0.0.1'} , function(req
 	var sql="SELECT * FROM kuntur.org_phone WHERE org_id='" + req.params.id + "' AND erased='false' ORDER BY comment";
 
 	pg.connect(conString, function(err, client, done){
-		var query = client.query(sql);
-
-		query.on("row", function(row, result){
-			result.addRow(row);
-		});
-
-		query.on("end",function(result){
-			done();
-			res.send(200,result.rows);
-		});
 
 		if(err) {
-
+      done();
+      res.send(500, err);
         }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      res.send(200,result.rows);
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
 	});
 });
 
@@ -843,20 +878,27 @@ server.get({path : '/universities/:id/addresses', version : '0.0.1'} , function(
 	var sql="SELECT * FROM kuntur.org_address WHERE org_id='" + req.params.id + "' and erased=false ORDER BY comment";
 
 	pg.connect(conString, function(err, client, done){
-		var query = client.query(sql);
-
-		query.on("row", function(row, result){
-			result.addRow(row);
-		});
-
-		query.on("end",function(result){
-			done();
-			res.send(200,result.rows);
-		});
-
 		if(err) {
-
+      done();
+      res.send(500, err);
         }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      res.send(200,result.rows);
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
 	});
 });
 
@@ -867,20 +909,27 @@ server.get({path : '/universities/:id/addresses/:addressId', version : '0.0.1'} 
 	var sql="SELECT * FROM kuntur.org_address WHERE id='" + req.params.addressId + "'";
 
 	pg.connect(conString, function(err, client, done){
-		var query = client.query(sql);
-
-		query.on("row", function(row, result){
-			result.addRow(row);
-		});
-
-		query.on("end",function(result){
-			done();
-			res.send(200,result.rows);
-		});
-
 		if(err) {
-
+      done();
+      res.send(500, err);
         }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      res.send(200,result.rows);
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
 	});
 });
 
@@ -1124,20 +1173,27 @@ server.post(
   	var sql="SELECT * FROM kuntur.org_address WHERE id='" + req.params.addressId + "'";
 
   	pg.connect(conString, function(err, client, done){
-  		var query = client.query(sql);
-
-  		query.on("row", function(row, result){
-  			result.addRow(row);
-  		});
-
-  		query.on("end",function(result){
-  			done();
-  			res.send(200,result.rows);
-  		});
 
   		if(err) {
-
+        done();
+        res.send(500, err);
           }
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+        done();
+        res.send(200,result.rows);
+      });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
   	});
   });
 
@@ -1244,6 +1300,12 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 			});
 			res.send(200, contacts);
 		});
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
 	});
 });
 
@@ -1349,6 +1411,12 @@ server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1
 			});
 			res.send(200, contacts);
 		});
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
 	});
 });
 
@@ -2406,6 +2474,11 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 			res.send(200,result.rows);
 		});
 
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
 
 
 	});
