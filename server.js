@@ -1175,6 +1175,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 									{
 										id: element.person_email_id,
 										email: element.person_email_email,
+                    erased: element.person_email_erased,
 										comment:element.person_email_comment
 									}
 								);
@@ -1193,6 +1194,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 										id: element.person_phone_id,
 										countryCode: element.person_phone_country_code,
 										phone: element.person_phone_phone_number,
+                    erased: element.person_phone_erased,
 										comment:element.person_phone_comment
 									}
 								);
@@ -1208,6 +1210,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 					surname: element.person_family_name,
 					male: element.person_masculine,
 					comment: element.person_comment,
+          erased: element.erased,
 					emails: [],
 					phones: []
 				}
@@ -1217,6 +1220,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 						{
 							id: element.person_email_id,
 							email: element.person_email_email,
+              erased: element.person_email_erased,
 							comment:element.person_email_comment
 						});
 				}
@@ -1227,6 +1231,7 @@ server.get({path : '/universities/:id_university/contacts', version : '0.0.1'} ,
 							id: element.person_phone_id,
 							countryCode: element.person_phone_country_code,
 							phone: element.person_phone_phone_number,
+              erased: element.person_phone_erased,
 							comment:element.person_phone_comment
 						});
 				}
@@ -1275,6 +1280,7 @@ server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1
 									{
 										id: element.person_email_id,
 										email: element.person_email_email,
+                    erased: element.person_email_erased,
 										comment:element.person_email_comment
 									}
 								);
@@ -1293,6 +1299,7 @@ server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1
 										id: element.person_phone_id,
 										countryCode: element.person_phone_country_code,
 										phone: element.person_phone_phone_number,
+                    erased: element.person_phone_erased,
 										comment:element.person_phone_comment
 									}
 								);
@@ -1308,6 +1315,7 @@ server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1
 					surname: element.person_family_name,
 					male: element.person_masculine,
 					comment: element.person_comment,
+          erased: element.erased,
 					emails: [],
 					phones: []
 				}
@@ -1317,6 +1325,7 @@ server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1
 						{
 							id: element.person_email_id,
 							email: element.person_email_email,
+              erased: element.person_email_erased,
 							comment:element.person_email_comment
 						});
 				}
@@ -1327,6 +1336,7 @@ server.get({path : '/universities/:id_university/contacts/:id', version : '0.0.1
 							id: element.person_phone_id,
 							countryCode: element.person_phone_country_code,
 							phone: element.person_phone_phone_number,
+              erased: element.person_phone_erased,
 							comment:element.person_phone_comment
 						});
 				}
@@ -1662,7 +1672,7 @@ server.put(
 	      						}
 	      						else{
 		      						// default case, an phone has been updated
-		      						var sqlPhone ="UPDATE kuntur.person_phone SET country_code + '"+phone.countryCode+"', phone_number ='"+ phone.phone +"' where id = '" + phone.id + "'";
+		      						var sqlPhone ="UPDATE kuntur.person_phone SET country_code = '"+phone.countryCode+"', phone_number ='"+ phone.phone +"' where id = '" + phone.id + "'";
 		      						client.query(sqlPhone, function(){
 		  								callbackInterno();
 		    						});
@@ -1678,7 +1688,7 @@ server.put(
       			//restore delete contact
       			function(callback){
       				if(typeof req.body.erased !== "undefined"){
-          				var sql = "UPDATE kuntur.contact SET erased='"+req.body.erased+"'";
+						var sql = "UPDATE kuntur.contact SET erased='"+req.body.erased+"' where id='"+req.body.id+"'";
           				client.query(sql, function(){
           					callback();
           				})
@@ -1708,7 +1718,7 @@ server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
 			console.log(err);
 			done();
 			return res.send(500,err);
-        }
+    }
 
 		var query = client.query(sql);
 
@@ -1840,7 +1850,7 @@ server.get({path : '/getAgreements', version : '0.0.1'} , function(req, res , ne
 				console.log(err);
 				done();
 				return res.send(500,err);
-	        }
+	     }
 
 			var query = client.query(sql);
 
@@ -1950,7 +1960,7 @@ server.get({path : '/getOrganizations', version : '0.0.1'} , function(req, res ,
 	pg.connect(conString, function(err, client, done){
 		if(err) {
 			console.log(err);
-	    	rollback(client, done);
+	    	done();
 	    	return res.send(500,err);
         }
 
@@ -2269,6 +2279,7 @@ server.get({path : '/getConveniosXOrganizacion', version : '0.0.1'} , function(r
 		if(err) {
 			console.log(err)
 			return res.send(500,err);
+      done();
         }
 
 		var query = client.query(sql);
@@ -2311,6 +2322,7 @@ var sql = "SELECT org_id,org_original_name,org_short_name, person_family_name ||
 		if(err) {
 			console.log(err)
 			return res.send(500,err);
+      done();
         }
 
 		var query = client.query(sql);
@@ -2350,6 +2362,11 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 	pg.connect(conString, function(err, client, done){
 		var query = client.query(sql);
 
+    if(err) {
+      done();
+      res.send(500,err);
+    }
+
 		query.on("row", function(row, result){
 			result.addRow(row);
 		});
@@ -2360,9 +2377,7 @@ server.post({path : '/listResponsablesByOrgs', version : '0.0.1'} , function(req
 			res.send(200,result.rows);
 		});
 
-		if(err) {
 
-        }
 
 	});
 });
@@ -2413,11 +2428,14 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 
 
 	pg.connect(conString, function(err, client, done){
+
+    if(err) {
+      done();
+      res.send(500,err);
+    }
 		var query = client.query(sql);
 
 		query.on("row", function(row, result){
-
-
 			result.addRow(JSON.parse(row.getorgtree));//JSON.parse(result.rows[0].f_plazas)
 		});
 
@@ -2439,10 +2457,13 @@ server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 			//res.send(200,result.rows);
 			res.send(200,original);
 		});
+    
+    query.on("error", function(row, result){
+        console.log(error);
+        res.send(500,error.message);
+        return rollback(client, done);
+    });
 
-		if(err) {
-
-        }
 	});
 });
 
@@ -2802,7 +2823,7 @@ server.get({path : '/deleteAgreement', version : '0.0.1'} , function(req, res , 
 			if(err) {
 				res.send(500,err);
 				console.log(err);
-	          	return done();
+	      return done();
 	   		}
 
 			var queryCount = client.query(sqlCount);
@@ -2868,13 +2889,13 @@ server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res 
 		if(err) {
 				res.send(500,err);
 				console.log(err);
-	          	return done();
+	      return done();
 	    }
 		client.query('BEGIN', function(err) {
 			if(err) {
 				res.send(500,err);
 				console.log(err);
-	          	return done();
+	       return done();
 	    	}
 
 			var query = client.query(sql);
@@ -2899,6 +2920,178 @@ server.get({path : '/reinsertAgreement', version : '0.0.1'} , function(req, res 
 	});
 
 });
+
+server.get({path : '/postulacionData', version : '0.0.1'}, function(req,res,next){
+  postulacionId=req.params.postulacionId;
+
+  var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+postulacionId+"', "+
+    "(SELECT id FROM kuntur.user_system WHERE name = '46385'));";
+
+  pg.connect(conString, function(err, client, done){
+    if(err) {
+      res.send(500,err);
+      console.log(err);
+      return done();
+    }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end", function(result){
+      // console.log(result.rows[0].f_find_enrrollment_by_id);
+      res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
+      done();
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+  });
+
+
+});
+
+server.get({path : '/postulaciones', version : '0.0.1'}, function(req,res,next){
+
+  filter=JSON.parse(req.params.filter);
+  if(filter.year){
+    var year = filter.year;
+  }else{
+    var year=null;
+  }
+  if(filter.semester){
+    var semester = filter.semester;
+  }else{
+    var semester = null;
+  }
+  if(filter.country){
+    var country = "'"+filter.country+"'";
+  }else{
+    var country = null;
+  }
+  if(filter.name){
+    var name = "'"+filter.name+"'";
+  }else{
+    var name = null;
+  }
+  if(filter.university){
+    var university = "'"+filter.university+"'";
+  }else{
+    var university = null;
+  }
+  if(filter.email){
+    var email = "'"+filter.email+"'";
+  }else{
+    var email = null;
+  }
+  if(filter.status){
+    var status = "'"+filter.status+"'";
+  }else{
+    var status = null;
+  }
+  if(filter.number){
+    var number = filter.number;
+  }else{
+    var number = null;
+  }
+
+
+  var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
+    ""+name+"," +
+    ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '46385')) offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+  pg.connect(conString, function(err, client, done){
+      if(err) {
+        res.send(500,err);
+        console.log(err);
+        return done();
+        }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end", function(result){    
+      res.send(200, result.rows);
+      done();
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error.message);
+    });
+});
+
+});
+
+server.get({path : '/enrrollmentStatus', version : '0.0.1'}, function(req,res,next){
+
+var sql = "select code, name from kuntur.enrrollment_status"
+
+
+pg.connect(conString, function(err, client, done){
+     if(err) {
+        res.send(500,err);
+        console.log(err);
+            return done();
+        }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end", function(result){    
+      res.send(200, result.rows);
+      done();
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error.message);
+    });
+});
+
+});
+
+server.get({path : '/enrrollmentYears', version : '0.0.1'}, function(req,res,next){
+
+var sql = "select year from kuntur.v_enrrollment_list group by year"
+
+pg.connect(conString, function(err, client, done){
+     if(err) {
+      res.send(500,err);
+      console.log(err);
+      return done();
+    }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end", function(result){    
+      res.send(200, result.rows);
+      done();
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error.message);
+    });
+});
+
+});
+
+
+
 
 server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
 
@@ -3019,7 +3212,8 @@ server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , ne
 						agreement.type_name=result.rows[0].type_name;
 						agreement.status_name=result.rows[0].status_name;
 						res.send(200, agreement);
-						done();
+            client.query('COMMIT', done);
+						// done();
 					});
 
 					queryA.on("error",function(error){
