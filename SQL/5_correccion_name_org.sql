@@ -1,0 +1,1 @@
+﻿UPDATE kuntur.ORG SET name = original_name WHERE name IS NULL;
