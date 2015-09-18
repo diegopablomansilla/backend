@@ -3193,7 +3193,7 @@ pg.connect(conString, function(err, client, done){
 
 server.get({path : '/enrrollmentYears', version : '0.0.1'}, function(req,res,next){
 
-var sql = "select year from kuntur.v_enrrollment_list group by year"
+var sql = "select year from kuntur.v_enrrollment_list group by year order by year desc"
 
 pg.connect(conString, function(err, client, done){
      if(err) {
@@ -3208,7 +3208,7 @@ pg.connect(conString, function(err, client, done){
       result.addRow(row);
     });
 
-    query.on("end", function(result){    
+    query.on("end", function(result){  
       done();
       res.send(200, result.rows);
       });
