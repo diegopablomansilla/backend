@@ -57,6 +57,6 @@ require('./modulos/enrollment')(server, conString);
 
 
 
-server.listen(port ,ip_addr, function(){
+server.listen(port , function(){
 	console.log("Listening on "+ip_addr+":"+port);
 });
