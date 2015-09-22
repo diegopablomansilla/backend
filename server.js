@@ -20,6 +20,9 @@ var conString = "postgres://" +
                config.pg.host + "/" +
                config.pg.db;
 
+server.get({path: '/test'}, function(req, res, next) {
+  res.send('Ok');
+});
 
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
