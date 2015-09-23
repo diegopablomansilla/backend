@@ -1,4 +1,4 @@
-﻿SET search_path to kuntur;
+﻿--SET search_path to kuntur;
 
 -- DROP FUNCTION kuntur.json_att_util(att_name VARCHAR, att_val VARCHAR, att_cd VARCHAR, att_end VARCHAR, coalescef BOOLEAN ) CASCADE;
 
@@ -881,30 +881,6 @@ CREATE OR REPLACE VIEW kuntur.v_unc_in_academic_performance_json_a AS
 
 
 
--------------------------------------------------------------------------------------------------------------------------
-
-DROP VIEW IF EXISTS kuntur.v_unc_in_study_program_subject_json_a CASCADE;
-CREATE OR REPLACE VIEW kuntur.v_unc_in_study_program_subject_json_a AS 
-
-	SELECT '{'
-			|| kuntur.json_att_util('id', unc_in_study_program_subject.id::VARCHAR, '"', ', ', false)
-			|| kuntur.json_att_util('erased', unc_in_study_program_subject.erased::VARCHAR, '', ', ' , true)
-			|| kuntur.json_att_util('subject', unc_in_study_program_subject.subject::VARCHAR, '"', '' , true)
-			-------------------------------------------------------------------------------------------------------------
-			--|| '"UncInStudyProgramSubject.uncInStudyProgram":' ||  COALESCE(unc_in_study_program.json, 'null') || ', '
-
-		|| '}' AS json, 
-		--unc_in_study_program_subject.id AS unc_in_study_program_subject_id /*id*/
-		--unc_in_study_program_subject.erased AS unc_in_study_program_subject_erased /*erased*/,
-		--unc_in_study_program_subject.subject AS unc_in_study_program_subject_subject /*Materia*/,
-	------------------------------------------
-		unc_in_study_program_subject.unc_in_study_program_id /*Programa de Estudio*/
-
-	FROM kuntur.unc_in_study_program_subject;
-	------------------------------------------
-	--LEFT JOIN kuntur.v_unc_in_study_program_json unc_in_study_program
-	--	ON kuntur.unc_in_study_program_subject.unc_in_study_program_id = unc_in_study_program.unc_in_study_program_id;
-
 
 -------------------------------------------------------------------------------------------------------------------------
 
@@ -924,9 +900,9 @@ CREATE OR REPLACE VIEW kuntur.v_unc_in_study_program_json_a AS
 			-------------------------------------------------------------------------------------------------------------
 			--|| '"UncInStudyProgram.uncInEnrrollment":' ||  COALESCE(unc_in_enrrollment.json, 'null') || ', '
 			-------------------------------------------------------------------------------------------------------------
-			|| '"org":' ||  COALESCE(org.json, 'null') || ', '
+			|| '"org":' ||  COALESCE(org.json, 'null') || ' '
 			-------------------------------------------------------------------------------------------------------------
-			|| '"uncInStudyProgramSubjectList":[' || (SELECT COALESCE(STRING_AGG(x.json, ', '), '') FROM kuntur.v_unc_in_study_program_subject_json_a x WHERE x.unc_in_study_program_id = unc_in_study_program.id)  || '] '
+			
 			--|| '"uncInStudyProgramSubjectList":[]'
 
 		|| '}' AS json, 
@@ -1163,7 +1139,7 @@ COPY (SELECT json FROM kuntur.v_unc_in_enrrollment_json_a) TO '/home/java/Descar
 
 */
 
-COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
-TO '/home/java/Descargas/json.sql';
+--COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
+--TO '/home/java/Descargas/json.sql';
 	
 
