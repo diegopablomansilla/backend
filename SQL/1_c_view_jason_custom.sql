@@ -891,9 +891,9 @@ DROP VIEW IF EXISTS kuntur.v_unc_in_study_program_json_a CASCADE;
 CREATE OR REPLACE VIEW kuntur.v_unc_in_study_program_json_a AS 
 
 	SELECT '{'
-			|| kuntur.json_att_util('id', unc_in_study_program.id::VARCHAR, '"', ', ', false)
-			|| kuntur.json_att_util('subject', unc_in_study_program.subject::VARCHAR, '"', ', ' , true)
+			|| kuntur.json_att_util('id', unc_in_study_program.id::VARCHAR, '"', ', ', false)			
 			|| kuntur.json_att_util('erased', unc_in_study_program.erased::VARCHAR, '', ', ' , true)
+			|| kuntur.json_att_util('subject', unc_in_study_program.subject::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('approved', unc_in_study_program.approved::VARCHAR, '', ', ' , true)
 			|| kuntur.json_att_util('approvedBy', unc_in_study_program.approved_by::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('fileNumber', unc_in_study_program.file_number::VARCHAR, '"', ', ' , true)
