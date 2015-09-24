@@ -357,7 +357,7 @@ BEGIN
 	
 	END IF;	
 
-	sql = 'UPDATE kuntur.enrrollment SET url_photo = ' || up ||' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.enrrollment SET url_photo = ' || up || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.url_photo') INTO update_ok; 
 
@@ -367,7 +367,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------
-
 
 DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_birth_country_code(inenrrollment_id VARCHAR, user_system_id VARCHAR, birth_country_code VARCHAR) CASCADE;
 
@@ -447,7 +446,7 @@ BEGIN
 	
 	END IF;
 
-	sql = 'UPDATE kuntur.enrrollment SET institution_original_name = '|| ion ||' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.enrrollment SET institution_original_name = ' || ion || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_original_name') INTO update_ok; 
 
@@ -477,7 +476,7 @@ BEGIN
 	
 	END IF;
 
-	sql = 'UPDATE kuntur.enrrollment SET institution_web_site = '|| iws || ' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.enrrollment SET institution_web_site = ' || iws || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_web_site') INTO update_ok; 
 
@@ -507,7 +506,7 @@ BEGIN
 	
 	END IF;
 
-	sql = 'UPDATE kuntur.enrrollment SET institution_country_code = '|| icc ||' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.enrrollment SET institution_country_code = ' || icc || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_country_code') INTO update_ok; 
 

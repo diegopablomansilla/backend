@@ -124,7 +124,20 @@ SELECT 	e.id,
 	e.student_id,
 	coalesce(e.family_name, '')  || ' ' || coalesce(e.given_name, '') AS student,	
 	(SELECT string_agg(x.email, ', ') FROM kuntur.enrrollment_email x WHERE e.id = x.enrrollment_id) AS email,
-	(SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) AS nationality,
+
+	CASE 	WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NOT NULL
+			THEN birth_country_code || ', ' || (SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) 
+
+		WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) = 0 AND birth_country_code IS NOT NULL
+			THEN birth_country_code
+
+		WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NULL
+			THEN (SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) 
+
+		ELSE null		
+	END AS nationality,
+
+		
 	CASE 	WHEN o.original_name IS NULL THEN e.institution_original_name 
 		ELSE o.original_name
 	END AS institution,
