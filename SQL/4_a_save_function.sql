@@ -270,9 +270,9 @@ $$ LANGUAGE plpgsql;
 -------------------------------------------------------------------------------------------------------------------------------
 
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_family_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR, middle_name VARCHAR, family_name VARCHAR) CASCADE;
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_names(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR, middle_name VARCHAR, family_name VARCHAR) CASCADE;
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_family_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR, middle_name VARCHAR,family_name VARCHAR) RETURNS BOOLEAN AS
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_names(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR, middle_name VARCHAR,family_name VARCHAR) RETURNS BOOLEAN AS
 $$
 DECLARE    	
 
@@ -291,9 +291,9 @@ $$ LANGUAGE plpgsql;
 -------------------------------------------------------------------------------------------------------------------------------
 
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_names(inenrrollment_id VARCHAR, user_system_id VARCHAR, family_name VARCHAR) CASCADE;
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_family_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, family_name VARCHAR) CASCADE;
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_names(inenrrollment_id VARCHAR, user_system_id VARCHAR, family_name VARCHAR) RETURNS BOOLEAN AS
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_family_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, family_name VARCHAR) RETURNS BOOLEAN AS
 $$
 DECLARE    	
 
