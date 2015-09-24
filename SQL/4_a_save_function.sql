@@ -208,64 +208,8 @@ select kuntur.is_update(
 	);
 	
 */
--------------------------------------------------------------------------------------------------------------------------------
 
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_given_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR) CASCADE;
-
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_given_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR) RETURNS BOOLEAN AS
-$$
-DECLARE    	
-
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET given_name = '''|| INITCAP(TRIM(given_name)) ||''' WHERE id = ''' || $1 || ''' ';
-    
-BEGIN
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.given_name') INTO update_ok; 
-
-	RETURN update_ok;
-    
-END;
-$$ LANGUAGE plpgsql;
-
-
-/*
-
-SELECT * FROM kuntur.enrrollment WHERE given_name ilike 'Mansilla Diego Pablo';
-
-select kuntur.f_u_enrrollment_given_name(
-
-	(SELECT x.id FROM kuntur.enrrollment x ORDER BY id OFFSET 66 LIMIT 1), 
-	(SELECT id FROM kuntur.user_system WHERE name = '46385'), 
-	'mansilla Diego pablo'
-	
-	);
-
-SELECT * FROM kuntur.enrrollment WHERE given_name ilike 'Mansilla Diego Pablo';
-	
-*/
-
--------------------------------------------------------------------------------------------------------------------------------
-
-
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_middle_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, middle_name VARCHAR) CASCADE;
-
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_middle_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, middle_name VARCHAR) RETURNS BOOLEAN AS
-$$
-DECLARE    	
-
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET middle_name = '''|| INITCAP(TRIM(middle_name)) ||''' WHERE id = ''' || $1 || ''' ';
-    
-BEGIN
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.middle_name') INTO update_ok; 
-
-	RETURN update_ok;
-    
-END;
-$$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------
 
@@ -277,9 +221,34 @@ $$
 DECLARE    	
 
 	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET family_name = ''' || INITCAP(TRIM(family_name)) || ''', middle_name = ''' || INITCAP(TRIM(middle_name))|| ''', given_name = ''' || INITCAP(TRIM(given_name)) || ''' WHERE id = ''' || $1 || ''' ';
+
+	fn VARCHAR = 'null';
+	mn VARCHAR = 'null';
+	gn VARCHAR = 'null';
+	
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF family_name IS NOT NULL AND CHAR_LENGTH(TRIM(family_name)) > 0 THEN
+
+		fn = '''' || INITCAP(TRIM(family_name)) || '''';
+	
+	END IF;	
+
+	IF middle_name IS NOT NULL AND CHAR_LENGTH(TRIM(middle_name)) > 0 THEN
+
+		mn = '''' || INITCAP(TRIM(middle_name)) || '''';
+	
+	END IF;	
+
+	IF given_name IS NOT NULL AND CHAR_LENGTH(TRIM(given_name)) > 0 THEN
+
+		gn = '''' || INITCAP(TRIM(given_name)) || '''';
+	
+	END IF;	
+
+	sql = 'UPDATE kuntur.enrrollment SET family_name = ' || fn || ', middle_name = ' || mn || ', given_name = ' || gn || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok; 
 
@@ -288,26 +257,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--------------------------------------------------------------------------------------------------------------------------------
+/*
 
+SELECT * FROM kuntur.enrrollment WHERE family_name ilike '%mansilla%';
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_family_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, family_name VARCHAR) CASCADE;
+select kuntur.f_u_enrrollment_names(
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_family_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, family_name VARCHAR) RETURNS BOOLEAN AS
-$$
-DECLARE    	
-
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET family_name = '''|| INITCAP(TRIM(family_name)) ||''' WHERE id = ''' || $1 || ''' ';
-    
-BEGIN
+	(SELECT x.id FROM kuntur.enrrollment x ORDER BY id OFFSET 66 LIMIT 1), 
+	(SELECT id FROM kuntur.user_system WHERE name = '46385'), 
+	'diego',
+	null,
+	'mansilla'
 	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok; 
+	);
 
-	RETURN update_ok;
-    
-END;
-$$ LANGUAGE plpgsql;
+SELECT * FROM kuntur.enrrollment WHERE family_name ilike '%mansilla%';
+	
+*/
 
 
 -------------------------------------------------------------------------------------------------------------------------------
@@ -319,10 +285,19 @@ CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_birth_date(inenrrollment_id VA
 $$
 DECLARE    	
 
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET birth_date = '|| birth_date ||' WHERE id = ''' || $1 || ''' ';
+	update_ok BOOLEAN = false;
+	bd VARCHAR = 'null';	
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF birth_date IS NOT NULL THEN
+
+		bd = birth_date;
+	
+	END IF;	
+
+	sql = 'UPDATE kuntur.enrrollment SET birth_date = ' || bd || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_date') INTO update_ok; 
 
@@ -341,9 +316,18 @@ $$
 DECLARE    	
 
 	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET male = '|| male ||' WHERE id = ''' || $1 || ''' ';
+	m VARCHAR = 'null';
+	sql VARCHAR = null;
     
 BEGIN
+	IF male IS NOT NULL THEN
+
+		m = male;
+	
+	END IF;	
+
+	sql = 'UPDATE kuntur.enrrollment SET male = ' || m || ' WHERE id = ''' || $1 || ''' ';
+
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.male') INTO update_ok; 
 
@@ -361,10 +345,19 @@ CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_photo(inenrrollment_id VAR
 $$
 DECLARE    	
 
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET url_photo = '''|| TRIM(url_photo) ||''' WHERE id = ''' || $1 || ''' ';
+	update_ok BOOLEAN = false;
+	up VARCHAR = 'null';	
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF url_photo IS NOT NULL AND CHAR_LENGTH(TRIM(url_photo)) > 0 THEN
+
+		up = '''' || TRIM(url_photo) || '''';
+	
+	END IF;	
+
+	sql = 'UPDATE kuntur.enrrollment SET url_photo = ' || up ||' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.url_photo') INTO update_ok; 
 
@@ -383,9 +376,18 @@ $$
 DECLARE    	
 
 	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET birth_country_code = '''|| TRIM(birth_country_code) ||''' WHERE id = ''' || $1 || ''' ';
+	bcc VARCHAR = 'null';
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF birth_country_code IS NOT NULL AND CHAR_LENGTH(TRIM(birth_country_code)) > 0 THEN
+
+		bcc = '''' || TRIM(birth_country_code) || '''';
+	
+	END IF;	
+
+	sql = 'UPDATE kuntur.enrrollment SET birth_country_code = ' || bcc || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_country_code') INTO update_ok; 
 
@@ -404,9 +406,18 @@ $$
 DECLARE    	
 
 	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET org_id = '''|| TRIM(org_id) ||''' WHERE id = ''' || $1 || ''' ';
+	oid VARCHAR = 'null';
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF org_id IS NOT NULL AND CHAR_LENGTH(TRIM(org_id)) > 0 THEN
+
+		oid = '''' || TRIM(org_id) || '''';
+	
+	END IF;
+
+	sql = 'UPDATE kuntur.enrrollment SET org_id = ' || oid || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.org_id') INTO update_ok; 
 
@@ -425,9 +436,18 @@ $$
 DECLARE    	
 
 	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET institution_original_name = '''|| TRIM(institution_original_name) ||''' WHERE id = ''' || $1 || ''' ';
+	ion VARCHAR = 'null';
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF institution_original_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_original_name)) > 0 THEN
+
+		ion = '''' || TRIM(institution_original_name) || '''';
+	
+	END IF;
+
+	sql = 'UPDATE kuntur.enrrollment SET institution_original_name = '|| ion ||' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_original_name') INTO update_ok; 
 
@@ -445,10 +465,19 @@ CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_institution_web_site(inenrroll
 $$
 DECLARE    	
 
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET institution_web_site = '''|| TRIM(institution_web_site) ||''' WHERE id = ''' || $1 || ''' ';
+	update_ok BOOLEAN = false;
+	iws VARCHAR = 'null';	
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF institution_web_site IS NOT NULL AND CHAR_LENGTH(TRIM(institution_web_site)) > 0 THEN
+
+		iws = '''' || TRIM(institution_web_site) || '''';
+	
+	END IF;
+
+	sql = 'UPDATE kuntur.enrrollment SET institution_web_site = '|| iws || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_web_site') INTO update_ok; 
 
@@ -466,10 +495,19 @@ CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_institution_country_code(inenr
 $$
 DECLARE    	
 
-	update_ok BOOLEAN = false;	
-	sql VARCHAR = 'UPDATE kuntur.enrrollment SET institution_country_code = '''|| TRIM(institution_country_code) ||''' WHERE id = ''' || $1 || ''' ';
+	update_ok BOOLEAN = false;
+	icc VARCHAR = 'null';		
+	sql VARCHAR = null;
     
 BEGIN
+
+	IF institution_country_code IS NOT NULL AND CHAR_LENGTH(TRIM(institution_country_code)) > 0 THEN
+
+		icc = '''' || TRIM(institution_country_code) || '''';
+	
+	END IF;
+
+	sql = 'UPDATE kuntur.enrrollment SET institution_country_code = '|| icc ||' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_country_code') INTO update_ok; 
 
