@@ -5,7 +5,7 @@
 CREATE OR REPLACE FUNCTION kuntur.json_att_util(att_name VARCHAR, att_val VARCHAR, att_cd VARCHAR, att_end VARCHAR, coalescef BOOLEAN ) RETURNS VARCHAR AS $$
 	BEGIN
 		att_val = REPLACE(att_val, '
-', '\\n');
+', E'\\n');
 		
 		IF coalescef = true THEN
 			RETURN '"' || att_name || '":' || COALESCE(att_cd || att_val|| att_cd, 'null') 	|| att_end;
@@ -892,7 +892,7 @@ CREATE OR REPLACE VIEW kuntur.v_unc_in_study_program_json_a AS
 
 	SELECT '{'
 			|| kuntur.json_att_util('id', unc_in_study_program.id::VARCHAR, '"', ', ', false)
-			|| kuntur.json_att_util('subject', unc_in_study_program.subject::VARCHAR, '', ', ' , true)
+			|| kuntur.json_att_util('subject', unc_in_study_program.subject::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('erased', unc_in_study_program.erased::VARCHAR, '', ', ' , true)
 			|| kuntur.json_att_util('approved', unc_in_study_program.approved::VARCHAR, '', ', ' , true)
 			|| kuntur.json_att_util('approvedBy', unc_in_study_program.approved_by::VARCHAR, '"', ', ' , true)
@@ -1140,7 +1140,7 @@ COPY (SELECT json FROM kuntur.v_unc_in_enrrollment_json_a) TO '/home/java/Descar
 
 */
 
---COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
---TO '/home/java/Descargas/json.sql';
+COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
+TO '/home/java/Descargas/json.sql';
 	
 
