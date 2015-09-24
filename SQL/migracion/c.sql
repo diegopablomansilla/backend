@@ -2199,4 +2199,16 @@ UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIK
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
+-- SELECT * FROM kuntur.enrrollment_status ORDER BY code;
+
+UPDATE kuntur.enrrollment_status SET name = 'No iniciada' WHERE code = 'A';
+
+UPDATE kuntur.enrrollment_status SET name = 'En evaluación' WHERE code = 'D';
+UPDATE kuntur.enrrollment_status SET name = 'Modificación de plan 1' WHERE code = 'E';
+UPDATE kuntur.enrrollment_status SET name = 'Modificación plan 2' WHERE code = 'G';
+UPDATE kuntur.enrrollment_status SET name = 'En matriculación' WHERE code = 'H';
+UPDATE kuntur.enrrollment_status SET name = 'En carga de actuación académica' WHERE code = 'J';
+
+----------------------------------------------------------------------------------------------------------------------------------------------------	
+
 SELECT 'FIN DEL PROCESO C'::VARCHAR FROM postulation LIMIT 100;
