@@ -1140,7 +1140,7 @@ COPY (SELECT json FROM kuntur.v_unc_in_enrrollment_json_a) TO '/home/java/Descar
 
 */
 
-COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
-TO '/home/java/Descargas/json.sql';
+--COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
+--TO '/home/java/Descargas/json.sql';
 	
 
