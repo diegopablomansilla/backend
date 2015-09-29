@@ -76,8 +76,10 @@ CREATE OR REPLACE  FUNCTION kuntur.ftg_number_enrrollment_increment() RETURNS tr
     BEGIN
        
          SELECT INTO NEW.number_enrrollment coalesce(MAX(number_enrrollment),0) + 1 
-         FROM kuntur.enrrollment;
-         --WHERE 	coalesce(id,'') = coalesce(NEW.id,'');
+         FROM 	kuntur.enrrollment;
+         --JOIN	kunutur.admission_period ap
+	--	ON e.
+        -- WHERE 	coalesce(id,'') = coalesce(NEW.id,'');
       
         RETURN NEW;
     END;

@@ -1,4 +1,6 @@
-﻿
+﻿-- select * from kuntur.unc_in_enrrollment
+
+
 DELETE FROM kuntur.enrrollment_stakeholder CASCADE;
 DELETE FROM kuntur.unc_in_academic_coordinator CASCADE;
 DELETE FROM kuntur.unc_in_academic_office CASCADE;
@@ -2210,5 +2212,7 @@ UPDATE kuntur.enrrollment_status SET name = 'En matriculación' WHERE code = 'H'
 UPDATE kuntur.enrrollment_status SET name = 'En carga de actuación académica' WHERE code = 'J';
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
+
+
 
 SELECT 'FIN DEL PROCESO C'::VARCHAR FROM postulation LIMIT 100;
