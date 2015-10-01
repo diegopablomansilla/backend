@@ -1687,7 +1687,7 @@ CREATE OR REPLACE VIEW 	v_person_z AS
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
-INSERT INTO kuntur.person (SELECT * FROM v_person_z);
+INSERT INTO kuntur.person (SELECT * FROM v_person_z); 
 
 -- SELECT COUNT(*) FROM kuntur.person; -- 1108
 -- SELECT * FROM kuntur.person;
@@ -2213,6 +2213,20 @@ UPDATE kuntur.enrrollment_status SET name = 'En carga de actuación académica' 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+-- SELECT url_photo FROM  kuntur.enrrollment ORDER BY url_photo;
 
+-- SELECT DISTINCT CHAR_LENGTH(TRIM(back_end_path)) FROM sys_file WHERE back_end_path IS NOT NULL;
+
+-- SELECT DISTINCT CHAR_LENGTH(TRIM(url_photo)) FROM  kuntur.person;
+-- SELECT DISTINCT CHAR_LENGTH(TRIM(url_photo)) FROM  kuntur.enrrollment;
+
+
+UPDATE kuntur.person 
+	SET url_photo = null 
+WHERE CHAR_LENGTH(TRIM(url_photo)) <> (SELECT DISTINCT CHAR_LENGTH(TRIM(back_end_path)) FROM sys_file WHERE back_end_path IS NOT NULL);
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------	
 
 SELECT 'FIN DEL PROCESO C'::VARCHAR FROM postulation LIMIT 100;

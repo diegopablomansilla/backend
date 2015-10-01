@@ -205,11 +205,13 @@ UPDATE physical_person_b_tmp t SET name = (SELECT x.name FROM physical_person_di
 UPDATE physical_person_b_tmp t SET last_name = (SELECT x.last_name FROM physical_person_distinct_tmp x WHERE COALESCE(x.identification_number, '') ILIKE  COALESCE(t.identification_number, '')) WHERE t.identification_number IS NOT NULL;
 
 
+-- SELECT sys_file_id FROM physical_person_b_tmp  WHERE sys_file_id IS NOT NULL ORDER BY sys_file_id;
+
 --=================================================================================================================================================
 
--- SELECT * FROM physical_person_distinct_tmp;
+DROP VIEW IF EXISTS v_person_tmp CASCADE;
 
-INSERT INTO  kuntur.person (
+CREATE OR REPLACE VIEW v_person_tmp AS
 
 	SELECT 	p.id,
 		false::BOOLEAN AS erased,
@@ -275,13 +277,27 @@ INSERT INTO  kuntur.person (
 	        null::DOUBLE PRECISION AS birth_lat, 
 	        null::DOUBLE PRECISION AS birth_lng  
 		
-	FROM 	physical_person_distinct_tmp p
-);
+	FROM 	physical_person_distinct_tmp p;
+
+
+-- SELECT * FROM v_person_tmp;
+-- SELECT COUNT(*) FROM v_person_tmp;
+
+-- SELECT sys_file_id FROM physical_person_b_tmp  WHERE sys_file_id IS NOT NULL ORDER BY sys_file_id;
+-- SELECT url_photo FROM v_person_tmp ORDER BY url_photo;
+
+--=================================================================================================================================================
+
+-- SELECT * FROM physical_person_distinct_tmp;
+
+INSERT INTO  kuntur.person ( SELECT * FROM v_person_tmp );
 
 -- SELECT COUNT(*) FROM kuntur.person; --1053
 -- SELECT * FROM kuntur.person; 
 -- SELECT * FROM kuntur.person ORDER BY birth_country_code; 
 -- SELECT * FROM kuntur.person WHERE birth_country_code IS NULL ORDER BY birth_country_code; --130
+
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 --=================================================================================================================================================
 
@@ -1065,6 +1081,8 @@ INSERT INTO kuntur.person_address (
 
 --=================================================================================================================================================
 
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
 DROP VIEW IF EXISTS v_user_system_a CASCADE;
 
 CREATE OR REPLACE VIEW v_user_system_a AS 
@@ -1114,6 +1132,7 @@ WHERE (SELECT COUNT(x.*) FROM act_id_user_tmp x WHERE x.email = t.email) > 0;
 
 
 --=================================================================================================================================================
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 -- SELECT * FROM physical_person_b_tmp;
 -- SELECT * FROM kuntur.person;
@@ -1211,7 +1230,7 @@ INSERT INTO kuntur.org (SELECT DISTINCT * FROM v_org_u_c ORDER BY name);
 
 
 --=================================================================================================================================================
-
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 -- SELECT * FROM physical_person_b_tmp
 
@@ -1259,6 +1278,8 @@ CREATE OR REPLACE VIEW v_p_d AS
 -- SELECT * FROM v_p_d;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
 
 DROP VIEW IF EXISTS v_student_a CASCADE;
 
@@ -1353,6 +1374,8 @@ CREATE OR REPLACE VIEW v_student_c AS
 -- SELECT * FROM v_student_c;	
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
 
 INSERT INTO kuntur.student (
 
@@ -1379,6 +1402,8 @@ INSERT INTO kuntur.student (
 
 -- SELECT COUNT(*) FROM kuntur.student; -- 874
 -- SELECT * FROM kuntur.student;	
+
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
 
