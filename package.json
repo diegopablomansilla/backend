@@ -4,9 +4,11 @@
   "description": "Backend de kuntur, sistema de gestion de estudiantes internacionales utilizado por la Prosecretaria de Relaciones Internacionales",
   "main": "server.js",
   "dependencies": {
+    "async": "^1.4.0",
+    "fs-extra": "^0.24.0",
+    "node-uuid": "^1.4.3",
     "pg": "^4.4.0",
-    "restify": "^3.0.3",
-    "async": "^1.4.0"
+    "restify": "^3.0.3"
   },
   "devDependencies": {},
   "scripts": {

@@ -1,4 +1,4 @@
-﻿-- Modelo de Datos de Kuntur (Base de Datos PostgreSQL)
+-- Modelo de Datos de Kuntur (Base de Datos PostgreSQL)
 
 ----------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS kuntur.person CASCADE;
@@ -468,6 +468,21 @@ CREATE TABLE kuntur.enrrollment
 );
 
 ----------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS kuntur.enrrollment_chat CASCADE;
+CREATE TABLE kuntur.enrrollment_chat
+(
+	id varchar NOT NULL, -- id
+	erased boolean NOT NULL, -- erased
+	chat_time timestamp NOT NULL, -- Chat Time
+	chat varchar NOT NULL, -- Chat
+	user_system_a_id varchar NOT NULL, -- Usuario del Sistema
+	user_system_b_id varchar NOT NULL, -- Usuario del Sistema
+	enrrollment_id varchar NOT NULL, -- Postulación
+
+	CONSTRAINT enrrollment_chat_pkey PRIMARY KEY (id)
+);
+
+----------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS kuntur.enrrollment_stakeholder CASCADE;
 CREATE TABLE kuntur.enrrollment_stakeholder
 (
@@ -573,6 +588,8 @@ CREATE TABLE kuntur.enrrollment_log
 	code_end varchar NOT NULL, -- Código
 	name_end varchar NOT NULL, -- Nombre
 	promotion_date timestamp NOT NULL, -- Fecha Promoción de Estado
+	enrrollment_status_a_id varchar NOT NULL, -- Estado de la Postulación
+	enrrollment_status_b_id varchar NOT NULL, -- Estado de la Postulación
 	enrrollment_id varchar NOT NULL, -- Postulación
 	user_system_id varchar NOT NULL, -- Usuario del Sistema
 
@@ -581,7 +598,6 @@ CREATE TABLE kuntur.enrrollment_log
 
 ----------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS kuntur.unc_in_enrrollment CASCADE;
-
 CREATE TABLE kuntur.unc_in_enrrollment
 (
 	id varchar NOT NULL, -- id
@@ -633,6 +649,7 @@ CREATE TABLE kuntur.unc_in_study_program
 (
 	id varchar NOT NULL, -- id
 	erased boolean NOT NULL, -- erased
+	subject varchar NOT NULL, -- Materias
 	approved boolean, -- Aprobado
 	approved_by varchar, -- Aprobado por
 	file_number varchar, -- Legajo Guarani
@@ -641,18 +658,6 @@ CREATE TABLE kuntur.unc_in_study_program
 	org_id varchar NOT NULL, -- Institución Educativa
 
 	CONSTRAINT unc_in_study_program_pkey PRIMARY KEY (id)
-);
-
-----------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS kuntur.unc_in_study_program_subject CASCADE;
-CREATE TABLE kuntur.unc_in_study_program_subject
-(
-	id varchar NOT NULL, -- id
-	erased boolean NOT NULL, -- erased
-	subject varchar NOT NULL, -- Materia
-	unc_in_study_program_id varchar NOT NULL, -- Programa de Estudio
-
-	CONSTRAINT unc_in_study_program_subject_pkey PRIMARY KEY (id)
 );
 
 ----------------------------------------------------------------------------------------
@@ -687,7 +692,10 @@ CREATE TABLE kuntur.unc_in_academic_performance
 (
 	id varchar NOT NULL, -- id
 	erased boolean NOT NULL, -- erased
-	subject varchar NOT NULL, -- Materia
+	subject varchar NOT NULL, -- Materias
+	approved boolean, -- Aprobado
+	approved_by varchar, -- Aprobado por
+	file_number varchar, -- Legajo Guarani
 	hs double precision NOT NULL, -- Horas
 	unc_in_enrrollment_id varchar NOT NULL, -- Postulación
 	unc_in_grading_scale_id varchar NOT NULL, -- Escala de Calificaciones
@@ -833,6 +841,15 @@ ALTER TABLE kuntur.enrrollment ADD CONSTRAINT enrrollment_admission_period_id_fk
 ALTER TABLE kuntur.enrrollment ADD CONSTRAINT enrrollment_enrrollment_status_id_fkey FOREIGN KEY (enrrollment_status_id) REFERENCES kuntur.enrrollment_status (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 ----------------------------------------------------------------------------------------
+ALTER TABLE kuntur.enrrollment_chat ADD CONSTRAINT enrrollment_chat_user_system_a_id_fkey FOREIGN KEY (user_system_a_id) REFERENCES kuntur.user_system (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+----------------------------------------------------------------------------------------
+ALTER TABLE kuntur.enrrollment_chat ADD CONSTRAINT enrrollment_chat_user_system_b_id_fkey FOREIGN KEY (user_system_b_id) REFERENCES kuntur.user_system (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+----------------------------------------------------------------------------------------
+ALTER TABLE kuntur.enrrollment_chat ADD CONSTRAINT enrrollment_chat_enrrollment_id_fkey FOREIGN KEY (enrrollment_id) REFERENCES kuntur.enrrollment (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+----------------------------------------------------------------------------------------
 ALTER TABLE kuntur.enrrollment_stakeholder ADD CONSTRAINT enrrollment_stakeholder_user_system_id_fkey FOREIGN KEY (user_system_id) REFERENCES kuntur.user_system (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 ----------------------------------------------------------------------------------------
@@ -857,6 +874,12 @@ ALTER TABLE kuntur.enrrollment_nationality ADD CONSTRAINT enrrollment_nationalit
 ALTER TABLE kuntur.enrrollment_address ADD CONSTRAINT enrrollment_address_enrrollment_id_fkey FOREIGN KEY (enrrollment_id) REFERENCES kuntur.enrrollment (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 ----------------------------------------------------------------------------------------
+ALTER TABLE kuntur.enrrollment_log ADD CONSTRAINT enrrollment_log_enrrollment_status_a_id_fkey FOREIGN KEY (enrrollment_status_a_id) REFERENCES kuntur.enrrollment_status (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+----------------------------------------------------------------------------------------
+ALTER TABLE kuntur.enrrollment_log ADD CONSTRAINT enrrollment_log_enrrollment_status_b_id_fkey FOREIGN KEY (enrrollment_status_b_id) REFERENCES kuntur.enrrollment_status (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+----------------------------------------------------------------------------------------
 ALTER TABLE kuntur.enrrollment_log ADD CONSTRAINT enrrollment_log_enrrollment_id_fkey FOREIGN KEY (enrrollment_id) REFERENCES kuntur.enrrollment (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 ----------------------------------------------------------------------------------------
@@ -867,9 +890,6 @@ ALTER TABLE kuntur.unc_in_study_program ADD CONSTRAINT unc_in_study_program_unc_
 
 ----------------------------------------------------------------------------------------
 ALTER TABLE kuntur.unc_in_study_program ADD CONSTRAINT unc_in_study_program_org_id_fkey FOREIGN KEY (org_id) REFERENCES kuntur.org (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-----------------------------------------------------------------------------------------
-ALTER TABLE kuntur.unc_in_study_program_subject ADD CONSTRAINT unc_in_study_program_subject_unc_in_study_program_id_fkey FOREIGN KEY (unc_in_study_program_id) REFERENCES kuntur.unc_in_study_program (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 ----------------------------------------------------------------------------------------
 ALTER TABLE kuntur.unc_in_academic_performance ADD CONSTRAINT unc_in_academic_performance_unc_in_enrrollment_id_fkey FOREIGN KEY (unc_in_enrrollment_id) REFERENCES kuntur.unc_in_enrrollment (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION;

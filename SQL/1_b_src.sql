@@ -76,8 +76,10 @@ CREATE OR REPLACE  FUNCTION kuntur.ftg_number_enrrollment_increment() RETURNS tr
     BEGIN
        
          SELECT INTO NEW.number_enrrollment coalesce(MAX(number_enrrollment),0) + 1 
-         FROM kuntur.enrrollment;
-         --WHERE 	coalesce(id,'') = coalesce(NEW.id,'');
+         FROM 	kuntur.enrrollment;
+         --JOIN	kunutur.admission_period ap
+	--	ON e.
+        -- WHERE 	coalesce(id,'') = coalesce(NEW.id,'');
       
         RETURN NEW;
     END;
@@ -124,7 +126,24 @@ SELECT 	e.id,
 	e.student_id,
 	coalesce(e.family_name, '')  || ' ' || coalesce(e.given_name, '') AS student,	
 	(SELECT string_agg(x.email, ', ') FROM kuntur.enrrollment_email x WHERE e.id = x.enrrollment_id) AS email,
-	(SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) AS nationality,
+
+
+	COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '') || ', ' || COALESCE((SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id), '') AS nationality,
+
+/*
+	CASE 	WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NOT NULL
+			THEN birth_country_code || ', ' || (SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) 
+
+		WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) = 0 AND birth_country_code IS NOT NULL
+			THEN birth_country_code
+
+		WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NULL
+			THEN (SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) 
+
+		ELSE null		
+	END AS nationality,
+*/
+		
 	CASE 	WHEN o.original_name IS NULL THEN e.institution_original_name 
 		ELSE o.original_name
 	END AS institution,
@@ -151,15 +170,33 @@ DROP FUNCTION IF EXISTS kuntur.f_find_enrrollment_list(year INTEGER, semester IN
 CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
 					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR) 
 	RETURNS SETOF kuntur.v_enrrollment_list AS $$
-		SELECT 	* 
+	
+		SELECT 	id, 
+			number_enrrollment, 
+			admission_period_id, 
+			year, 
+			semester, 
+			enrrollment_status_id, 
+			enrrollment_status, 
+			student_id, student, 
+			email, 
+			$4, 
+			institution, 
+			org_institution_id
+					
 		FROM 	kuntur.v_enrrollment_list e
 		WHERE 	(($1 IS NOT NULL AND $1 = e.year) OR $1 IS NULL)  
 			AND (($2 IS NOT NULL AND $2 = e.semester) OR $2 IS NULL)  
 			AND (($3 IS NOT NULL AND $3 = e.enrrollment_status_id) OR $3 IS NULL)  
+
+			AND (($4 IS NOT NULL 
+				AND trim(lower($4))::varchar ILIKE '%' || e.nationality || '%') OR $4 IS NULL)  
+			
+			/*
 			AND (($4 IS NOT NULL 
 				AND trim(lower($4))::varchar IN (SELECT trim(lower(coalesce(x.country_code,'')))::varchar FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id)
 				) OR $4 IS NULL)  
-			
+			*/
 				
 			AND (
 				(

@@ -1,7 +1,8 @@
 var pg = require("pg")
 var restify = require('restify');
-var fs      = require('fs');
+var fs      = require('fs-extra');
 var async = require('async');
+var uuid = require('node-uuid');
 
 var server = restify.createServer({
     name : "server kuntur"
@@ -20,6 +21,9 @@ var conString = "postgres://" +
                config.pg.host + "/" +
                config.pg.db;
 
+server.get({path: '/test'}, function(req, res, next) {
+  res.send('Ok');
+});
 
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
@@ -49,6 +53,32 @@ server.use(restify.fullResponse());
 //    }
 // }
 
+server.get({path: '/file/:file'}, function(req, res, next) {
+  var file = req.params.file;
+  var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
+  fs.createReadStream(filePath).pipe(res);
+});
+
+server.post({path: '/file'}, function(req, res, next) {
+  var n = 0;
+  var mkFileName = function(cb) {
+    var file = uuid.v4();
+    var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
+    fs.stat(function(err, stat) {
+      if(err) return cb(null, {file: file, path: filePath});
+      if(n == 40) {
+        return cb({status: 'err', message: 'No se puede crear el archivo'});
+      }
+      n++;
+      mkFileName(cb);
+    })
+  };
+  mkFileName(function(err, result) {
+    if(err) return res.send(500, err)
+    req.pipe(fs.createOutputStream(result.path));
+    res.send(200, {file: result.file});
+  })
+});
 
 require('./modulos/university')(server, conString);
 require('./modulos/agreement')(server, conString);
@@ -57,6 +87,6 @@ require('./modulos/enrollment')(server, conString);
 
 
 
-server.listen(port ,ip_addr, function(){
+server.listen(port , function(){
 	console.log("Listening on "+ip_addr+":"+port);
 });
