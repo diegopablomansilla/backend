@@ -365,6 +365,54 @@ UPDATE postulation_tmp SET sys_file_program_id = null WHERE CHAR_LENGTH(sys_file
 UPDATE postulation_tmp SET modified_note = null WHERE CHAR_LENGTH(modified_note) = 0;
 
 
+UPDATE postulation_tmp t SET sys_file_university_credential_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_university_credential_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_analytical_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_analytical_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_passport_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_passport_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_language_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_language_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_cv_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_cv_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_psychophysical_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_psychophysical_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_postulation_letter_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_postulation_letter_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_acceptance_letter_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_acceptance_letter_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_acceptance_letter_mail_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_acceptance_letter_mail_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_academic_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_academic_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_regular_student_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_regular_student_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_cv_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_cv_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_arrival_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_arrival_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_intermediate_report_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_intermediate_report_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_final_report_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_final_report_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_study_contract_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_study_contract_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_analytical_certificate_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_analytical_certificate_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_analytical_certificate_mail_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_analytical_certificate_mail_id = x.id);
+
+UPDATE postulation_tmp t SET sys_file_program_id = (SELECT x.back_end_path FROM sys_file x WHERE t.sys_file_program_id = x.id);
+
+
+
+-- select * from postulation_tmp
+-- select * from sys_file
+-- select * from kuntur.person
+-- select * from kuntur.enrrollment
+-- select * from kuntur.unc_in_enrrollment
+
+
+
 -- SELECT COUNT(*) FROM postulation_tmp; -- 1515
 -- SELECT * FROM postulation_tmp; -- 1515
 

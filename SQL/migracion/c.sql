@@ -1,4 +1,6 @@
-﻿
+﻿-- select * from kuntur.unc_in_enrrollment
+
+
 DELETE FROM kuntur.enrrollment_stakeholder CASCADE;
 DELETE FROM kuntur.unc_in_academic_coordinator CASCADE;
 DELETE FROM kuntur.unc_in_academic_office CASCADE;
@@ -1319,12 +1321,7 @@ DROP VIEW IF EXISTS v_unc_in_study_program CASCADE;
 
 CREATE OR REPLACE VIEW v_unc_in_study_program AS
 
-		SELECT 	uuid_generate_v4()::varchar AS id,
-			false::BOOLEAN AS erased,
---			REPLACE(TRIM(c.subjects), '
---', '|')::varchar AS subjects,
-			sp.approved::BOOLEAN AS approved, 			
-			null::VARCHAR AS approved_by,	
+		SELECT 	sp.approved::BOOLEAN AS approved,			
 			TRIM(c.guarani)::VARCHAR AS file_number,
 			REPLACE(TRIM(c.subjects), '
 ', '|')::varchar AS comment,
@@ -1342,10 +1339,77 @@ CREATE OR REPLACE VIEW v_unc_in_study_program AS
 		JOIN	academic_unit_tmp au
 			ON au.id::VARCHAR = c.academic_unit_id::VARCHAR	
 		WHERE 	sp.state_enable = true	
-		ORDER BY p.id, spt.order_number;	
+		ORDER BY p.id, spt.order_number;
+
 
 -- SELECT * FROM v_unc_in_study_program;
 -- SELECT * FROM v_unc_in_study_program WHERE org_id IS NULL;
+-- SELECT * FROM v_unc_in_study_program WHERE approved = false;
+
+DROP VIEW IF EXISTS v_unc_in_study_program_x CASCADE;
+
+CREATE OR REPLACE VIEW v_unc_in_study_program_x AS
+
+		SELECT 	approved,			
+			file_number,
+			REPLACE(TRIM(REPLACE(TRIM( REPLACE(TRIM(comment), ';', '|')), '–', '|')), '-', '|')::varchar AS comment,
+			unc_in_enrrollment_id,
+			org_id
+		FROM 	v_unc_in_study_program;
+
+
+-- SELECT ARRAY_TO_STRING(ARRAY(SELECT unc_in_enrrollment_id FROM v_unc_in_study_program), '|');
+-- SELECT ARRAY(SELECT unc_in_enrrollment_id FROM v_unc_in_study_program);
+
+
+DROP VIEW IF EXISTS v_unc_in_study_program_a CASCADE;
+
+CREATE OR REPLACE VIEW v_unc_in_study_program_a AS
+
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[0] AS subject FROM v_unc_in_study_program_x 
+	UNION ALL 
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[1] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[2] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[3] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[4] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[5] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[6] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[7] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[8] AS subject FROM v_unc_in_study_program_x  
+	UNION ALL
+	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[9] AS subject FROM v_unc_in_study_program_x;  
+
+
+DROP VIEW IF EXISTS v_unc_in_study_program_b CASCADE;
+
+CREATE OR REPLACE VIEW v_unc_in_study_program_b AS
+
+	SELECT 	TRIM(subject) AS subject,
+		approved,		
+		file_number,
+		unc_in_enrrollment_id,
+		org_id
+	FROM 	v_unc_in_study_program_a 
+	WHERE 	subject IS NOT NULL 
+		AND CHAR_LENGTH(TRIM(subject)) > 0
+	ORDER BY unc_in_enrrollment_id, subject;
+
+-- SELECT * FROM v_unc_in_study_program_b;
+
+DROP VIEW IF EXISTS v_unc_in_study_program_c CASCADE;
+
+CREATE OR REPLACE VIEW v_unc_in_study_program_c AS
+
+	SELECT DISTINCT * FROM v_unc_in_study_program_b;
+
+-- SELECT * FROM v_unc_in_study_program_c;
 
 DROP TABLE IF EXISTS unc_in_study_program_tmp CASCADE;
 
@@ -1353,8 +1417,8 @@ CREATE TABLE unc_in_study_program_tmp
 (
 	  id character varying NOT NULL UNIQUE,
 	  erased boolean NOT NULL,
-	  --subjects character varying NOT NULL,
-	  approved boolean,
+	  subject character varying NOT NULL,
+	  approved boolean NOT NULL,
 	  approved_by character varying,
 	  file_number character varying,
 	  comment character varying,
@@ -1363,13 +1427,52 @@ CREATE TABLE unc_in_study_program_tmp
 );
 
 
-INSERT INTO unc_in_study_program_tmp (SELECT * FROM v_unc_in_study_program WHERE comment IS NOT NULL);
+INSERT INTO unc_in_study_program_tmp (
+
+	SELECT 	uuid_generate_v4()::varchar AS id,
+		false::BOOLEAN AS erased,
+		subject,
+		CASE WHEN approved IS NULL THEN false ELSE approved END AS approved,
+		null::VARCHAR AS approved_by,	
+		file_number,
+		null::VARCHAR AS comment,
+		unc_in_enrrollment_id,
+		org_id		
+	FROM 	v_unc_in_study_program_c 
+	WHERE 	subject IS NOT NULL);
 
 UPDATE unc_in_study_program_tmp SET id = null WHERE char_length(trim(id)) = 0;
---UPDATE unc_in_study_program_tmp SET subjects = null WHERE char_length(trim(subjects)) = 0;
+UPDATE unc_in_study_program_tmp SET subject = null WHERE char_length(trim(subject)) = 0;
 UPDATE unc_in_study_program_tmp SET file_number = null WHERE char_length(trim(file_number)) = 0;
 UPDATE unc_in_study_program_tmp SET unc_in_enrrollment_id = null WHERE char_length(trim(unc_in_enrrollment_id)) = 0;
 UPDATE unc_in_study_program_tmp SET org_id = null WHERE char_length(trim(org_id)) = 0;
+
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, ' -', '') WHERE subject ILIKE ' -%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, ' +', '') WHERE subject ILIKE ' +%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '+', '') WHERE subject ILIKE '+%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '-', '') WHERE subject ILIKE '-%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '*', '') WHERE subject ILIKE '*%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '.', '') WHERE subject ILIKE '.%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, ' *', '') WHERE subject ILIKE ' *%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, ' .', '') WHERE subject ILIKE ' .%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '_', '') WHERE subject ILIKE '_%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '• ', '') WHERE subject ILIKE '• %';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '•', '') WHERE subject ILIKE '•%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '	', ' ') WHERE subject ILIKE '	%';
+UPDATE unc_in_study_program_tmp SET subject = REPLACE(subject, '	', ' ') WHERE subject ILIKE '%	%';
+
+UPDATE unc_in_study_program_tmp SET subject = TRIM(subject);
+
+DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(subject)) = 0;
+DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(subject)) = 1;
+DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(subject)) = 2;
+DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(subject)) = 3;
+DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(subject)) = 4;
+DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(subject)) = 5;
+
+-- SELECT DISTINCT subject FROM unc_in_study_program_tmp  where CHAR_LENGTH(TRIM(subject)) < 8 ORDER BY subject;
+
+-- SELECT * FROM unc_in_study_program_tmp where CHAR_LENGTH(TRIM(subject)) > 100;
 
 -- SELECT COUNT(*) FROM unc_in_study_program_tmp; -- 1037
 -- SELECT * FROM unc_in_study_program_tmp;
@@ -1378,8 +1481,8 @@ UPDATE unc_in_study_program_tmp SET org_id = null WHERE char_length(trim(org_id)
 
 INSERT INTO kuntur.unc_in_study_program (SELECT * FROM unc_in_study_program_tmp);
 
--- SELECT COUNT(*) FROM kuntur.unc_in_study_program; -- 1018
--- SELECT * FROM kuntur.unc_in_study_program;
+-- SELECT COUNT(*) FROM kuntur.unc_in_study_program; -- 3309
+-- SELECT * FROM kuntur.unc_in_study_program ORDER BY unc_in_enrrollment_id, subject;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
@@ -1465,6 +1568,9 @@ CREATE OR REPLACE VIEW v_unc_in_academic_performance AS
 		SELECT 	uuid_generate_v4()::varchar AS id,
 			false::boolean AS erased,
 			trim(s.name)::varchar AS subject,
+			true::BOOLEAN AS approved,
+			null::VARCHAR AS approved_by,
+			(SELECT DISTINCT x.file_number FROM kuntur.unc_in_study_program x WHERE x.unc_in_enrrollment_id = p.id AND x.org_id = trim(s.academic_unit_id))::VARCHAR AS file_number,
 			s.hours AS hs, 
 			p.id AS unc_in_enrrollment_id,
 			(SELECT gs.id FROM kuntur.unc_in_grading_scale gs WHERE s.note_in_numbers = gs.rate_number)::varchar AS unc_in_grading_scale_id, 
@@ -1496,6 +1602,9 @@ CREATE TABLE unc_in_academic_performance_tmp
 	  id character varying NOT NULL UNIQUE,
 	  erased boolean NOT NULL,
 	  subject character varying NOT NULL,
+	  approved BOOLEAN NOT NULL,
+	  approved_by VARCHAR,
+	  file_number VARCHAR,  
 	  hs double precision NOT NULL,
 	  unc_in_enrrollment_id character varying NOT NULL,
 	  unc_in_grading_scale_id character varying NOT NULL,
@@ -2059,6 +2168,51 @@ INSERT INTO kuntur.enrrollment_stakeholder (
 
 UPDATE kuntur.enrrollment e SET comment = (SELECT x.comment FROM kuntur.unc_in_enrrollment x WHERE x.id = e.id);
 
+
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '0351%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '351%';
+
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(0351%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(351%';
+
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '+54%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '54%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '054%';
+
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(+54%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(54%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(054%';
+
+------------------------------------------------------------------------------------------------
+
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '0351%';
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '351%';
+
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(0351%';
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(351%';
+
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '+54%';
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '54%';
+UPDATE kuntur.person_phone SET country_code = 'ARG' WHERE phone_number ILIKE '054%';
+
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(+54%';
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(54%';
+UPDATE kuntur.enrrollment_phone SET country_code = 'ARG' WHERE phone_number ILIKE '(054%';
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
+
+-- SELECT * FROM kuntur.enrrollment_status ORDER BY code;
+
+UPDATE kuntur.enrrollment_status SET name = 'No iniciada' WHERE code = 'A';
+
+UPDATE kuntur.enrrollment_status SET name = 'En evaluación' WHERE code = 'D';
+UPDATE kuntur.enrrollment_status SET name = 'Modificación de plan 1' WHERE code = 'E';
+UPDATE kuntur.enrrollment_status SET name = 'Modificación plan 2' WHERE code = 'G';
+UPDATE kuntur.enrrollment_status SET name = 'En matriculación' WHERE code = 'H';
+UPDATE kuntur.enrrollment_status SET name = 'En carga de actuación académica' WHERE code = 'J';
+
+----------------------------------------------------------------------------------------------------------------------------------------------------	
+
+
 
 SELECT 'FIN DEL PROCESO C'::VARCHAR FROM postulation LIMIT 100;
