@@ -1,6 +1,7 @@
 var pg = require("pg")
 var fs      = require('fs');
 var async = require('async');
+var url = require('url');
 
 var rollback = function(client, done) {
   client.query('ROLLBACK', function(err) {
@@ -20,6 +21,7 @@ module.exports = function(server, conString) {
     * @param {String} countryCode - The iso alpha 3 code of a country.
     * @param {String} searchText - Given text to search
     * @param {Boolean} showErased - Consider erased universities.
+    * @param {String} url - Url of the university you are looking for.
     * @param {Number} offset - List of universities offset.
     * @param {Number} limit - How many results do you want.
     *
@@ -42,6 +44,16 @@ module.exports = function(server, conString) {
       // translate(coalesce('%'||busqueda||'%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')
   	}
 
+    if(req.params.url){
+      var universityUrl=url.parse(req.params.url);
+      if(!universityUrl.hostname){
+        aux=universityUrl.href.split("/")
+        sql += " AND translate(coalesce(org.web_site::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + aux[0] + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
+      }else{
+        sql += " AND translate(coalesce(org.web_site::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + universityUrl.hostname + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
+      }
+    }
+
     if(!req.params.showErased){
   		sql += "AND org.erased=false "; // FIXME when showErased is setted to false, it doesnt add this bit to the sql.
   	}
@@ -53,8 +65,8 @@ module.exports = function(server, conString) {
   		sql += "OFFSET '"+req.params.offset+"' LIMIT '"+req.params.limit+"'";
   	}
 
-  	var query = client.query(sql);
-
+  	// var query = client.query(sql);
+  
   	pg.connect(conString, function(err, client, done){
       if(err) {
         done();

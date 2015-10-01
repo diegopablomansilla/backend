@@ -192,6 +192,37 @@ module.exports = function(server, conString) {
 
   });
 
+  server.get({path : '/documentTypes', version : '0.0.1'}, function(req,res,next){
+
+  var sql = "SELECT code, name, country_code FROM kuntur.person_identity_type;"
+
+  pg.connect(conString, function(err, client, done){
+       if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+        return;
+      }
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end", function(result){
+        done();
+        res.send(200, result.rows);
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error.message);
+      });
+    });
+
+  });
+
 
 
 
@@ -334,4 +365,279 @@ module.exports = function(server, conString) {
   	    });
   	});
   });
+
+
+  server.put({path:'/userName/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.body.userSystemId){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    if(!req.body.guivenName){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
+      return next();
+    }
+
+    if(!req.body.familyName){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No familyName found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var sql = {};
+        sql.text = "select kuntur.f_u_enrrollment_names($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5)"
+        sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.guivenName, req.body.middleName, req.body.familyName];
+
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+          done();
+          if(JSON.parse(result.rows[0].f_u_enrrollment_names)){
+            res.send(200,"OK");
+          }else{
+            res.send(500,"Error in function f_u_enrrollment_names");
+          }
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error.message);
+        });
+
+      });//BEGIN
+
+    }); //CONNECT
+
+  });//FUNCION
+
+
+  server.put({path:'/userMale/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.body.userSystemId){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    if(!req.body.male){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var sql = {};
+        sql.text = "select kuntur.f_u_enrrollment_male($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3)"
+        sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
+
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+          done();
+          if(JSON.parse(result.rows[0].f_u_enrrollment_male)){
+            res.send(200,"OK");
+          }else{
+            res.send(500,"Error in function f_u_enrrollment_male");
+          }
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error.message);
+        });
+
+      });//BEGIN
+
+    }); //CONNECT
+
+  });//FUNCION
+
+  server.put({path:'/userPhoto/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.body.userSystemId){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    if(!req.body.urlPhoto){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var sql = {};
+        sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3)"
+        sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
+
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+          done();
+          if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
+            res.send(200,"OK");
+          }else{
+            res.send(500,"Error in function f_u_enrrollment_url_photo");
+          }
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error.message);
+        });
+
+      });//BEGIN
+
+    }); //CONNECT
+
+  });//FUNCION
+
+  server.put({path:'/enrrollment/:inenrrollmentId/person', version:'0.0.1'}, function(req, res, next){
+
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.body.userSystemId){
+      req.body.userSystemId=46385;
+      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      // return next();
+    }
+
+    var sql = {};
+    if(req.body.givenName && req.body.familyName){
+      sql.text = "select kuntur.f_u_enrrollment_names($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.givenName, req.body.middleName, req.body.familyName];
+    }
+    else if(req.body.male){
+      sql.text = "select kuntur.f_u_enrrollment_male($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
+    }
+    else if(req.body.urlPhoto){
+      sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
+    }
+    else if(req.body.org){
+      sql.text = "select kuntur.f_u_enrrollment_org_id($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.org.id];
+    }
+    else if(req.body.name && req.body.web && req.body.country){
+      sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.name, req.body.web, req.body.country];
+    }
+    else{
+      console.log("Incorrect parameters");
+      res.send(409, {code: 409, message: 'Conflict', description: 'Incorrect parameters.'});
+      return;
+    }
+
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+          done();
+          res.send(200,JSON.parse(result.rows[0].respuesta));
+
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error.message);
+        });
+
+
+    });
+
+  });
+
+
+
+
+
 }
+
+
