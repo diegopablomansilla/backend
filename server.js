@@ -3,6 +3,7 @@ var restify = require('restify');
 var fs      = require('fs-extra');
 var async = require('async');
 var uuid = require('node-uuid');
+var path = require('path');
 
 var server = restify.createServer({
     name : "server kuntur"
