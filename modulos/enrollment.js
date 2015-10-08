@@ -36,7 +36,7 @@ module.exports = function(server, conString) {
       });
 
       query.on("end", function(result){
-        // console.log(result.rows[0].f_find_enrrollment_by_id);
+        console.log(result.rows[0].f_find_enrrollment_by_id);
 
         done();
         res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
