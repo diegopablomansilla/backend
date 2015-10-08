@@ -9,6 +9,7 @@ var rollback = function(client, done) {
     //to the done function to close & remove this client from
     //the pool.  If you leave a client in the pool with an unaborted
     //transaction weird, hard to diagnose problems might happen.
+    console.log(err);
     return done(err);
   });
 };
