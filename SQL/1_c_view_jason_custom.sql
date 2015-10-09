@@ -368,6 +368,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 				SELECT STRING_AGG('{'
 						|| kuntur.json_att_util('id', unc_in_study_program.id::VARCHAR, '"', ', ', false)
 						|| kuntur.json_att_util('erased', unc_in_study_program.erased::VARCHAR, '', ', ' , true)
+						|| kuntur.json_att_util('subject', unc_in_study_program.subject::VARCHAR, '"', ', ', false)
 						|| kuntur.json_att_util('approved', unc_in_study_program.approved::VARCHAR, '', ', ' , true)
 						|| kuntur.json_att_util('approvedBy', unc_in_study_program.approved_by::VARCHAR, '"', ', ' , true)
 						|| kuntur.json_att_util('fileNumber', unc_in_study_program.file_number::VARCHAR, '"', ', ' , true)
@@ -390,7 +391,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 				LEFT JOIN kuntur.org
 					ON kuntur.unc_in_study_program.org_id = org.id
 				------------------------------------------
-				WHERE enrrollment.id = unc_in_study_program.unc_in_enrrollment_id 
+				WHERE unc_in_enrrollment.id = unc_in_study_program.unc_in_enrrollment_id 
 			), '')  || '], '
 			-------------------------------------------------------------------------------------------------------------			
 			|| '"uncInAcademicPerformanceList":[' || COALESCE((
@@ -444,7 +445,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 				LEFT JOIN kuntur.org
 					ON kuntur.unc_in_academic_performance.org_id = org.id
 				------------------------------------------
-				WHERE enrrollment.id = unc_in_academic_performance.unc_in_enrrollment_id 
+				WHERE unc_in_enrrollment.id = unc_in_academic_performance.unc_in_enrrollment_id 
 			), '')  || '] '
 		--================================================================================================================================	
 		|| '}' AS json,
@@ -467,7 +468,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 	WHERE unc_in_enrrollment.id  = $1
 			
 		) e
-			--------------------------------------------------------------------------------------		
+	--------------------------------------------------------------------------------------		
 		
 		INNER JOIN
 			(	
@@ -505,6 +506,16 @@ COPY (SELECT json FROM kuntur.v_unc_in_enrrollment_json_a) TO '/home/java/Descar
 COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ((SELECT x.id FROM kuntur.enrrollment x LIMIT 1), (SELECT id FROM kuntur.user_system WHERE name = '46385')))
 TO '/home/java/Descargas/json.sql';
 	
+
+COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ('489090264c037dd8014c99e1b3fe036b', (SELECT id FROM kuntur.user_system WHERE name = '46385')))
+TO '/home/java/Descargas/json.sql';
+
+COPY (SELECT  * FROM kuntur.f_find_enrrollment_by_id ('000000003ed279e4013ed2f017000376', (SELECT id FROM kuntur.user_system WHERE name = '46385')))
+TO '/home/java/Descargas/json.sql';
+
+select 	unc_in_enrrollment.* 
+from 	kuntur.unc_in_enrrollment 
+join 	kuntur.unc_in_academic_performance 
+	on unc_in_enrrollment.id = unc_in_academic_performance.unc_in_enrrollment_id 
+
 */
-
-
