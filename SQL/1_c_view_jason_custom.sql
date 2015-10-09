@@ -252,7 +252,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 					WHERE enrrollment.id = enrrollment_identity.enrrollment_id 
 			), '')  || '], '			
 			--------------------------------------------------------------------------------------------------------------			
-			|| '"enrrollmentIdentityList":['  || COALESCE((
+			|| '"enrrollmentNationalityList":['  || COALESCE((
 
 					SELECT STRING_AGG(
 						'{'
