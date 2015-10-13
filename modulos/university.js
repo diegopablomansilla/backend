@@ -53,9 +53,7 @@ module.exports = function(server, conString) {
   		sql += "OFFSET '"+req.params.offset+"' LIMIT '"+req.params.limit+"'";
   	}
 
-  	var query = client.query(sql);
-
-  	pg.connect(conString, function(err, client, done){
+   pg.connect(conString, function(err, client, done){
       if(err) {
         done();
         res.send(500,err);
