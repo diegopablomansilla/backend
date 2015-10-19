@@ -699,3 +699,86 @@ TO '/home/java/Descargas/json.sql';
 COPY (SELECT  * FROM kuntur.f_find_study_program_by_id ('489090264c037dd8014d1e72dc3f0666', 'f1cc9355-2288-45d1-9537-9f38cab18aaf'))
 TO '/home/java/Descargas/json.sql';
 */
+
+DROP FUNCTION IF EXISTS kuntur.f_role_stakeholder(inenrrollment_id VARCHAR, user_system_id VARCHAR, ukey VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_role_stakeholder(inenrrollment_id VARCHAR, user_system_id VARCHAR, ukey VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE    	
+
+	gui_type VARCHAR = -1;	
+    	update_ok BOOLEAN = false;
+
+	cant_coordintator INTEGER = 0;
+	cant_office INTEGER = 0;
+	studenid VARCHAR = 0;
+    
+BEGIN
+
+	SELECT  kuntur.gui_type($1, $2) INTO gui_type; 
+
+	SELECT  kuntur.is_update_by_gui_type(gui_type, $3) INTO update_ok; 
+
+	IF update_ok = true THEN
+
+		SELECT COUNT(*) INTO cant_coordintator FROM kuntur.unc_in_academic_coordinator WHERE person_id = $2 ;
+
+		SELECT COUNT(*) INTO cant_office FROM kuntur.unc_in_academic_office WHERE person_id = $2 ;
+
+		SELECT student_id INTO studenid FROM kuntur.enrrollment WHERE id = $1 ;
+
+		
+
+		IF gui_type = '0' THEN
+			RETURN 'ALL';
+
+		ELSEIF studenid = $2 THEN
+			RETURN 'STUDENT';
+		ELSEIF cant_coordintator > 0 THEN
+			RETURN 'COORDINATOR';	
+		ELSEIF cant_office > 0 THEN
+			RETURN 'OFFICE';
+		ELSE
+			RETURN 'NONE';
+		END IF;
+
+	END IF;
+
+    RETURN 'NONE';
+    
+END;
+$$ LANGUAGE plpgsql;
+
+
+/*
+--
+
+SELECT * FROM kuntur.enrrollment WHERE number_enrrollment = 4;
+
+SELECT * 
+FROM kuntur.enrrollment_stakeholder 
+JOIN kuntur.person
+	ON person.id = enrrollment_stakeholder.user_system_id
+WHERE enrrollment_id = '489090264c037dd8014c5179114f01f2'
+
+
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014d1e72dc3f0666', (SELECT id FROM kuntur.user_system WHERE name = '46385'), 'unc_in_study_program');
+
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014c5179114f01f2', '765b0068-8916-4d1b-a69d-d9537c1fdfcf', 'unc_in_study_program'); -- ESUDIANTE
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014c5179114f01f2', 'ad43f3a9-aee0-413e-88ca-5e97ae932812', 'unc_in_study_program'); -- ALL
+
+SELECT * FROM kuntur.enrrollment WHERE number_enrrollment = 906;
+
+SELECT * 
+FROM kuntur.enrrollment_stakeholder 
+JOIN kuntur.person
+	ON person.id = enrrollment_stakeholder.user_system_id
+WHERE enrrollment_id = '489090264c037dd8014c368f54710170'
+
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', (SELECT id FROM kuntur.user_system WHERE name = '46385'), 'unc_in_study_program');
+
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', 'a059ce67-4c3f-464a-bdd5-7869da608f79', 'unc_in_study_program'); -- NONE
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', 'ad43f3a9-aee0-413e-88ca-5e97ae932812', 'unc_in_study_program'); -- ALL
+SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', 'a44509a7-e027-48c3-a56c-a132780da487', 'unc_in_study_program'); -- OFFICE
+
+*/
