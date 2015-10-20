@@ -987,9 +987,103 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
   });
 
 
+server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, function(req, res, next){
 
 
 
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.body.userSystemId){
+      req.body.userSystemId=46385;
+      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      // return next();
+    }
+
+    if(!req.body.enrrollmentAddressList){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No enrrollmentAddressList found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+
+        var queryResult=false;
+        async.each(req.body.enrrollmentAddressList,
+          function(address, callback){
+            var sql = {};
+            if(address.erased){
+              //update
+              sql.text = "select kuntur.f_u_enrrollment_Deleteaddress($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, address.id];
+
+            }
+            else if(address.id){
+              //delete
+              sql.text = "select kuntur.f_u_enrrollment_address($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment, address.id];
+            }
+            else if(!address.erased){
+              sql.text = "select kuntur.f_u_enrrollment_Insertaddress($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+            // done();
+            // res.send(500,error.message);
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+  });
 
 
 
@@ -1011,33 +1105,86 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
     }
 
     var sql = {};
-    if(req.body.givenName && req.body.familyName){
+    if("givenName" in req.body && "familyName" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_names($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.givenName, req.body.middleName, req.body.familyName];
     }
-    else if(req.body.male){
+    else if("male" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_male($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
     }
-    else if(req.body.urlPhoto){
+    else if("urlPhoto" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
     }
-    else if(req.body.org){
+    else if("org" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_org_id($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.org.id];
     }
-    else if(req.body.name && req.body.web && req.body.country){
+    else if("name" in req.body && "web" in req.body && "country" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.name, req.body.web, req.body.country];
     }
-    else if(req.body.birthCountryCode && req.body.birthDate){
+    else if("birthCountryCode" in req.body && "birthDate" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_birth($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.birthDate, req.body.birthCountryCode];
     }
-    else if(req.body.emergencyContact){
+    else if("emergencyContact" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_emergency_contact($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.emergencyContact];
+    }
+    else if("agreement" in req.body){
+      if(!req.body.agreementName){
+        req.body.agreementName='null';
+      }
+      sql.text = "select kuntur.f_u_enrrollment_agreement($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.agreement, req.body.agreementName];
+    }
+    else if("program" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_program($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.program];
+    }
+    else if("amountPaid" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_amountPaid($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.amountPaid];
+    }
+    else if("originalDoc" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_originalDoc($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.originalDoc];
+    }
+    else if("insurance" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_insurance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.insurance];
+    }
+    else if("languageCertificate" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_languageCertificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.languageCertificate];
+    }
+    else if("visa" in req.body){
+      if(!req.body.visa){
+        req.body.visa=null;
+      }
+
+      sql.text = "select kuntur.f_u_enrrollment_visa($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.visa];
+      console.log(sql);
+    }
+    else if("observation" in req.body && "comment" in req.body){
+      if(!req.body.observation){
+        req.body.observation=null;
+      }
+      else{
+        req.body.observation="'"+req.body.observation+"'";
+      }
+      if(!req.body.comment){
+        req.body.comment=null;
+      }else{
+        req.body.comment="'"+req.body.comment+"'";
+      }
+
+      sql.text = "select kuntur.f_u_enrrollment_comment($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.comment, req.body.observation];
+      console.log(sql);
     }
     else{
       console.log("Incorrect parameters");
@@ -1078,8 +1225,328 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
   });
 
 
+  server.get({path : '/academicUnits', version : '0.0.1'} , function(req, res , next){
+
+    var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
+
+  
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+        done();
+        res.send(200,result.rows);
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
 
 
+
+    });
+  });
+
+  server.get({path : '/grades', version : '0.0.1'} , function(req, res , next){
+
+    var sql="select * from kuntur.unc_in_grading_scale ";
+
+  
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+        done();
+        res.send(200,result.rows);
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+
+
+
+    });
+  });
+
+
+  server.get({path : '/coursesTypes', version : '0.0.1'} , function(req, res , next){
+
+    var sql="select * from kuntur.unc_in_studied_type";
+
+  
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+        done();
+        res.send(200,result.rows);
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+
+
+
+    });
+  });
+
+
+  server.get({path : '/enrrollment/:inenrrollmentId/studyPlan', version : '0.0.1'} , function(req, res , next){
+
+
+    if(!req.params.userSystemId){
+      req.params.userSystemId=46385;
+      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      // return next();
+    }
+
+    var sql = {};
+    sql.text = "SELECT  * FROM kuntur.f_find_study_program_by_id ($1, (SELECT id FROM kuntur.user_system WHERE name = $2))";
+    sql.values = [req.params.inenrrollmentId, req.params.userSystemId];
+  
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+        done();
+        res.send(200,JSON.parse(result.rows[0].f_find_study_program_by_id));
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+
+
+
+    });
+  });
+
+
+  server.put({path:'/enrrollment/:inenrrollmentId/studyPlan', version:'0.0.1'}, function(req, res, next){
+
+    if(!req.body.userSystemId){
+      req.body.userSystemId=46385;
+      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      // return next();
+    }
+  
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+
+        var queryResult=false;
+        async.each(req.body.uncInStudyProgramList,
+          function(studyProgram, callback){
+            var sql = {};
+            if(studyProgram.erased){
+              //delete
+              sql.text = "select kuntur.f_u_enrrollment_DeleteInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, studyProgram.id];
+            }
+            else if(studyProgram.id){
+              //update
+              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
+            }
+            else if(!studyProgram.erased){
+              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, studyProgram.subject, studyProgram.org.id];
+              //insert
+            }else{
+              callback(false);
+            }
+            console.log(sql);
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+            // done();
+            // res.send(500,error.message);
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+
+
+  });
+
+
+
+  server.put({path:'/enrrollment/:inenrrollmentId/academicPerformance', version:'0.0.1'}, function(req, res, next){
+
+    if(!req.body.userSystemId){
+      req.body.userSystemId=46385;
+      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      // return next();
+    }
+  
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+
+        var queryResult=false;
+        async.each(req.body.uncInAcademicPerformanceList,
+          function(academicPerformance, callback){
+            var sql = {};
+            if("id" in academicPerformance && academicPerformance.erased){
+              //delete
+              sql.text = "select kuntur.f_u_enrrollment_DeleteacademicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, academicPerformance.id];
+            }
+            else if(academicPerformance.id){
+              //update
+ 
+              sql.text = "select kuntur.f_u_enrrollment_academicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id, academicPerformance.id];
+            }
+            else if(!academicPerformance.erased){
+              sql.text = "select kuntur.f_u_enrrollment_InsertAcademicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id];
+              //insert
+            }else{
+              callback(false);
+            }
+            // console.log(sql);
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+            // done();
+            // res.send(500,error.message);
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+
+
+  });
 
 }
 
