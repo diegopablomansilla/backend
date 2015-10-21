@@ -129,6 +129,9 @@ SELECT 	e.id,
 
 
 	COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '') || ', ' || COALESCE((SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id), '') AS nationality,
+	--(   COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '')   )::VARCHAR  AS nationality,
+	--(   'MEX'  )::VARCHAR  AS nationality,
+	--(   COALESCE(birth_country_code, '') || ', '  )::VARCHAR  AS nationality,
 
 /*
 	CASE 	WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NOT NULL
@@ -189,8 +192,9 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			AND (($2 IS NOT NULL AND $2 = e.semester) OR $2 IS NULL)  
 			AND (($3 IS NOT NULL AND $3 = e.enrrollment_status_id) OR $3 IS NULL)  
 
-			AND (($4 IS NOT NULL 
-				AND trim(lower($4))::varchar ILIKE '%' || e.nationality || '%') OR $4 IS NULL)  
+			--AND (($4 IS NOT NULL 
+			--	AND trim(lower($4))::varchar ILIKE '%' || e.nationality || '%') OR $4 IS NULL)  
+			AND ($4 IS NULL OR (trim(lower(e.nationality))::varchar ILIKE '%' || $4 || '%')   )  
 			
 			/*
 			AND (($4 IS NOT NULL 
@@ -236,7 +240,7 @@ $$ LANGUAGE SQL;
 
 -- SELECT * FROM kuntur.enrrollment_status
 
-SELECT  * FROM  kuntur.f_find_enrrollment_list(null, null, null, null, null, null, null, null);
+SELECT  * FROM  kuntur.f_find_enrrollment_list(null, null, null, 'BRA', null, null, null, (SELECT id FROM kuntur.user_system WHERE name = '46385'));
 
 
 SELECT  * 
