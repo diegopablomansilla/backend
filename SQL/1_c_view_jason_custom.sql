@@ -781,4 +781,7 @@ SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', 'a059ce67-4
 SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', 'ad43f3a9-aee0-413e-88ca-5e97ae932812', 'unc_in_study_program'); -- ALL
 SELECT kuntur.f_role_stakeholder('489090264c037dd8014c368f54710170', 'a44509a7-e027-48c3-a56c-a132780da487', 'unc_in_study_program'); -- OFFICE
 
+SELECT name FROM kuntur.user_system WHERE id= 'a44509a7-e027-48c3-a56c-a132780da487'
+SELECT name FROM kuntur.user_system WHERE id= 'ad43f3a9-aee0-413e-88ca-5e97ae932812'
+SELECT name FROM kuntur.user_system WHERE id= 'a44509a7-e027-48c3-a56c-a132780da487'
 */

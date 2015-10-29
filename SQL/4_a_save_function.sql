@@ -784,7 +784,7 @@ ALTER FUNCTION kuntur.f_u_enrrollment_male(character varying, character varying,
 
 
 drop function kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
-name character varying, person_identity_type_id character varying)
+name character varying, person_identity_type_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
 name character varying, indentityId character varying)
@@ -821,7 +821,7 @@ $BODY$
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP FUNCTION kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
-name character varying)
+name character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
 name character varying)
@@ -889,7 +889,7 @@ $BODY$
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying)
+DROP FUNCTION kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying)
   RETURNS BOOLEAN AS
@@ -919,7 +919,7 @@ $BODY$
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying)
+DROP FUNCTION kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying)
   RETURNS BOOLEAN AS
@@ -951,7 +951,7 @@ $BODY$
 
 
 
-DROP FUNCTION kuntur.f_u_enrrollment_Deletenationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying)
+DROP FUNCTION kuntur.f_u_enrrollment_Deletenationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_Deleteenrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying)
   RETURNS BOOLEAN AS
@@ -1031,7 +1031,7 @@ $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, nac character varying)
+DROP FUNCTION kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, nac character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
 , neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, comment character varying)
