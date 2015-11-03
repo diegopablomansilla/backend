@@ -16,10 +16,11 @@ var rollback = function(client, done) {
 module.exports = function(server, conString) {
 
   server.get({path : '/postulacionData', version : '0.0.1'}, function(req,res,next){
+
     postulacionId=req.params.postulacionId;
 
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+postulacionId+"', "+
-      "(SELECT id FROM kuntur.user_system WHERE name = '46385'));";
+      "(SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'));";
 
     pg.connect(conString, function(err, client, done){
       if(err) {
@@ -60,6 +61,7 @@ module.exports = function(server, conString) {
   });
 
   server.get({path : '/postulaciones', version : '0.0.1'}, function(req,res,next){
+
 
     filter=JSON.parse(req.params.filter);
     if(filter.year){
@@ -103,10 +105,13 @@ module.exports = function(server, conString) {
       var number = null;
     }
 
-
+    console.log(req.headers.usersystemid);
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
       ""+name+"," +
-      ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '46385')) offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+      ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "')) offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+
+
+    console.log(sql);
     pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -233,6 +238,7 @@ module.exports = function(server, conString) {
 
 
   server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
+
 
   	var agreementId=req.params.agrId;
 
@@ -379,7 +385,7 @@ module.exports = function(server, conString) {
       return next();
     }
 
-    if(!req.body.userSystemId){
+    if(!req.headers.usersystemid){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
     }
@@ -576,10 +582,9 @@ module.exports = function(server, conString) {
       return next();
     }
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemid){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
 
@@ -606,16 +611,16 @@ module.exports = function(server, conString) {
               //delete
           
               sql.text = "select kuntur.f_u_enrrollment_Deletecitizenship($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, iden.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
             else if(iden.id){
               //update
               sql.text = "select kuntur.f_u_enrrollment_citizenship($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, iden.countryCode, iden.identityNumber, iden.code, iden.name, iden.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.identityNumber, iden.code, iden.name, iden.id];
             }
             else if(!iden.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertcitizenship($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, iden.countryCode, iden.identityNumber, iden.code, iden.name];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.identityNumber, iden.code, iden.name];
               //insert
             }else{
               callback(false);
@@ -675,9 +680,9 @@ module.exports = function(server, conString) {
     }
 
     if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+      // req.headers.usersystemidH=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
 
@@ -704,16 +709,16 @@ module.exports = function(server, conString) {
               //delete
           
               sql.text = "select kuntur.f_u_enrrollment_Deletenationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, iden.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.id];
             }
             else if(iden.id){
               //update
               sql.text = "select kuntur.f_u_enrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, iden.countryCode, iden.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.countryCode, iden.id];
             }
             else if(!iden.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertnationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, iden.countryCode];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.countryCode];
               //insert
             }else{
               callback(false);
@@ -771,10 +776,10 @@ module.exports = function(server, conString) {
       return next();
     }
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemidH){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
     if(!req.body.enrrollmentEmailList){
@@ -804,16 +809,16 @@ module.exports = function(server, conString) {
             if(mail.erased){
               //update
               sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, mail.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, mail.id];
             }
             else if(mail.id){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_email($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, mail.email, mail.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, mail.email, mail.id];
             }
             else if(!mail.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, mail.email];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, mail.email];
               //insert
             }else{
               callback(false);
@@ -865,7 +870,7 @@ module.exports = function(server, conString) {
 
         // var sql = {};
     // sql.text = "select kuntur.f_u_enrrollment_mails($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
-    // sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.givenName, req.body.middleName, req.body.familyName];
+    // sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, req.body.givenName, req.body.middleName, req.body.familyName];
 
 
 
@@ -885,10 +890,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
       return next();
     }
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemidH){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
     if(!req.body.enrrollmentPhoneList){
@@ -919,16 +924,16 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
             if(phone.erased){
               //update
               sql.text = "select kuntur.f_u_enrrollment_Deletephone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, phone.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, phone.id];
             }
             else if(phone.id){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_phone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, phone.phoneNumber, phone.countryCode, phone.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, phone.phoneNumber, phone.countryCode, phone.id];
             }
             else if(!phone.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertphone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, phone.phoneNumber, phone.countryCode];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, phone.phoneNumber, phone.countryCode];
               //insert
             }else{
               callback(false);
@@ -996,10 +1001,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       return next();
     }
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemid){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
     if(!req.body.enrrollmentAddressList){
@@ -1030,17 +1035,17 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             if(address.erased){
               //update
               sql.text = "select kuntur.f_u_enrrollment_Deleteaddress($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, address.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, address.id];
 
             }
             else if(address.id){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_address($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment, address.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment, address.id];
             }
             else if(!address.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertaddress($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment];
               //insert
             }else{
               callback(false);
@@ -1091,74 +1096,74 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
   server.put({path:'/enrrollment/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
 
-    console.log(req.body)
+
 
     if(!req.body){
       res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
       return next();
     }
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemid){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
     var sql = {};
     if("givenName" in req.body && "familyName" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_names($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.givenName, req.body.middleName, req.body.familyName];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.givenName, req.body.middleName, req.body.familyName];
     }
     else if("male" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_male($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.male];
     }
     else if("urlPhoto" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPhoto];
     }
     else if("org" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_org_id($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.org.id];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.org.id];
     }
     else if("name" in req.body && "web" in req.body && "country" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.name, req.body.web, req.body.country];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country];
     }
     else if("birthCountryCode" in req.body && "birthDate" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_birth($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.birthDate, req.body.birthCountryCode];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.birthDate, req.body.birthCountryCode];
     }
     else if("emergencyContact" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_emergency_contact($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.emergencyContact];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.emergencyContact];
     }
     else if("agreement" in req.body){
-      if(!req.body.agreementName){
-        req.body.agreementName='null';
-      }
+      // if(!req.body.agreementName){
+      //   req.body.agreementName='null';
+      // }
       sql.text = "select kuntur.f_u_enrrollment_agreement($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.agreement, req.body.agreementName];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.agreement, req.body.agreementName];
     }
     else if("program" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_program($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.program];
+      sql.text = "select kuntur.f_u_enrrollment_program($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.program, req.body.exchangeProgramName];
     }
     else if("amountPaid" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_amountPaid($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.amountPaid];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.amountPaid];
     }
     else if("originalDoc" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_originalDoc($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.originalDoc];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.originalDoc];
     }
     else if("insurance" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_insurance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.insurance];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.insurance];
     }
     else if("languageCertificate" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_languageCertificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.languageCertificate];
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.languageCertificate];
     }
     else if("visa" in req.body){
       if(!req.body.visa){
@@ -1166,8 +1171,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       }
 
       sql.text = "select kuntur.f_u_enrrollment_visa($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.visa];
-      console.log(sql);
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.visa];
+
     }
     else if("observation" in req.body && "comment" in req.body){
       if(!req.body.observation){
@@ -1183,8 +1188,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       }
 
       sql.text = "select kuntur.f_u_enrrollment_comment($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.comment, req.body.observation];
-      console.log(sql);
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.comment, req.body.observation];
+
     }
     else{
       console.log("Incorrect parameters");
@@ -1374,10 +1379,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
   server.put({path:'/enrrollment/:inenrrollmentId/studyPlan', version:'0.0.1'}, function(req, res, next){
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemid){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
   
     pg.connect(conString, function(err, client, done){
@@ -1400,24 +1405,23 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
         async.each(req.body.uncInStudyProgramList,
           function(studyProgram, callback){
             var sql = {};
-            if(studyProgram.erased){
+            if("id" in studyProgram && studyProgram.erased){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_DeleteInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, studyProgram.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.id];
             }
             else if(studyProgram.id){
               //update
               sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
             }
             else if(!studyProgram.erased){
               sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, studyProgram.subject, studyProgram.org.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id];
               //insert
             }else{
               callback(false);
             }
-            console.log(sql);
             var query = client.query(sql);
 
             query.on("row", function(row, result){
@@ -1463,10 +1467,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
   server.put({path:'/enrrollment/:inenrrollmentId/academicPerformance', version:'0.0.1'}, function(req, res, next){
 
-    if(!req.body.userSystemId){
-      req.body.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemid){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
   
     pg.connect(conString, function(err, client, done){
@@ -1492,22 +1496,22 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             if("id" in academicPerformance && academicPerformance.erased){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_DeleteacademicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, academicPerformance.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.id];
             }
             else if(academicPerformance.id){
               //update
  
               sql.text = "select kuntur.f_u_enrrollment_academicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id, academicPerformance.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id, academicPerformance.id];
             }
             else if(!academicPerformance.erased){
               sql.text = "select kuntur.f_u_enrrollment_InsertAcademicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.body.userSystemId, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id];
               //insert
             }else{
               callback(false);
             }
-            // console.log(sql);
+
             var query = client.query(sql);
 
             query.on("row", function(row, result){
@@ -1519,12 +1523,12 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
               callback(false)
             });//FIN CB END GUIVEN_NAME
 
-          query.on("error",function(error){
-            console.log(error);
-            // done();
-            // res.send(500,error.message);
-            callback(error);
-          });
+            query.on("error",function(error){
+              console.log(error);
+              // done();
+              // res.send(500,error.message);
+              callback(error);
+            });
 
           },
           function(err){
@@ -1547,6 +1551,183 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
 
   });
+
+
+  server.post({path:'/login', version:'0.0.1'}, function(req, res, next){
+
+    // console.log(req.body.user);
+    if(!req.body.user){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No user found in request.'});
+      return next();
+    }
+
+    if(!req.body.pass){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No pass found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      var sql = {};
+      sql.text = "select kuntur.f_login($1,$2) as respuesta";
+      sql.values = [req.body.user, req.body.pass];
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end", function(result){
+        done();
+        console.log(result.rows[0].respuesta);
+        if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el balor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
+          res.send(200,result.rows[0].respuesta);
+        }else{
+          res.send(200,null);
+        }
+        // res.send(200,"ale");
+
+      });//FIN CB END GUIVEN_NAME
+
+      query.on("error",function(error){
+        done();
+        console.log(error);
+        res.send(500,error);
+      });
+
+    });
+
+
+  });
+
+
+  server.post({path:'/rol', version:'0.0.1'}, function(req, res, next){
+
+    // console.log(req.body.user);
+    if(!req.body.user){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No user found in request.'});
+      return next();
+    }
+
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      var sql = {};
+      sql.text = "select kuntur.f_login_oid($1) as respuesta";
+      sql.values = [req.body.user];
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end", function(result){
+        done();
+        res.send(200,result.rows[0].respuesta);
+        // res.send(200,"ale");
+
+      });//FIN CB END GUIVEN_NAME
+
+      query.on("error",function(error){
+        done();
+        console.log(error);
+        res.send(500,error);
+      });
+
+    });
+
+
+  });
+
+server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
+
+  if(!req.body){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+    return next();
+  }
+
+  if(!req.body.name){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No name found in request.'});
+    return next();
+  }
+
+  if(!req.body.lastName){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No lastName found in request.'});
+    return next();
+  }
+
+  if(!req.body.mail){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No mail found in request.'});
+    return next();
+  }
+
+  if(!req.body.user){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No user found in request.'});
+    return next();
+  }
+
+  if(!req.body.pass){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No pass found in request.'});
+    return next();
+  }
+
+  if(!req.body.country){
+    res.send(409, {code: 409, message: 'Conflict', description: 'No country found in request.'});
+    return next();
+  }
+
+  var sql = {};
+  sql.text = "select kuntur.f_new_student($1, $2, $3, $4, $5, $6) as respuesta";
+  sql.values = [req.body.name, req.body.lastName, req.body.mail, req.body.user, req.body.pass, req.body.country];
+
+
+  pg.connect(conString, function(err, client, done){
+    if(err){
+      done();
+      console.error('error fetching client from pool', err);
+      res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+      return next();
+    }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end", function(result){
+      done();
+      res.send(200,result.rows[0].respuesta);
+    });//FIN CB END GUIVEN_NAME
+
+    query.on("error",function(error){
+      done();
+      console.log(error);
+      res.send(500,error);
+    });
+
+
+  });
+
+
+});
+
+
+
 
 }
 
