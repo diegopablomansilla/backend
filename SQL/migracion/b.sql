@@ -1,7 +1,7 @@
 ﻿--=================================================================================================================================================
 							-- CARGA DE PERSONAS	
  --=================================================================================================================================================
-
+DELETE FROM kuntur.user_group CASCADE;
 DELETE FROM kuntur.enrrollment_stakeholder CASCADE;
 DELETE FROM kuntur.unc_in_academic_coordinator CASCADE;
 DELETE FROM kuntur.unc_in_academic_office CASCADE;
@@ -215,6 +215,7 @@ CREATE OR REPLACE VIEW v_person_tmp AS
 
 	SELECT 	p.id,
 		false::BOOLEAN AS erased,
+		'Person'::varchar AS class_discriminator,
 		p.name AS given_name,
 		null::VARCHAR AS middle_name,
 		p.last_name AS family_name,

@@ -1,6 +1,6 @@
 ﻿-- select * from kuntur.unc_in_enrrollment
 
-
+DELETE FROM kuntur.user_group  CASCADE;
 DELETE FROM kuntur.enrrollment_stakeholder CASCADE;
 DELETE FROM kuntur.unc_in_academic_coordinator CASCADE;
 DELETE FROM kuntur.unc_in_academic_office CASCADE;
@@ -758,6 +758,7 @@ CREATE OR REPLACE VIEW v_enrrollment AS
 
 	SELECT 	p.id::VARCHAR AS id, 
 		false::BOOLEAN AS erased, 
+		'Enrrollment'::varchar AS class_discirminator,
 		pp.given_name::VARCHAR AS given_name, 
 		pp.middle_name::VARCHAR AS middle_name, 
 		pp.family_name::VARCHAR AS family_name, 
@@ -1667,6 +1668,7 @@ CREATE OR REPLACE VIEW 	v_person_z AS
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		--t.id::varchar AS id, 
 		false::boolean AS erased, 
+		'Person'::varchar AS class_discriminator,
 		first::varchar AS given_name, 
 		t.id_user::varchar AS middle_name, 
 		last::varchar AS family_name, 
@@ -2090,6 +2092,7 @@ CREATE OR REPLACE VIEW 	v_person_admin AS
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		--t.id::varchar AS id, 
 		false::boolean AS erased, 
+		'Person'::varchar AS class_discriminator,
 		first::varchar AS given_name, 
 		t.id_user::varchar AS middle_name, 
 		last::varchar AS family_name, 
@@ -2225,7 +2228,56 @@ UPDATE kuntur.enrrollment_status SET name = 'En carga de actuación académica' 
 UPDATE kuntur.person 
 	SET url_photo = null 
 WHERE CHAR_LENGTH(TRIM(url_photo)) <> (SELECT DISTINCT CHAR_LENGTH(TRIM(back_end_path)) FROM sys_file WHERE back_end_path IS NOT NULL);
+----------------------------------------------------------------------------------------------------------------------------------------------------	
 
+SELECT * FROM kuntur.user_group;
+SELECT * FROM kuntur.user_system;
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 	
+		u.id AS user_system_id,
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'coordinator') AS group_system_id
+	FROM 	kuntur.user_system u
+	JOIN	kuntur.unc_in_academic_coordinator c
+		ON u.id = c.person_id
+
+);
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 	
+		u.id AS user_system_id,
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'office') AS group_system_id
+	FROM 	kuntur.user_system u
+	JOIN	kuntur.unc_in_academic_office o
+		ON u.id = o.person_id
+
+);	
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 	
+		u.id AS user_system_id,
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'student') AS group_system_id
+	FROM 	kuntur.user_system u
+	JOIN	kuntur.student s
+		ON u.id = s.id
+);
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 	
+		u.id AS user_system_id,
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'admin') AS group_system_id
+	FROM 	kuntur.user_system u
+	WHERE	u.email ILIKE '%pri.unc.edu.ar%'
+
+);	
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 

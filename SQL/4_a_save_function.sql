@@ -747,7 +747,7 @@ $$ LANGUAGE plpgsql;
 
 -- Function: kuntur.f_u_enrrollment_male(character varying, character varying, boolean)
 
--- DROP FUNCTION kuntur.f_u_enrrollment_male(character varying, character varying, boolean);
+DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_male(character varying, character varying, boolean);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_male(inenrrollment_id character varying, user_system_id character varying, male boolean)
   RETURNS boolean AS
@@ -783,8 +783,9 @@ ALTER FUNCTION kuntur.f_u_enrrollment_male(character varying, character varying,
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-drop function kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
-name character varying, person_identity_type_id character varying)
+DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, name character varying, indentityId character varying);
+
+
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
 name character varying, indentityId character varying)
@@ -820,8 +821,8 @@ $BODY$
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
-name character varying)
+DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
+name character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
 name character varying)
@@ -858,6 +859,8 @@ $BODY$
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deletecitizenship(inenrrollment_id character varying, user_system_id character varying, indentityId character varying);
+
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Deletecitizenship(inenrrollment_id character varying, user_system_id character varying, indentityId character varying)
   RETURNS boolean AS
 $BODY$
@@ -889,7 +892,7 @@ $BODY$
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying)
   RETURNS BOOLEAN AS
@@ -919,7 +922,7 @@ $BODY$
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying)
   RETURNS BOOLEAN AS
@@ -951,7 +954,7 @@ $BODY$
 
 
 
-DROP FUNCTION kuntur.f_u_enrrollment_Deletenationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deletenationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_Deleteenrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying)
   RETURNS BOOLEAN AS
@@ -1031,7 +1034,7 @@ $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, nac character varying)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, nac character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
 , neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, comment character varying)
@@ -1065,6 +1068,10 @@ $BODY$
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_address(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
+, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, 
+comment character varying, address_id character varying);
+
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_address(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
 , neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, 
 comment character varying, address_id character varying)
@@ -1094,6 +1101,8 @@ $BODY$
   COST 100;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deleteaddress(inenrrollment_id character varying, user_system_id character varying, address_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Deleteaddress(inenrrollment_id character varying, user_system_id character varying, address_id character varying)
   RETURNS BOOLEAN AS
@@ -1145,13 +1154,10 @@ $$ LANGUAGE plpgsql;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
--- Function: kuntur.f_u_enrrollment_program(character varying, character varying, boolean)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_program(inenrrollment_id VARCHAR, user_system_id VARCHAR, program BOOLEAN) CASCADE;
 
--- DROP FUNCTION kuntur.f_u_enrrollment_program(character varying, character varying, boolean);
-
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_program(inenrrollment_id character varying, user_system_id character varying, program boolean, programName character varying)
-  RETURNS boolean AS
-$BODY$
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_program(inenrrollment_id VARCHAR, user_system_id VARCHAR, program BOOLEAN) RETURNS BOOLEAN AS
+$$
 DECLARE    	
 
 	update_ok BOOLEAN = false;
@@ -1159,21 +1165,18 @@ DECLARE
     
 BEGIN
 
-	sql = 'UPDATE kuntur.unc_in_enrrollment SET program = ' || coalesce(program, null) || ', exchange_program_name = ''' || $4 || ''' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.unc_in_enrrollment SET program = ' || coalesce(program, 'null') || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
 
 	RETURN update_ok;
     
 END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100;
-ALTER FUNCTION kuntur.f_u_enrrollment_program(character varying, character varying, boolean)
-  OWNER TO us_kuntur2;
+$$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_amountPaid(inenrrollment_id VARCHAR, user_system_id VARCHAR, amount double precision);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_amountPaid(inenrrollment_id VARCHAR, user_system_id VARCHAR, amount double precision) RETURNS BOOLEAN AS
 $$
@@ -1304,7 +1307,7 @@ BEGIN
 	IF type_user = 'ALL' OR type_user = 'STUDENT' THEN
 
 		sql = 'INSERT INTO kuntur.unc_in_study_program(id, erased, subject, approved, approved_by, file_number, comment, unc_in_enrrollment_id, org_id) 
-		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', false , null , null , null, '''||$1||''', '''||$4||''') ';
+		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', null , null , null , null, '''||$1||''', '''||$4||''') ';
 
 		
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
@@ -1323,12 +1326,10 @@ $BODY$
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
--- Function: kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING);
 
--- DROP FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying);
-
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, approved boolean, legajoguarani character varying, studyprogramid character varying)
-  RETURNS boolean AS
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING)
+  RETURNS BOOLEAN AS
 $BODY$
 DECLARE    	
 
@@ -1336,8 +1337,6 @@ DECLARE
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
-	firstName VARCHAR = 'null';
-	lastName VARCHAR = 'null';
 	
     
 BEGIN
@@ -1354,10 +1353,7 @@ BEGIN
 
 	ELSIF type_user = 'COORDINATOR' THEN
 
-		
-		select given_name, family_name into firstName, lastName from kuntur.person where id = $2;
-
-		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ''' || $5 || ''' , approved_by = '''|| familyName || ', ' || firstName ||''' WHERE id = ''' || $7 || ''' '; 	
+		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ''' || $5 || ''' , approved_by = '''|| $2 ||''' WHERE id = ''' || $7 || ''' '; 	
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1372,18 +1368,7 @@ BEGIN
 		RETURN update_ok;
 
 	ELSIF type_user = 'ALL' THEN
-
-		select given_name, family_name into firstName, lastName from kuntur.person where id = $2;
-
-		IF $5 <> (select p.approved from kuntur.unc_in_study_program p where p.id = $7) THEN
-		
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || $5 || ' , approved_by = '''|| lastName || ', ' || firstName ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
-
-		ELSE
-
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
-
-		END IF;
+		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || $5 || ' , approved_by = '''|| $2 ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1398,12 +1383,12 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
-  OWNER TO us_kuntur2;
+
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_DeleteInStudyProgram(inenrrollment_id character varying, user_system_id character varying, studyProgramId CHARACTER VARYING);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_DeleteInStudyProgram(inenrrollment_id character varying, user_system_id character varying, studyProgramId CHARACTER VARYING)
   RETURNS BOOLEAN AS
@@ -1441,6 +1426,7 @@ $BODY$
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_InsertAcademicPerformance(inenrrollment_id character varying, user_system_id character varying, org character varying, subject character varying, grade character varying, hs double precision, type_course character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_InsertAcademicPerformance(inenrrollment_id character varying, user_system_id character varying, org character varying, subject character varying, grade character varying, hs double precision, type_course character varying)
   RETURNS BOOLEAN AS
@@ -1481,6 +1467,7 @@ $BODY$
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_academicPerformance(inenrrollment_id character varying, user_system_id character varying, org character varying, subject character varying, grade character varying, hs double precision, type_course character varying, academicPerformanceId character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_academicPerformance(inenrrollment_id character varying, user_system_id character varying, org character varying, subject character varying, grade character varying, hs double precision, type_course character varying, academicPerformanceId character varying)
   RETURNS BOOLEAN AS
@@ -1520,6 +1507,8 @@ $BODY$
   COST 100;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_DeleteacademicPerformance(inenrrollment_id character varying, user_system_id character varying, academicPerformanceId character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_DeleteacademicPerformance(inenrrollment_id character varying, user_system_id character varying, academicPerformanceId character varying)
   RETURNS BOOLEAN AS
