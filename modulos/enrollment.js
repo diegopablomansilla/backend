@@ -1727,6 +1727,47 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 });
 
 
+server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
+
+  // console.log(req.headers);
+    if(!req.headers.usersystemid){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    var sql = {};
+    sql.text = "SELECT  * FROM kuntur.perfilArray($1)";
+    sql.values = [req.headers.usersystemid,];
+  
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+//JSON.parse(result.rows[0].perfilArray)
+      query.on("end",function(result){
+        done();
+        res.send(200,JSON.parse(result.rows[0].perfilarray));
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+
+
+
+    });
+  });
+
 
 
 }

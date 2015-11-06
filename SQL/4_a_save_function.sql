@@ -1571,3 +1571,169 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_login(us character varying, pass character varying)
+  RETURNS character varying AS
+$BODY$
+DECLARE    	
+
+	num INTEGER = 0;	
+	rol VARCHAR = '';
+    
+BEGIN
+
+	SELECT count(us.id) into num from kuntur.user_system us where us.name = '' || $1 ||'' and us.pass = '' || $2 || ''; 
+
+	IF num > 0 THEN
+
+		select us.name into rol from kuntur.user_system us
+			inner join kuntur.user_group ug
+				on ug.user_system_id = us. id
+			inner join kuntur.group_system gs
+				on gs.id = group_system_id
+			where us.name = '' || $1 || '';
+
+		RETURN rol;
+
+	ELSE
+
+		RETURN NULL;
+
+	END IF; 
+
+	
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_login(character varying, character varying)
+  OWNER TO us_kuntur2;
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DROP FUNCTION IF EXISTS kuntur.f_login_oid(us VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_login_oid(us VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE    	
+
+	rol VARCHAR = '';
+    
+BEGIN
+
+
+	select gs.code into rol from kuntur.user_system us
+		inner join kuntur.user_group ug
+			on ug.user_system_id = us. id
+		inner join kuntur.group_system gs
+			on gs.id = group_system_id
+		where us.name = '' || $1 || '';
+
+	RETURN rol;
+
+	
+    
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR)
+
+CREATE OR REPLACE FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	person_id varchar = 'null';
+    
+BEGIN
+
+
+	insert into kuntur.person(id, erased, clazz_discriminator, given_name, family_name, birth_country_code) 
+	values (uuid_generate_v4()::varchar, false, 'Person', ''|| coalesce($1, null) ||'', ''|| coalesce($2, null) ||'', ''|| coalesce($6, null) ||'') RETURNING id into person_id;
+
+	insert into kuntur.person_email(id, erased, email, person_id) values (uuid_generate_v4()::varchar, false, ''|| coalesce($3, null) ||'', person_id);
+
+	insert into kuntur.user_system(id, erased, name, pass, email) values (person_id, false, ''|| coalesce($4, null) ||'', ''|| coalesce($5, null) ||'', ''|| coalesce($3, null) ||'');
+
+	insert into kuntur.user_group(id, erased, user_system_id, group_system_id) values (uuid_generate_v4()::varchar, false, person_id, (select id from kuntur.group_system where code = 'student'));
+
+	insert into kuntur.student(id, erased) values (person_id, false);
+	
+	return true;
+	
+    
+END;
+$$ LANGUAGE plpgsql;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION kuntur.perfilArray(us VARCHAR);
+
+CREATE OR REPLACE FUNCTION kuntur.perfilArray(us VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE
+	personId VARCHAR = '';
+	json json = null;
+	emails json = null;
+	phones json = null;
+	addresses json = null;
+	identities json = null;
+	nationalities json = null;
+
+BEGIN
+
+	select id into personId from kuntur.user_system where name = ''|| $1 ||'';
+
+	with m as(
+		select * from kuntur.person_email where person_id = ''|| personId ||''
+	)
+	select array_to_json(array_agg(row_to_json(m.*))) into emails from m;
+
+	with p as(
+		select * from kuntur.person_phone where person_id = ''|| personId ||''
+	)
+	select array_to_json(array_agg(row_to_json(p.*))) into phones from p;
+
+	with a as(
+		select * from kuntur.person_address where person_id = ''|| personId ||''
+	)
+	select array_to_json(array_agg(row_to_json(a.*))) into addresses from a;
+
+	with pi as(
+		select pi.*, pit.* from kuntur.person_identity pi inner join kuntur.person_identity_type pit on pit.id = pi.person_identity_type_id where pi.person_id = ''|| personId ||''
+	)
+	select array_to_json(array_agg(row_to_json(pi.*))) into identities from pi;
+
+	with n as(
+		select * from kuntur.person_nationality where person_id = ''|| personId ||''
+	)
+	select array_to_json(array_agg(row_to_json(n))) into nationalities from n;
+
+
+	with r as(
+		select  p.*,s.*,o.*, emails, phones, addresses
+		, identities as identities, nationalities::json from kuntur.person p left join kuntur.student s on s.id = p.id left join kuntur.org o on o.id = s.org_id where p.id = ''|| personId ||''
+	)
+	select row_to_json(r.*) into json from r;
+
+	RETURN json;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
