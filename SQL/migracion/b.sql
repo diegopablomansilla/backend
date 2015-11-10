@@ -215,7 +215,7 @@ CREATE OR REPLACE VIEW v_person_tmp AS
 
 	SELECT 	p.id,
 		false::BOOLEAN AS erased,
-		'Person'::varchar AS class_discriminator,
+		--'Person'::varchar AS class_discriminator,
 		p.name AS given_name,
 		null::VARCHAR AS middle_name,
 		p.last_name AS family_name,
@@ -259,7 +259,7 @@ CREATE OR REPLACE VIEW v_person_tmp AS
 		 (
 			SELECT 	CASE 	WHEN bc.iso_alfa3 IS NOT NULL AND TRIM(bc.iso_alfa3)::VARCHAR <> 'ARG' THEN TRIM(bc.iso_alfa3)::VARCHAR 
 					WHEN c.iso_alfa3 IS NOT NULL AND TRIM(c.iso_alfa3)::VARCHAR <> 'ARG' THEN TRIM(c.iso_alfa3)::VARCHAR 
-					ELSE NULL::VARCHAR END AS birth_country_code
+					ELSE 'XXX'::VARCHAR END AS birth_country_code
 			FROM 	physical_person_b_tmp x 
 			LEFT JOIN address ba
 				ON ba.id = x.birth_address_id
@@ -290,6 +290,8 @@ CREATE OR REPLACE VIEW v_person_tmp AS
 --=================================================================================================================================================
 
 -- SELECT * FROM physical_person_distinct_tmp;
+
+-- SELECT * FROM v_person_tmp WHERE birth_country_code IS NULL;
 
 INSERT INTO  kuntur.person ( SELECT * FROM v_person_tmp );
 
@@ -582,14 +584,17 @@ WHERE 	identity_number = 'PC8201745';
 */
 
  ----------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- SELECT * FROM v_person_identity WHERE country_code IS NULL;
  
  INSERT INTO kuntur.person_identity (
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		pi.erased, 
 		pi.identity_number, 
 		pi.code, 
-		pi.name,		
-		pi.country_code, 
+		pi.name,	
+		CASE WHEN pi.country_code IS NULL THEN 'XXX' ELSE pi.country_code END,
+		--pi.country_code, 
 		pi.comment, 
 		pi.person_id, 
 		pi.person_identity_type_id 
@@ -835,12 +840,13 @@ CREATE OR REPLACE VIEW v_person_phone_e AS
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
+-- SELECT * FROM v_person_phone_e WHERE country_code IS NULL
 	
 INSERT INTO kuntur.person_phone (
 
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		erased,
-		country_code,
+		CASE WHEN country_code IS NULL THEN 'XXX' ELSE country_code END,
 		phone_number,
 		comment,		
 		person_id
@@ -1059,16 +1065,19 @@ INSERT INTO kuntur.person_address (
 
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		erased, 
-		country_code, 
+		CASE WHEN country_code IS NULL THEN 'XXX' ELSE country_code END, 
 		admin_area_level1_code, 
 		admin_area_level2, 
-		locality, neighbourhood, 
+		CASE 	WHEN locality IS NULL AND country_code IS NOT NULL THEN  country_code 
+			WHEN locality IS NULL AND country_code IS NULL THEN  'Sin especificar' 
+		ELSE locality END, 
+		neighbourhood, 
 		street, 
 		street_number, 
 		building_floor, 
 		building_room, 
 		building, 
-		postal_code, 
+		CASE WHEN postal_code IS NULL THEN 'Sin especificar' ELSE postal_code END, 		 
 		comment, 
 		lat, 
 		lng, 
@@ -1119,7 +1128,16 @@ SELECT * FROM v_user_system_b WHERE email <> name;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
-INSERT INTO kuntur.user_system (SELECT * FROM v_user_system_b);
+INSERT INTO kuntur.user_system (
+		SELECT 	id,
+			erased,
+			name,
+			pass,
+			email,
+			comment,
+			false::boolean AS checked_email
+		FROM 	v_user_system_b
+	);
 
 -- SELECT COUNT(*) FROM kuntur.user_system; -- 992
 -- SELECT * FROM kuntur.user_system; 
@@ -1181,7 +1199,7 @@ CREATE OR REPLACE VIEW v_org_u_b AS
 
 		SELECT	i.id::VARCHAR AS id,			
 			true::BOOLEAN AS erased,
-			null::VARCHAR AS short_name, 
+			'Sin especificar'::VARCHAR AS short_name, 
 			TRIM(i.name)::VARCHAR AS name, 
 			TRIM(i.name)::VARCHAR AS original_name, 
 			null::VARCHAR AS photo_url, 
@@ -1222,6 +1240,8 @@ CREATE OR REPLACE VIEW v_org_u_c AS
 -- SELECT * FROM v_org_u_c;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
+
+
 
 
 INSERT INTO kuntur.org (SELECT DISTINCT * FROM v_org_u_c ORDER BY name);			
