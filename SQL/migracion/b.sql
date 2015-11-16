@@ -1405,10 +1405,19 @@ INSERT INTO kuntur.student (
 		e.file_number, 
 
 		CASE 	WHEN e.institution_original_name IS NULL THEN 'Sin especificar'::varchar 
+			ELSE e.institution_original_name
+		END AS institution_short_name,		
+
+		CASE 	WHEN e.institution_original_name IS NULL THEN 'Sin especificar'::varchar 
+			ELSE e.institution_original_name 
+		END AS institution_name,		
+
+		CASE 	WHEN e.institution_original_name IS NULL THEN 'Sin especificar'::varchar 
 			ELSE e.institution_original_name 
 		END AS institution_original_name,		
 		 
 		'Sin especificar'::varchar AS institution_web_site, 
+		
 		CASE 	WHEN institution_country_code IS NULL 
 			THEN 'Sin especificar'::varchar 
 			ELSE institution_country_code 
@@ -1425,6 +1434,22 @@ INSERT INTO kuntur.student (
 -- SELECT * FROM kuntur.student;	
 
 -- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------					
+/*
+SELECT 	i.*, h.*
+FROM 	kuntur.person p
+LEFT JOIN kuntur.person_identity i
+	ON p.id = i.person_id
+LEFT JOIN kuntur.person_phone h
+	ON p.id = h.person_id	
+	AND h.country_code <> 'ARG'
+WHERE 	p.birth_country_code ilike 'xxx'
+*/
+
+UPDATE kuntur.person SET birth_country_code = 'Sin especificar' WHERE birth_country_code ilike 'xxx';
+UPDATE kuntur.person_identity SET country_code = 'Sin especificar' WHERE country_code ilike 'xxx';
+UPDATE kuntur.person_phone SET country_code = 'Sin especificar' WHERE country_code ilike 'xxx';
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
 
