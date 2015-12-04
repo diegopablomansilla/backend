@@ -1768,8 +1768,368 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     });
   });
 
+  server.put({path : '/student', version : '0.0.1'}, function(req, res, next){
 
+    if(!req.headers.usersystemid){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    if(!req.body.person){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No person found in request.'});
+      return next();
+    }
+
+    var orgId = null;
+    var shortName=null;
+    var originalName=null;
+    var name=null;
+    var web=null;
+    var country=null; 
+    console.log(req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, req.body.person.student_org_id, req.body.person.student_short_name, req.body.person.student_institution_original_name, req.body.person.student_institution_name, req.body.person.student_institution_web_site, req.body.person.student_institution_country_code, req.headers.usersystemid, req.body.person.person_id)
+    if(req.body.person.student_org_id){
+      orgId=req.body.person.student_org_id;
+
+      var sql = {};
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id];
+
+    }else{
+      shortName=req.body.person.student_short_name;
+      originalName=req.body.person.student_institution_original_name;
+      name=req.body.person.student_institution_name;
+      web=req.body.person.student_institution_web_site;
+      country=req.body.person.student_institution_country_code; 
+      var sql = {};
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id];
+
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+//JSON.parse(result.rows[0].perfilArray)
+    query.on("end",function(result){
+      // console.log(result);
+      done();
+      res.send(200,result.rows[0].f_u_studentProfile);//JSON.parse(
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+
+
+    });
+
+
+
+  });
+
+
+server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
+    
+    if(!req.headers.usersystemid){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var queryResult=false;
+        async.each(req.body.person.emails,
+          function(mail, callback){
+            var sql = {};
+            if(mail.erased){
+              //delete
+              sql.text = "select kuntur.f_d_student_email($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, mail.id];
+            }
+            else if(mail.id){
+              //update
+              sql.text = "select kuntur.f_u_student_email($1, $2, $3, $4) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, mail.email, mail.id];
+            }
+            else if(!mail.erased){
+              sql.text = "select kuntur.f_i_student_email($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, mail.email];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+              // done();
+              // if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
+              //   res.send(200,"OK");
+              // }else{
+              //   res.send(500,"Error in function f_u_enrrollment_url_photo");
+              // }
+              //hacer cosac cuando termine
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+            // done();
+            // res.send(500,error.message);
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+
+  });
+
+server.put({path:'/student/phones', version:'0.0.1'}, function(req, res, next){
+    
+    if(!req.headers.usersystemid){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var queryResult=false;
+        async.each(req.body.person.phones,
+          function(phone, callback){
+            var sql = {};
+            if(phone.erased){
+              //delete
+              sql.text = "select kuntur.f_d_student_phone($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, phone.id];
+            }
+            else if(phone.id){
+              //update
+              sql.text = "select kuntur.f_u_student_phone($1, $2, $3, $4, $5) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, phone.country_code,  phone.phone_number, phone.id];
+            }
+            else if(!phone.erased){
+              sql.text = "select kuntur.f_i_student_phone($1, $2, $3, $4) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, phone.country_code, phone.phone_number];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+              // done();
+              // if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
+              //   res.send(200,"OK");
+              // }else{
+              //   res.send(500,"Error in function f_u_enrrollment_url_photo");
+              // }
+              //hacer cosac cuando termine
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+            // done();
+            // res.send(500,error.message);
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+
+  });
+
+
+server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.body.userSystemId){
+      // req.headers.usersystemidH=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var queryResult=false;
+        async.each(req.body.nationalities,
+          function(iden, callback){
+            var sql = {};
+            if(iden.erased){
+              //delete
+              sql.text = "select kuntur.f_d_student_nationality($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.id];
+            }
+            else if(iden.id){
+              //update
+              sql.text = "select kuntur.f_u_student_nationality($1, $2, $3, $4) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.country_code, iden.id];
+            }
+            else if(!iden.erased){
+              sql.text = "select kuntur.f_i_student_nationality($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.country_code];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+  });//FUNCION
+
+
+    server.put({path : '/prueba', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+    res.send('ok');
+
+  });
+ //else if("name" in req.body && "web" in req.body && "country" in req.body){
 
 }
+
+
 
 
