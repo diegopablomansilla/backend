@@ -875,8 +875,10 @@ FROM kuntur.enrrollment_log
 		ON user_system.id = enrrollment_log.user_system_id 
 		LEFT JOIN kuntur.person
 			ON user_system.id = person.id 
+			
+WHERE kuntur.enrrollment_log.id = $1
 
-WHERE kuntur.enrrollment_log.id = $1;
+ORDER BY enrrollment_log.promotion_date ASC;
 
 --......................................................................................................................			
 $$ LANGUAGE SQL;
