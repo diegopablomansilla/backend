@@ -2037,7 +2037,7 @@ server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, ne
       return next();
     }
 
-    if(!req.body.userSystemId){
+    if(!req.headers.usersystemid){
       // req.headers.usersystemidH=46385;
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -2060,7 +2060,7 @@ server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, ne
         }
 
         var queryResult=false;
-        async.each(req.body.nationalities,
+        async.each(req.body.person.nationalities,
           function(iden, callback){
             var sql = {};
             if(iden.erased){
@@ -2107,6 +2107,188 @@ server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, ne
               rollback(client, done);
               res.send(500,err);
             }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+  });//FUNCION
+
+server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.headers.usersystemid){
+      // req.headers.usersystemidH=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+        // console.log(req.body.person.identities)
+        var queryResult=false;
+        async.each(req.body.person.identities,
+          function(iden, callback){
+            var sql = {};
+            console.log(req.headers.usersystemid);
+            if(iden.erased){
+              //delete
+              console.log(iden);
+              sql.text = "select kuntur.f_d_student_document($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.id];
+            }
+            else if(iden.id){
+              //update
+              sql.text = "select kuntur.f_u_student_document($1, $2, $3, $4, $5, $6, $7) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.code, iden.identity_number, iden.name, iden.country_code, iden.id];
+            }
+            else if(!iden.erased){
+              sql.text = "select kuntur.f_i_student_document($1, $2, $3, $4, $5, $6) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.code, iden.identity_number, iden.name, iden.country_code];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+
+  });//FUNCION
+
+server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    if(!req.headers.usersystemid){
+      // req.headers.usersystemidH=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+        // console.log(req.body.person.identities)
+        var queryResult=false;
+        async.each(req.body.person.addresses,
+          function(iden, callback){
+            var sql = {};
+            console.log(req.headers.usersystemid);
+            if(iden.erased){
+              //delete
+              console.log(iden);
+              sql.text = "select kuntur.f_d_student_address($1, $2, $3) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.id];
+            }
+            else if(iden.id){
+              //update
+              sql.text = "select kuntur.f_u_student_address($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.country_code, iden.admin_area_level1_code, iden.locality, iden.neighbourhood, iden.street, iden.street_number, iden.building_floor, iden.building_room, iden.building, iden.postal_code, iden.id];
+            }
+            else if(!iden.erased){
+              sql.text = "select kuntur.f_i_student_address($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) as respuesta"
+              sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.country_code, iden.admin_area_level1_code, iden.locality, iden.neighbourhood, iden.street, iden.street_number, iden.building_floor, iden.building_room, iden.building, iden.postal_code];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              
               client.query('COMMIT', done);
               res.send(200,queryResult);
             }
