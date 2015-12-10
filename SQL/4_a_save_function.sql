@@ -1713,7 +1713,15 @@ BEGIN
 	select array_to_json(array_agg(row_to_json(a.*))) into addresses from a;
 
 	with pi as(
-		select pi.*, pit.* from kuntur.person_identity pi inner join kuntur.person_identity_type pit on pit.id = pi.person_identity_type_id where pi.person_id = ''|| personId ||''
+		select pi.id as id,
+		pi.erased as erased,
+		pi.identity_number as identity_number,
+		pit.code as code,
+		pit.name as name, 
+		pi.country_code as country_code,
+		pi.person_id as person_id,
+		pi.person_identity_type_id as person_identity_type_id
+		from kuntur.person_identity pi inner join kuntur.person_identity_type pit on pit.id = pi.person_identity_type_id where pi.person_id = ''|| personId ||''
 	)
 	select array_to_json(array_agg(row_to_json(pi.*))) into identities from pi;
 
@@ -1724,10 +1732,35 @@ BEGIN
 
 
 	with r as(
-		select  p.*,s.*,o.*, emails, phones, addresses
+		select  p.id as person_id,
+		p.given_name as person_given_name,
+		p.middle_name as person_middle_name,
+		p.family_name as person_family_name,
+		p.birth_date as person_birth_date,
+		p.male as person_male,
+		p.url_photo as person_url_photo,
+		p.birth_country_code as person_birth_country_code,
+		s.id as student_id,
+		s.file_number as student_file_number,
+		s.institution_short_name as student_short_name,
+		s.institution_name as student_institution_name,
+		s.institution_original_name as student_institution_original_name,
+		s.institution_web_site as student_institution_web_site,
+		s.institution_country_code as student_institution_country_code,
+		s.org_id as student_org_id,
+		o.id as org_id,
+		o.short_name as org_short_name,
+		o.name as org_name,
+		o.original_name as org_original_name,
+		o.url_photo as org_url_photo,
+		o.web_site as org_web_site,
+		o.country_code as org_country_code,
+		o.code_ona as org_code_ona,
+		o.code_guarani as org_code_guarani,
+		emails, phones, addresses
 		, identities as identities, nationalities::json from kuntur.person p left join kuntur.student s on s.id = p.id left join kuntur.org o on o.id = s.org_id where p.id = ''|| personId ||''
 	)
-	select row_to_json(r.*) into json from r;
+	select row_to_json(r.*) into json from r;--array_to_json()array_agg()
 
 	RETURN json;
 
@@ -1735,5 +1768,577 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+  CREATE OR REPLACE FUNCTION kuntur.updatePerson(us VARCHAR,tab VARCHAR, field VARCHAR, val VARCHAR, idField VARCHAR, id VARCHAR)
+	RETURNS VARCHAR AS
+$BODY$
+DECLARE
+
+	sql VARCHAR = '';
+
+BEGIN
+	sql = 'UPDATE '|| TAB ||' SET '|| field ||' = '|| val ||' WHERE '|| idField || ' = ''' || id || '''';
+
+	RETURN sql; 
+END;
+$BODY$
+	LANGUAGE plpgsql
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DROP FUNCTION IF EXISTS kuntur.f_validateStudent(id VARCHAR, us VARCHAR)
+
+CREATE OR REPLACE FUNCTION  kuntur.f_validateStudent(userId VARCHAR, us VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE
+
+	r INTEGER = 0;
+
+BEGIN
+	SELECT COUNT(*) INTO r FROM kuntur.user_system where name = '' || us ||'' AND id = '' || userId || '';
+
+	IF r > 0 THEN
+		RETURN true;
+	ELSE
+		RETURN false;
+	END IF;
+END;
+$$
+	LANGUAGE plpgsql
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION kuntur.f_u_studentProfile(fName VARCHAR, mName VARCHAR, lName VARCHAR, gender BOOLEAN, bDate VARCHAR, bPlace VARCHAR, idOrg VARCHAR, iShortName VARCHAR, iName VARCHAR, iOriginalName VARCHAR, iWeb VARCHAR, 
+iCountry VARCHAR, us VARCHAR, idPerson VARCHAR) RETURNS BOOLEAN AS 
+$$
+DECLARE
+
+	per BOOLEAN = false;
+	oSName VARCHAR = '';
+	oName VARCHAR = '';
+	oOriginalName VARCHAR = '';
+	oWeb VARCHAR = '';
+	oCountry VARCHAR = '';
+
+BEGIN
+
+	select kuntur.f_validateStudent(idPerson, us) into per;
+
+	--RAISE EXCEPTION '% % % % % % % % % % % % % %', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14; 
+		
+
+	IF per THEN
+		UPDATE kuntur.person SET given_name = '' || $1 || '', middle_name = '' || $2 || '', family_name = '' || $3 || '', birth_date = $5::DATE , male =  $4 , 
+		birth_country_code = '' || $6 || '' WHERE id = '' || $14 || '';
+
+		IF idOrg is null THEN
+
+			UPDATE kuntur.student SET institution_short_name = '' || iShortName || '', institution_name = '' || iName || '', institution_original_name = '' || iOriginalName || '', 
+			institution_web_site = '' || iWeb || '', institution_country_code = '' || iCountry || '', org_id = null WHERE id = '' || idPerson || '';
+
+		ELSE
+
+			SELECT short_name, name, original_name, web_site, country_code INTO oSName, oName, oOriginalName, oWeb, oCountry FROM kuntur.org WHERE id = '' || idOrg || '';
+		
+			UPDATE kuntur.student SET institution_short_name = '' || oSName || '', institution_name = '' || oName || '', institution_original_name = '' || oOriginalName || '', 
+			institution_web_site = '' || oWeb || '', institution_country_code = '' || oCountry || '', org_id = '' || idOrg || '' WHERE id = '' || idPerson || '';
+	
+		END IF;
+
+	END IF;
+
+	RETURN true;
+
+END;
+$$
+ LANGUAGE plpgsql;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DROP FUNCTION IF EXISTS kuntur.f_i_student_email(person_id VARCHAR, us VARCHAR, mail VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_i_student_email(person_id VARCHAR, us VARCHAR, mail VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	update_ok BOOLEAN = false;	
+	m VARCHAR = 'null';
+	sql VARCHAR = null;
+	per BOOLEAN = false;
+    
+BEGIN
+	IF mail IS NOT NULL THEN
+
+		m = mail;
+	
+	END IF;
+
+	select kuntur.f_validateStudent(person_id, us) into per;	
+
+	IF per THEN
+
+		INSERT INTO kuntur.person_email(id, erased, email, person_id) VALUES (uuid_generate_v4()::varchar, false, '' || m || '', '' || $1 || '') ;
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DROP FUNCTION IF EXISTS kuntur.f_u_student_email(person_id VARCHAR, us VARCHAR, mail VARCHAR, mailId VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_student_email(person_id VARCHAR, us VARCHAR, mail VARCHAR, mailId VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	update_ok BOOLEAN = false;	
+	m VARCHAR = 'null';
+	sql VARCHAR = null;
+	per BOOLEAN = false;
+    
+BEGIN
+	IF mail IS NOT NULL THEN
+
+		m = mail;
+	
+	END IF;
+
+	select kuntur.f_validateStudent(person_id, us) into per;	
+
+	IF per THEN
+
+		UPDATE kuntur.person_email SET email = '' || m || '' WHERE  id = '' || mailId || '';
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS kuntur.f_d_student_email(person_id VARCHAR, us VARCHAR, mailId VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_d_student_email(person_id VARCHAR, us VARCHAR, mailId VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	update_ok BOOLEAN = false;	
+	m VARCHAR = 'null';
+	sql VARCHAR = null;
+	per BOOLEAN = false;
+    
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;	
+
+	IF per THEN
+
+		DELETE FROM  kuntur.person_email WHERE  id = '' || mailId || '';
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS kuntur.f_i_student_phone(person_id VARCHAR, us VARCHAR, country VARCHAR, phone VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_i_student_phone(person_id VARCHAR, us VARCHAR, country VARCHAR, phone VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	per BOOLEAN = false;
+    
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;	
+
+	IF per THEN
+
+		INSERT INTO kuntur.person_phone(id, erased, country_code, phone_number, person_id) VALUES (uuid_generate_v4()::varchar, false, '' || country || '', '' || phone || '', '' || $1 || '') ;
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_student_phone(person_id VARCHAR, us VARCHAR, country VARCHAR, phone VARCHAR, phone_id VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	per BOOLEAN = false;
+    
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;	
+
+	IF per THEN
+
+		UPDATE kuntur.person_phone SET country_code = '' || country || '', phone_number = '' || phone || '' WHERE id = '' || phone_id || '' ;
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS kuntur.f_d_student_phone(person_id VARCHAR, us VARCHAR, phone_id VARCHAR) CASCADE;
+
+CREATE OR REPLACE FUNCTION kuntur.f_d_student_phone(person_id VARCHAR, us VARCHAR, phone_id VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	per BOOLEAN = false;
+    
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;	
+
+	IF per THEN
+
+		DELETE FROM kuntur.person_phone WHERE id = '' || phone_id || '' ;
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Function: kuntur.f_d_student_nationality(character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_d_student_nationality(character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_d_student_nationality(person_id character varying, us character varying, nac_id character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+per BOOLEAN = false;
+	
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		DELETE FROM kuntur.person_nationality WHERE id = ''|| nac_id ||'';
+
+		RETURN TRUE;
+	END IF;
+
+	RETURN FALSE;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_d_student_nationality(character varying, character varying, character varying)
+  OWNER TO us_kuntur2;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Function: kuntur.f_i_student_nationality(character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_i_student_nationality(character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_i_student_nationality(person_id character varying, us character varying, nac character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+per BOOLEAN = false;
+	
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		INSERT INTO kuntur.person_nationality(id, erased, country_code, person_id) 
+		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(nac, 'null')||'', ''||$1||'');
+
+		RETURN TRUE;
+	END IF;
+
+	RETURN FALSE;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_i_student_nationality(character varying, character varying, character varying)
+  OWNER TO us_kuntur2;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Function: kuntur.f_u_student_nationality(character varying, character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_u_student_nationality(character varying, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_student_nationality(person_id character varying, us character varying, nac character varying, nac_id character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+per BOOLEAN = false;
+	
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		UPDATE kuntur.person_nationality SET country_code = '' ||coalesce(nac, 'null') || '' WHERE id = ''|| nac_id ||'';
+
+		RETURN TRUE;
+	END IF;
+
+	RETURN FALSE;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_u_student_nationality(character varying, character varying, character varying, character varying)
+  OWNER TO us_kuntur2;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DROP FUNCTION kuntur.f_i_student_document(person_id character varying, us character varying, code character varying, idenNum character varying, name character varying, country character varying);
+CREATE OR REPLACE FUNCTION kuntur.f_i_student_document(person_id character varying, us character varying, icode character varying, idenNum character varying, name character varying, country character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+per BOOLEAN = false;
+	
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		INSERT INTO kuntur.person_identity(id, erased, identity_number, code, name, country_code, person_id, person_identity_type_id) 
+		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(idenNum, 'null')||'', ''||coalesce(icode, 'null')||'', ''||coalesce(name, 'null')||'', ''||coalesce(country, 'null')||''
+		, ''||coalesce(person_id, 'null')||'', (SELECT t.id FROM kuntur.person_identity_type t WHERE t.code = ''|| coalesce(icode, 'null') || ''));
+
+		RETURN TRUE;
+	END IF;
+
+	RETURN FALSE;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_i_student_nationality(character varying, character varying, character varying)
+  OWNER TO us_kuntur2;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION kuntur.f_u_student_document(person_id character varying, us character varying, code character varying, idenNum character varying, name character varying, country character varying, idIdentity character varying);
+CREATE OR REPLACE FUNCTION kuntur.f_u_student_document(person_id character varying, us character varying, icode character varying, idenNum character varying, iname character varying, country character varying, idIdentity character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+per BOOLEAN = false;
+	
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		UPDATE kuntur.person_identity SET identity_number = ''||coalesce(idenNum, 'null')||'', code = ''||coalesce(icode, 'null')||'', name = ''||coalesce(iname, 'null')||'', country_code = ''||coalesce(country, 'null')||'', 
+		person_identity_type_id = (SELECT t.id FROM kuntur.person_identity_type t WHERE t.code = ''|| coalesce(icode, 'null') || '') WHERE id = ''||idIdentity||'';
+
+		RETURN TRUE;
+	END IF;
+
+	RETURN FALSE;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION kuntur.f_d_student_document(person_id character varying, us character varying, idIdentity character varying);
+CREATE OR REPLACE FUNCTION kuntur.f_d_student_document(person_id character varying, us character varying, idIdentity character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+per BOOLEAN = false;
+	
+BEGIN
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		DELETE FROM kuntur.person_identity WHERE id = ''||idIdentity||'';
+
+		RETURN TRUE;
+	END IF;
+
+	RETURN FALSE;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_i_student_address(person_id character varying, us character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
+, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying)
+  RETURNS BOOLEAN AS
+$BODY$
+DECLARE    	
+
+	per BOOLEAN = false;
+    
+BEGIN
+
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		INSERT INTO kuntur.person_address(id, erased, country_code, admin_area_level1_code, locality, neighbourhood, street, street_number, building_floor, building_room,
+		building, postal_code, person_id) 
+		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(country_code, 'null')||'', ''||coalesce(admin_area_lvl1_code, 'null')||'' , ''||coalesce(locality, 'null')||'', ''||coalesce(neighbourhood, 'null')||''
+		, ''||coalesce(street, 'null')||'', ''||coalesce(street_number, 'null')||'', ''||coalesce(building_floor, 'null')||'', ''||coalesce(building_room, 'null')||'', ''||coalesce(building, 'null')||''
+		, ''||coalesce(postal_code, 'null')||'', ''||$1||'');
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+
+	
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Function: kuntur.f_u_student_address(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_u_student_address(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_student_address(person_id character varying, us character varying, acountry_code character varying, admin_area_lvl1_code character varying, alocality character varying, aneighbourhood character varying, astreet character varying, astreet_number character varying, abuilding_floor character varying, abuilding_room character varying, abuilding character varying, apostal_code character varying, address_id character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	per BOOLEAN = false;
+    
+BEGIN
+
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, 'null')||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, 'null')||'', locality = ''||coalesce(alocality, 'null')||'', 
+		neighbourhood = ''||coalesce(aneighbourhood, 'null')||'', street = ''||coalesce(astreet, 'null')||'', street_number = ''||coalesce(astreet_number, 'null')||'', building_floor = ''||coalesce(abuilding_floor, 'null')||'', 
+		building_room = ''||coalesce(abuilding_room, 'null')||'', building = ''||coalesce(abuilding, 'null')||'', postal_code = ''||coalesce(apostal_code, 'null')||'' WHERE id = address_id;
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+
+	
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_u_student_address(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying)
+  OWNER TO us_kuntur2;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_d_student_address(person_id character varying, us character varying, address_id character varying)
+  RETURNS BOOLEAN AS
+$BODY$
+DECLARE    	
+
+	per BOOLEAN = false;
+    
+BEGIN
+
+
+	select kuntur.f_validateStudent(person_id, us) into per;
+
+	IF per THEN
+
+		DELETE FROM kuntur.person_address WHERE id = address_id;
+
+		RETURN TRUE;
+
+	END IF;
+
+	RETURN FALSE;
+
+	
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
