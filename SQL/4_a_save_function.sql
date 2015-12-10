@@ -2255,9 +2255,9 @@ BEGIN
 
 		INSERT INTO kuntur.person_address(id, erased, country_code, admin_area_level1_code, locality, neighbourhood, street, street_number, building_floor, building_room,
 		building, postal_code, person_id) 
-		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(country_code, 'null')||'', ''||coalesce(admin_area_lvl1_code, 'null')||'' , ''||coalesce(locality, 'null')||'', ''||coalesce(neighbourhood, 'null')||''
-		, ''||coalesce(street, 'null')||'', ''||coalesce(street_number, 'null')||'', ''||coalesce(building_floor, 'null')||'', ''||coalesce(building_room, 'null')||'', ''||coalesce(building, 'null')||''
-		, ''||coalesce(postal_code, 'null')||'', ''||$1||'');
+		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(country_code, null)||'', ''||coalesce(admin_area_lvl1_code, null)||'' , ''||coalesce(locality, null)||'', ''||coalesce(neighbourhood, null)||''
+		, ''||coalesce(street, null)||'', ''||coalesce(street_number, null)||'', ''||coalesce(building_floor, null)||'', ''||coalesce(building_room, null)||'', ''||coalesce(building, null)||''
+		, ''||coalesce(postal_code, null)||'', ''||$1||'');
 
 		RETURN TRUE;
 
@@ -2292,9 +2292,9 @@ BEGIN
 
 	IF per THEN
 
-		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, 'null')||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, 'null')||'', locality = ''||coalesce(alocality, 'null')||'', 
-		neighbourhood = ''||coalesce(aneighbourhood, 'null')||'', street = ''||coalesce(astreet, 'null')||'', street_number = ''||coalesce(astreet_number, 'null')||'', building_floor = ''||coalesce(abuilding_floor, 'null')||'', 
-		building_room = ''||coalesce(abuilding_room, 'null')||'', building = ''||coalesce(abuilding, 'null')||'', postal_code = ''||coalesce(apostal_code, 'null')||'' WHERE id = address_id;
+		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, null)||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, null)||'', locality = ''||coalesce(alocality, null)||'', 
+		neighbourhood = ''||coalesce(aneighbourhood, null)||'', street = ''||coalesce(astreet, null)||'', street_number = ''||coalesce(astreet_number, null)||'', building_floor = ''||coalesce(abuilding_floor, null)||'', 
+		building_room = ''||coalesce(abuilding_room, null)||'', building = ''||coalesce(abuilding, null)||'', postal_code = ''||coalesce(apostal_code, null)||'' WHERE id = address_id;
 
 		RETURN TRUE;
 
