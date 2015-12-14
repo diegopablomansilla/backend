@@ -1561,8 +1561,6 @@ DECLARE
 	Orgname VARCHAR = '';
 	country VARCHAR = '';
 	web VARCHAR = '';
-	iname VARCHAR = '';
-	ishortName VARCHAR = '';
     
 BEGIN
 
@@ -1578,9 +1576,9 @@ BEGIN
 
 	IF update_ok THEN
 
-		select original_name, web_site, country_code, name, short_name into Orgname, web, country, iname, ishortName from kuntur.org where id = oid;
+		select name, web_site, country_code into Orgname, web, country from kuntur.org where id = oid;
 	
-		update kuntur.enrrollment set institution_web_site = web, institution_country_code = country, institution_original_name = Orgname, institution_name = iname, institution_short_name = ishortName where id = $1;
+		update kuntur.enrrollment set institution_web_site = web, institution_country_code = country, institution_original_name = Orgname where id = $1;
 
 	END IF;
 

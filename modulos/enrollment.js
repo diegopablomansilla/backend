@@ -104,11 +104,16 @@ module.exports = function(server, conString) {
     }else{
       var number = null;
     }
+    if(filter.numberAdmissionPeriod){
+      var numberAdmissionPeriod = filter.numberAdmissionPeriod;
+    }else{
+      var numberAdmissionPeriod = null;
+    }
 
     console.log(req.headers.usersystemid);
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
       ""+name+"," +
-      ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "')) offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+      ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
 
     console.log(sql);
@@ -1127,8 +1132,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.org.id];
     }
     else if("name" in req.body && "web" in req.body && "country" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
-      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country];
+      sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName];
     }
     else if("birthCountryCode" in req.body && "birthDate" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_birth($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"

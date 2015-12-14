@@ -137,8 +137,6 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 			|| kuntur.json_att_util('birthLocality', enrrollment.birth_locality::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('birthLat', enrrollment.birth_lat::VARCHAR, '', ', ' , true)
 			|| kuntur.json_att_util('birthLng', enrrollment.birth_lng::VARCHAR, '', ', ' , true)
-			|| kuntur.json_att_util('institutionShortName', enrrollment.institution_short_name::VARCHAR, '"', ', ' , true)
-			|| kuntur.json_att_util('institutionName', enrrollment.institution_name::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('institutionOriginalName', enrrollment.institution_original_name::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('institutionWebSite', kuntur.json_att_util(enrrollment.institution_web_site)::VARCHAR, '"', ', ' , true)
 			|| kuntur.json_att_util('institutionCountryCode', kuntur.json_att_util(enrrollment.institution_country_code)::VARCHAR, '"', ', ' , true)
