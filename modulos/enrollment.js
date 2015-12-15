@@ -250,7 +250,7 @@ module.exports = function(server, conString) {
   	var sql="select ai.id, ai.in_units, ai.out_units, ai.agreement_id, ai.org_id, o.short_name, o.name, o.original_name, o.country_code from kuntur.agreement_item ai join kuntur.org o on o.id=ai.org_id where agreement_id = '"+agreementId+"' AND ai.erased = false;";
 
 
-  	var query = client.query(sql);
+  	// var query = client.query(sql);
   	pg.connect(conString, function(err, client, done){
   		if(err) {
           done();
