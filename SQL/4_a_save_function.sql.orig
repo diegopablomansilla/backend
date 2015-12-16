@@ -521,11 +521,9 @@ $$ LANGUAGE plpgsql;
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_orgs(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_original_name VARCHAR, institution_web_site VARCHAR, institution_country_code VARCHAR
-,institution_short_name VARCHAR, institution_name VARCHAR) CASCADE;
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_orgs(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_original_name VARCHAR, institution_web_site VARCHAR, institution_country_code VARCHAR) CASCADE;
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_orgs(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_original_name VARCHAR, institution_web_site VARCHAR,institution_country_code VARCHAR
-,institution_short_name VARCHAR, institution_name VARCHAR) RETURNS BOOLEAN AS
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_orgs(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_original_name VARCHAR, institution_web_site VARCHAR,institution_country_code VARCHAR) RETURNS BOOLEAN AS
 $$
 DECLARE    	
 
@@ -534,8 +532,6 @@ DECLARE
 	ic VARCHAR = 'null';
 	iw VARCHAR = 'null';
 	io VARCHAR = 'null';
-	inn VARCHAR = 'null';
-	iss VARCHAR = 'null';
 	
 	sql VARCHAR = null;
     
@@ -559,19 +555,7 @@ BEGIN
 	
 	END IF;	
 
-	IF institution_short_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_original_name)) > 0 THEN
-
-		iss = '''' || INITCAP(TRIM(institution_short_name)) || '''';
-	
-	END IF;	
-
-	IF institution_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_name)) > 0 THEN
-
-		inn = '''' || INITCAP(TRIM(institution_name)) || '''';
-	
-	END IF;	
-
-	sql = 'UPDATE kuntur.enrrollment SET institution_name = ' || inn || ',institution_short_name = ' || iss || ', institution_original_name = ' || io || ', institution_web_site = ' || iw || ', institution_country_code = ' || ic || ' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.enrrollment SET institution_original_name = ' || io || ', institution_web_site = ' || iw || ', institution_country_code = ' || ic || ' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok; 
 
@@ -792,8 +776,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION kuntur.f_u_enrrollment_male(character varying, character varying, boolean)
-  OWNER TO us_kuntur2;
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1170,10 +1152,13 @@ $$ LANGUAGE plpgsql;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_program(inenrrollment_id VARCHAR, user_system_id VARCHAR, program BOOLEAN) CASCADE;
+-- Function: kuntur.f_u_enrrollment_program(character varying, character varying, boolean)
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_program(inenrrollment_id VARCHAR, user_system_id VARCHAR, program BOOLEAN) RETURNS BOOLEAN AS
-$$
+-- DROP FUNCTION kuntur.f_u_enrrollment_program(character varying, character varying, boolean);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_program(inenrrollment_id character varying, user_system_id character varying, program boolean, programName character varying)
+  RETURNS boolean AS
+$BODY$
 DECLARE    	
 
 	update_ok BOOLEAN = false;
@@ -1181,14 +1166,18 @@ DECLARE
     
 BEGIN
 
-	sql = 'UPDATE kuntur.unc_in_enrrollment SET program = ' || coalesce(program, 'null') || ' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.unc_in_enrrollment SET program = ' || coalesce(program, null) || ', exchange_program_name = ''' || $4 || ''' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
 
 	RETURN update_ok;
     
 END;
-$$ LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_u_enrrollment_program(character varying, character varying, boolean)
+  OWNER TO us_kuntur2;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1305,6 +1294,8 @@ $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_InsertInStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying);
+
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_InsertInStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying)
   RETURNS BOOLEAN AS
 $BODY$
@@ -1323,7 +1314,7 @@ BEGIN
 	IF type_user = 'ALL' OR type_user = 'STUDENT' THEN
 
 		sql = 'INSERT INTO kuntur.unc_in_study_program(id, erased, subject, approved, approved_by, file_number, comment, unc_in_enrrollment_id, org_id) 
-		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', null , null , null , null, '''||$1||''', '''||$4||''') ';
+		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', false , null , null , null, '''||$1||''', '''||$4||''') ';
 
 		
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
@@ -1342,10 +1333,19 @@ $BODY$
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+<<<<<<< HEAD
+-- Function: kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, approved boolean, legajoguarani character varying, studyprogramid character varying)
+  RETURNS boolean AS
+=======
 DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING)
   RETURNS BOOLEAN AS
+>>>>>>> 5a35065c8ca2fe0194416831d8c48e7f38abef9e
 $BODY$
 DECLARE    	
 
@@ -1353,6 +1353,8 @@ DECLARE
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
+	firstName VARCHAR = 'null';
+	lastName VARCHAR = 'null';
 	
     
 BEGIN
@@ -1369,7 +1371,10 @@ BEGIN
 
 	ELSIF type_user = 'COORDINATOR' THEN
 
-		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ''' || $5 || ''' , approved_by = '''|| $2 ||''' WHERE id = ''' || $7 || ''' '; 	
+		
+		select given_name, family_name into firstName, lastName from kuntur.person where id = $2;
+
+		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ''' || $5 || ''' , approved_by = '''|| familyName || ', ' || firstName ||''' WHERE id = ''' || $7 || ''' '; 	
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1384,7 +1389,18 @@ BEGIN
 		RETURN update_ok;
 
 	ELSIF type_user = 'ALL' THEN
-		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || $5 || ' , approved_by = '''|| $2 ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+
+		select given_name, family_name into firstName, lastName from kuntur.person where id = $2;
+
+		IF $5 <> (select p.approved from kuntur.unc_in_study_program p where p.id = $7) THEN
+		
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || $5 || ' , approved_by = '''|| lastName || ', ' || firstName ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+
+		ELSE
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+
+		END IF;
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1399,7 +1415,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
+ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
+  OWNER TO us_kuntur2;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1561,8 +1578,6 @@ DECLARE
 	Orgname VARCHAR = '';
 	country VARCHAR = '';
 	web VARCHAR = '';
-	iname VARCHAR = '';
-	ishortName VARCHAR = '';
     
 BEGIN
 
@@ -1578,9 +1593,9 @@ BEGIN
 
 	IF update_ok THEN
 
-		select original_name, web_site, country_code, name, short_name into Orgname, web, country, iname, ishortName from kuntur.org where id = oid;
+		select name, web_site, country_code into Orgname, web, country from kuntur.org where id = oid;
 	
-		update kuntur.enrrollment set institution_web_site = web, institution_country_code = country, institution_original_name = Orgname, institution_name = iname, institution_short_name = ishortName where id = $1;
+		update kuntur.enrrollment set institution_web_site = web, institution_country_code = country, institution_original_name = Orgname where id = $1;
 
 	END IF;
 
@@ -1588,9 +1603,6 @@ BEGIN
     
 END;
 $$ LANGUAGE plpgsql;
-
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2273,9 +2285,9 @@ BEGIN
 
 		INSERT INTO kuntur.person_address(id, erased, country_code, admin_area_level1_code, locality, neighbourhood, street, street_number, building_floor, building_room,
 		building, postal_code, person_id) 
-		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(country_code, null)||'', ''||coalesce(admin_area_lvl1_code, null)||'' , ''||coalesce(locality, null)||'', ''||coalesce(neighbourhood, null)||''
-		, ''||coalesce(street, null)||'', ''||coalesce(street_number, null)||'', ''||coalesce(building_floor, null)||'', ''||coalesce(building_room, null)||'', ''||coalesce(building, null)||''
-		, ''||coalesce(postal_code, null)||'', ''||$1||'');
+		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(country_code, 'null')||'', ''||coalesce(admin_area_lvl1_code, 'null')||'' , ''||coalesce(locality, 'null')||'', ''||coalesce(neighbourhood, 'null')||''
+		, ''||coalesce(street, 'null')||'', ''||coalesce(street_number, 'null')||'', ''||coalesce(building_floor, 'null')||'', ''||coalesce(building_room, 'null')||'', ''||coalesce(building, 'null')||''
+		, ''||coalesce(postal_code, 'null')||'', ''||$1||'');
 
 		RETURN TRUE;
 
@@ -2310,9 +2322,9 @@ BEGIN
 
 	IF per THEN
 
-		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, null)||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, null)||'', locality = ''||coalesce(alocality, null)||'', 
-		neighbourhood = ''||coalesce(aneighbourhood, null)||'', street = ''||coalesce(astreet, null)||'', street_number = ''||coalesce(astreet_number, null)||'', building_floor = ''||coalesce(abuilding_floor, null)||'', 
-		building_room = ''||coalesce(abuilding_room, null)||'', building = ''||coalesce(abuilding, null)||'', postal_code = ''||coalesce(apostal_code, null)||'' WHERE id = address_id;
+		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, 'null')||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, 'null')||'', locality = ''||coalesce(alocality, 'null')||'', 
+		neighbourhood = ''||coalesce(aneighbourhood, 'null')||'', street = ''||coalesce(astreet, 'null')||'', street_number = ''||coalesce(astreet_number, 'null')||'', building_floor = ''||coalesce(abuilding_floor, 'null')||'', 
+		building_room = ''||coalesce(abuilding_room, 'null')||'', building = ''||coalesce(abuilding, 'null')||'', postal_code = ''||coalesce(apostal_code, 'null')||'' WHERE id = address_id;
 
 		RETURN TRUE;
 
@@ -2360,3 +2372,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+

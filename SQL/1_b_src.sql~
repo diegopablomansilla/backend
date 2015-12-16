@@ -117,8 +117,6 @@ SELECT 	e.id,
 	ap.id AS admission_period_id,
 	ap.year,
 	ap.semester,
-	ap.number_admission_period,
-	ap.title,
 	--CASE 	WHEN ap.semester = 1 THEN '1er Semestre'::varchar
 	--	WHEN ap.semester = 2 THEN '2do Semestre'::varchar
 	--	ELSE ''::varchar
@@ -170,10 +168,10 @@ ORDER BY e.number_enrrollment DESC;
 -- SELECT * FROM kuntur.user_system;
 
 DROP FUNCTION IF EXISTS kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
-					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER) CASCADE;
+					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR) CASCADE;
 
 CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
-					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER) 
+					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR) 
 	RETURNS SETOF kuntur.v_enrrollment_list AS $$
 	
 		SELECT 	id, 
@@ -181,8 +179,6 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			admission_period_id, 
 			year, 
 			semester, 
-			number_admission_period,
-			title,
 			enrrollment_status_id, 
 			enrrollment_status, 
 			student_id, student, 
@@ -192,8 +188,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			org_institution_id
 					
 		FROM 	kuntur.v_enrrollment_list e
-		WHERE 	(($1 IS NOT NULL AND $1 = e.year) OR $1 IS NULL)
-			AND (($9 IS NOT NULL AND $9 = e.number_admission_period) OR $9 IS NULL)  
+		WHERE 	(($1 IS NOT NULL AND $1 = e.year) OR $1 IS NULL)  
 			AND (($2 IS NOT NULL AND $2 = e.semester) OR $2 IS NULL)  
 			AND (($3 IS NOT NULL AND $3 = e.enrrollment_status_id) OR $3 IS NULL)  
 
@@ -233,6 +228,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			
 		;
 $$ LANGUAGE SQL;
+
 
 -- SELECT * FROM kuntur.v_enrrollment_list x 
 -- SELECT * FROM kuntur.enrrollment_stakeholder 
