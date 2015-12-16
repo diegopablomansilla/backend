@@ -302,7 +302,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 							|| kuntur.json_att_util('nameStart', enrrollment_log.name_start::VARCHAR, '"', ', ' , true)
 							|| kuntur.json_att_util('codeEnd', enrrollment_log.code_end::VARCHAR, '"', ', ' , true)
 							|| kuntur.json_att_util('nameEnd', enrrollment_log.name_end::VARCHAR, '"', ', ' , true)
-							|| kuntur.json_att_util('promotionDate', enrrollment_log.promotion_date::VARCHAR, '"', '' , true)
+							|| kuntur.json_att_util('promotionDate', enrrollment_log.promotion_date::VARCHAR, '"', ',' , true)
 							-------------------------------------------------------------------------------------------------------------
 							|| '"userSystem":' ||  COALESCE(
 								'{'						
