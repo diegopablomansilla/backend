@@ -1284,4 +1284,71 @@ module.exports = function(server, conString) {
   	});
 
   });
+
+  //Historial
+
+
+
+
+
+
+  server.get({path : '/getHistory', version : '0.0.1'} , function(req, res , next){
+    var sql={};
+    sql.text = "SELECT kuntur.f_q_enrrollment_log_json ($1, $2)";
+    sql.values = [req.params.inenrrollment_id, req.params.userSystemId];
+
+
+     
+
+
+    pg.connect(conString, function(err, client, done){
+
+      if(err) {
+        done();
+          res.send(500,err);
+          console.log(err);
+                return ;
+        }
+
+      client.query('BEGIN', function(err) {
+
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+                return ;
+          }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end",function(result){
+          client.query('COMMIT', done);
+          res.send(200,result.rows);
+        });
+
+        query.on("error",function(error){
+          rollback(client, done);
+          console.log(error);
+          res.send(500,error.message);
+          return ;
+        });
+
+        });
+    });
+  });   
+
+//Fin Historial
+
+
+
+
+
+
+
+
+
 }
