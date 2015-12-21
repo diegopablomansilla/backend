@@ -1,6 +1,8 @@
 var pg = require("pg")
 var fs      = require('fs');
 var async = require('async');
+var nodemailer = require('nodemailer');
+// var smtpTransport = require('nodemailer-smtp-transport');
 
 var rollback = function(client, done) {
   client.query('ROLLBACK', function(err) {
@@ -2307,10 +2309,112 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
   });//FUNCION
 
 
-    server.put({path : '/prueba', version : '0.0.1'}, function(req, res, next){
+  server.get({path : '/enrrollment/status', version : '0.0.1'} , function(req, res , next){
+
+    // console.log(req.headers);
+      if(!req.headers.usersystemid){
+        res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+        return next();
+      }
+
+      var sql = {};
+      sql.text = "SELECT  * FROM f_enrrollment_status($1, $2)";
+      sql.values = [req.headers.usersystemid, req.params.enrrollmentId];
+    
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          res.send(200,JSON.parse(result.rows[0].f_enrrollment_status));
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+  
+
+
+    server.get({path : '/state', version : '0.0.1'}, function(req, res, next){
 
     // console.log(req.body);
-    res.send('ok');
+
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_change_state($1, $2, $3) as respuesta"
+        sql.values = [req.params.enrrollmentId, req.headers.usersystemid, req.params.statusCode];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          var transporter = nodemailer.createTransport({//smtpTransport(
+              host: 'titan.unc.edu.ar',
+              tls: {
+                    "rejectUnauthorized": false
+              }
+          });//)
+
+          var mailOptions = {
+          from: 'Fred Foo <foo@blurdybloop.com>', // sender address
+          to: 'alejandro_1564@hotmail.com, abiagetti@unc.edu.ar', // list of receivers
+          subject: 'Hello', // Subject line
+          text: 'Hello world', // plaintext body
+          html: '<b>Hello world</b>' // html body
+          };
+
+          transporter.sendMail(mailOptions, function(error, info){
+          if(error){
+              return console.log(error);
+          }
+          console.log('Message sent: ' + info.response);
+
+          });
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+
+
+        
+    });
 
   });
  //else if("name" in req.body && "web" in req.body && "country" in req.body){
