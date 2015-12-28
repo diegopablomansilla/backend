@@ -1667,7 +1667,7 @@ $$ LANGUAGE plpgsql;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR)
+DROP FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR);
 
 CREATE OR REPLACE FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR) RETURNS BOOLEAN AS
 $$
@@ -1678,12 +1678,12 @@ DECLARE
 BEGIN
 
 
-	insert into kuntur.person(id, erased, clazz_discriminator, given_name, family_name, birth_country_code) 
-	values (uuid_generate_v4()::varchar, false, 'Person', ''|| coalesce($1, null) ||'', ''|| coalesce($2, null) ||'', ''|| coalesce($6, null) ||'') RETURNING id into person_id;
+	insert into kuntur.person(id, erased, given_name, family_name, birth_country_code) 
+	values (uuid_generate_v4()::varchar, false, ''|| coalesce($1, null) ||'', ''|| coalesce($2, null) ||'', ''|| coalesce($6, null) ||'') RETURNING id into person_id;
 
 	insert into kuntur.person_email(id, erased, email, person_id) values (uuid_generate_v4()::varchar, false, ''|| coalesce($3, null) ||'', person_id);
 
-	insert into kuntur.user_system(id, erased, name, pass, email) values (person_id, false, ''|| coalesce($4, null) ||'', ''|| coalesce($5, null) ||'', ''|| coalesce($3, null) ||'');
+	insert into kuntur.user_system(id, erased, name, pass, email, checked_mail) values (person_id, false, ''|| coalesce($4, null) ||'', ''|| coalesce($5, null) ||'', ''|| coalesce($3, null) ||'', false);
 
 	insert into kuntur.user_group(id, erased, user_system_id, group_system_id) values (uuid_generate_v4()::varchar, false, person_id, (select id from kuntur.group_system where code = 'student'));
 
@@ -1694,7 +1694,6 @@ BEGIN
     
 END;
 $$ LANGUAGE plpgsql;
-
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

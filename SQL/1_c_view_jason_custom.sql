@@ -114,7 +114,7 @@ DROP FUNCTION IF EXISTS kuntur.f_find_enrrollment_by_id(inenrrollment_id VARCHAR
 CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARCHAR, user_system_id VARCHAR) 
 	RETURNS SETOF VARCHAR AS $$
 	
-		SELECT 	('{ ' || '"guiView":' || kuntur.gui_type($1, $2) || ', ' || '"data":' ||  COALESCE(e.json, 'null') || '} ') AS json
+		SELECT 	('{ ' || '"guiView":"' || kuntur.gui_type($1, $2) || '", ' || '"data":' ||  COALESCE(e.json, 'null') || '} ') AS json
 		--FROM 	kuntur.v_unc_in_enrrollment_json_a e	
 		FROM 	(
 
@@ -522,15 +522,16 @@ join 	kuntur.unc_in_academic_performance
 
 */
 
-DROP FUNCTION IF EXISTS kuntur.f_find_study_program_by_id(inenrrollment_id VARCHAR, user_system_id VARCHAR) CASCADE;
+-- Function: kuntur.f_find_study_program_by_id(character varying, character varying)
 
--- ESta función no es óptima desde el punto de vista del código, sin embargo demora ms y con eso por ahora acanza
+-- DROP FUNCTION kuntur.f_find_study_program_by_id(character varying, character varying);
 
-CREATE OR REPLACE FUNCTION kuntur.f_find_study_program_by_id(inenrrollment_id VARCHAR, user_system_id VARCHAR) 
-	RETURNS SETOF VARCHAR AS $$
+CREATE OR REPLACE FUNCTION kuntur.f_find_study_program_by_id(inenrrollment_id character varying, user_system_id character varying)
+  RETURNS SETOF character varying AS
+$BODY$
 	
 		
-		SELECT 	('{ ' || '"guiView":' || kuntur.gui_type($1, $2) || ', ' || '"data":' ||  COALESCE(e.json, 'null') || '} ') AS json		
+		SELECT 	('{ ' || '"guiView":"' || kuntur.gui_type($1, $2) || '", ' || '"data":' ||  COALESCE(e.json, 'null') || '} ') AS json		
 		FROM 	(
 
 	SELECT 
@@ -576,6 +577,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_study_program_by_id(inenrrollment_id VA
 								AND x.org_id = org.id						
 
 						) > 0
+						OR enrrollment.student_id = $2
 					)
 						
 			), '')  || '], '
@@ -636,7 +638,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_study_program_by_id(inenrrollment_id VA
 						(SELECT kuntur.gui_type($1, $2)) = '0' 
 						OR (
 							SELECT 	COUNT(*)
-							FROM	kuntur.unc_in_academic_coordinator x
+							FROM	kuntur.unc_in_academic_office x
 							WHERE	x.person_id = $2
 								AND x.org_id = org.id						
 
@@ -684,7 +686,12 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_study_program_by_id(inenrrollment_id VA
 			AND TRIM($1) = e.unc_in_enrrollment_id
 			
 		;
-$$ LANGUAGE SQL;
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION kuntur.f_find_study_program_by_id(character varying, character varying)
+  OWNER TO us_kuntur2;
 
 /*
 SELECT * 

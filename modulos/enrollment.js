@@ -39,7 +39,7 @@ module.exports = function(server, conString) {
       });
 
       query.on("end", function(result){
-        // console.log(result.rows[0].f_find_enrrollment_by_id);
+        //console.log(result.rows[0].f_find_enrrollment_by_id);
 
         done();
         if(result.rows.length > 0){
@@ -112,13 +112,13 @@ module.exports = function(server, conString) {
       var numberAdmissionPeriod = null;
     }
 
-    console.log(req.headers.usersystemid);
+    //console.log(req.headers.usersystemid);
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
       ""+name+"," +
       ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
 
-    console.log(sql);
+    //console.log(sql);
     pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -1344,15 +1344,15 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
   server.get({path : '/enrrollment/:inenrrollmentId/studyPlan', version : '0.0.1'} , function(req, res , next){
 
 
-    if(!req.params.userSystemId){
-      req.params.userSystemId=46385;
-      // res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      // return next();
+    if(!req.headers.usersystemid){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
     }
 
     var sql = {};
     sql.text = "SELECT  * FROM kuntur.f_find_study_program_by_id ($1, (SELECT id FROM kuntur.user_system WHERE name = $2))";
-    sql.values = [req.params.inenrrollmentId, req.params.userSystemId];
+    sql.values = [req.params.inenrrollmentId, req.headers.usersystemid];
   
     pg.connect(conString, function(err, client, done){
       if(err) {
@@ -1369,6 +1369,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
       query.on("end",function(result){
         done();
+        console.log(result)
         res.send(200,JSON.parse(result.rows[0].f_find_study_program_by_id));
       });
 
@@ -2418,6 +2419,72 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
   });
  //else if("name" in req.body && "web" in req.body && "country" in req.body){
+
+
+      server.get({path : '/nextState', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.nextstep($1, $2) as respuesta"
+        sql.values = [req.headers.usersystemid, req.params.enrrollmentId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          var transporter = nodemailer.createTransport({//smtpTransport(
+              host: 'titan.unc.edu.ar',
+              tls: {
+                    "rejectUnauthorized": false
+              }
+          });//)
+
+          var mailOptions = {
+          from: 'Fred Foo <foo@blurdybloop.com>', // sender address
+          to: 'alejandro_1564@hotmail.com, abiagetti@unc.edu.ar', // list of receivers
+          subject: 'Hello', // Subject line
+          text: 'Hello world', // plaintext body
+          html: '<b>Hello world</b>' // html body
+          };
+
+          transporter.sendMail(mailOptions, function(error, info){
+          if(error){
+              return console.log(error);
+          }
+          console.log('Message sent: ' + info.response);
+
+          });
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+
+
+        
+    });
+
+  });
 
 }
 
