@@ -521,7 +521,6 @@ join 	kuntur.unc_in_academic_performance
 	on unc_in_enrrollment.id = unc_in_academic_performance.unc_in_enrrollment_id 
 
 */
-
 -- Function: kuntur.f_find_study_program_by_id(character varying, character varying)
 
 -- DROP FUNCTION kuntur.f_find_study_program_by_id(character varying, character varying);
@@ -573,6 +572,13 @@ $BODY$
 						OR (
 							SELECT 	COUNT(*)
 							FROM	kuntur.unc_in_academic_coordinator x
+							WHERE	x.person_id = $2
+								AND x.org_id = org.id						
+
+						) > 0
+						OR (
+							SELECT 	COUNT(*)
+							FROM	kuntur.unc_in_academic_office x
 							WHERE	x.person_id = $2
 								AND x.org_id = org.id						
 
@@ -692,6 +698,7 @@ $BODY$
   ROWS 1000;
 ALTER FUNCTION kuntur.f_find_study_program_by_id(character varying, character varying)
   OWNER TO us_kuntur2;
+
 
 /*
 SELECT * 

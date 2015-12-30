@@ -2423,6 +2423,8 @@ $$ LANGUAGE plpgsql;
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+
+
 DROP FUNCTION IF EXISTS kuntur.f_validate_enrrollment_permission(userSystem VARCHAR, enrrollmentId VARCHAR);
 CREATE OR REPLACE FUNCTION kuntur.f_validate_enrrollment_permission(userSystem VARCHAR, enrrollmentId VARCHAR) RETURNS BOOLEAN AS
 $$
@@ -2444,9 +2446,13 @@ $$ LANGUAGE plpgsql;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Function: kuntur.f_update_stakeholders(character varying)
 
-CREATE OR REPLACE FUNCTION kuntur.f_update_stakeholders(enrrollmentId VARCHAR) RETURNS BOOLEAN AS
-$$
+-- DROP FUNCTION kuntur.f_update_stakeholders(character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_update_stakeholders(enrrollmentid character varying)
+  RETURNS boolean AS
+$BODY$
 DECLARE
 	statusId VARCHAR = null;
 	statusCode VARCHAR = null;
@@ -2490,11 +2496,13 @@ BEGIN
 	ELSIF statusCode = 'D' OR statusCode = 'H' OR statusCode = 'J' THEN
 
 		FOR org IN SELECT DISTINCT org_id FROM 
-				(SELECT org_id FROM kuntur.unc_in_study_program 
+				(SELECT org_id FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = enrrollmentid
 				UNION
-				SELECT org_id FROM kuntur.unc_in_academic_performance) AS a
+				SELECT org_id FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = enrrollmentid) AS a
 
 		LOOP
+
+			UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
 
 			FOR person IN SELECT DISTINCT person_id FROM
 					(SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = org
@@ -2507,10 +2515,13 @@ BEGIN
 
 				IF auxCount > 0 THEN	
 
-					UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = enrrollmentId;
+					
 
-					UPDATE kuntur.enrrollment_stakeholder SET code = 2 WHERE user_system_id = person AND enrrollment_id = enrrollmentId;
+					UPDATE kuntur.enrrollment_stakeholder SET code = 2 WHERE user_system_id = person AND enrrollment_id = $1;
 
+			--	if org like 'ff808082385897cc0138777476760029' then
+			--	RAISE 'Duplicate user %, %, %', person, enrrollmentId, org;
+			--	end if;
 				ELSE
 
 					INSERT INTO kuntur.enrrollment_stakeholder (id, erased, code, user_system_id, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, 2, person, enrrollmentId);
@@ -2539,7 +2550,12 @@ BEGIN
 		
 
 END;
-$$ LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_update_stakeholders(character varying)
+  OWNER TO us_kuntur2;
+
 
 
 
@@ -2568,5 +2584,272 @@ $$ LANGUAGE plpgsql;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Function: kuntur.nextstep(character varying, character varying)
+
+-- DROP FUNCTION kuntur.nextstep(character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.nextstep(usersystem character varying, enrrollmentid character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE
+
+	appr BOOLEAN = false;
+	orgIdIterator VARCHAR = null;
+	personItarator VARCHAR = null;
+	
+	flagApproved BOOLEAN = true;
+	flagComplete BOOLEAN = true;
+	flagOrg BOOLEAN = true;
+	result BOOLEAN = false;
+
+	orgId VARCHAR = null;
+	userSystemId VARCHAR = null;
+
+	statusId VARCHAR = null;
+	statusCode VARCHAR = null;
+
+	fN VARCHAR = null;
+	validFN BOOLEAN = false;
+
+	carCode VARCHAR = null;
+	subj VARCHAR = null;
+	filNumb VARCHAR = null;
+	hrs DOUBLE PRECISION = 0;
+
+	auxCountAA INTEGER = 0;
+	auxCountAP INTEGER = 0;
+
+
+BEGIN
+
+
+	SELECT enrrollment_status_id INTO statusId FROM kuntur.enrrollment where id = enrrollmentid;
+
+	SELECT code INTO statusCode FROM kuntur.enrrollment_status WHERE  id = statusId;
+
+	SELECT id INTO userSystemId FROM kuntur.user_system WHERE name = usersystem;
+
+	SELECT org_id INTO orgId FROM kuntur.unc_in_academic_coordinator WHERE person_id = userSystemId;
+	
+	IF statusCode LIKE 'D' THEN -- EN EVALUACION
+
+		FOR appr, orgIdIterator IN SELECT approved, org_id from kuntur.unc_in_study_program where unc_in_enrrollment_id = enrrollmentId
+
+		LOOP
+
+			IF appr IS NOT null THEN
+		
+
+				IF appr IS FALSE THEN
+
+					flagApproved = false;
+
+				END IF;
+
+			ELSE
+
+				flagComplete = false;
+
+				IF orgIdIterator LIKE org_id THEN
+
+					flagOrg = false;
+
+				END IF;
+
+			END IF;
+
+		END LOOP;
+
+
+
+		IF flagComplete THEN -- TODOS LOS CAMOS APROBADOS ESTAN LLENOS
+
+			IF flagApproved THEN -- ESTAN APROBADOS
+
+				SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'F') INTO result;
+				RETURN result;
+
+			ELSE	-- NO ESTAN APROBADOS
+
+				SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'C') INTO result;
+				RETURN result;
+
+			END IF;
+
+		ELSE -- NO TODOS LOS CAMPOS APROBADOS ESTAN LLENOS
+
+			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
+			
+				FOR personItarator IN SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
+
+				LOOP
+
+					UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE user_system_id = personIterator AND enrrollment_id = enrrollmentid;
+
+				END LOOP;
+
+				RETURN true;
+
+			END IF;
+
+			RETURN false;
+
+		END IF;
+
+	ELSIF statusCode LIKE 'A' THEN --NO INICIADA
+
+		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'B') INTO result;
+		RETURN result;
+
+	ELSIF statusCode LIKE 'C' THEN -- INCOMPLETA
+
+		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'B') INTO result;
+		RETURN result;	
+
+	ELSIF statusCode LIKE 'E' THEN --MODIFICACION PLAN 1
+
+		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'D') INTO result;
+		RETURN result;	
+
+	ELSIF statusCode LIKE 'G' THEN -- MODIFICACION PLAN 2
+
+		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'H') INTO result;
+		RETURN result;
+
+	ELSIF statusCode LIKE 'H' THEN -- EN MATRICULACION
+	
+		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;
+		
+
+		FOR fN, orgIdIterator IN SELECT file_number, org_id from kuntur.unc_in_study_program where unc_in_enrrollment_id = enrrollmentId
+
+		LOOP
+
+			SELECT kuntur.f_validateFileNumber(fN) INTO validFN;
+
+			IF validFN THEN
+
+	
+			ELSE
+
+				flagComplete = false;
+
+				IF orgIdIterator LIKE orgId THEN
+
+					flagOrg = false;
+
+				END IF;
+
+			END IF;
+
+		END LOOP;
+
+
+
+		IF flagComplete THEN -- TODOS LOS CAMOS ESTAN LLENOS
+
+			SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'I') INTO result;
+			RETURN result;
+
+		ELSE -- NO TODOS LOS CAMPOS ESTAN LLENOS
+
+			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
+
+				FOR personItarator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
+
+				LOOP
+
+					UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE user_system_id = personIterator AND enrrollment_id = enrrollmentid;
+
+				END LOOP;
+
+				RETURN true;
+
+			END IF;
+
+			RETURN false;
+
+		END IF;
+
+	--END IF;
+
+	------------------------------
+
+	ELSIF statusCode LIKE 'J' THEN -- EN MATRICULACION
+		
+		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;
+		
+		FOR carCode, subj, filNumb, hrs, orgIdIterator IN SELECT career_code, subject, file_number, hs, org_id from kuntur.unc_in_academic_performance where unc_in_enrrollment_id = enrrollmentId
+--SELECT career_code, subject, file_number, hs, org_id FROM KUNTUR.unc_in_academic_performance where unc_in_enrrollment_id = '489090264e78c0ce014e931e3425002b'
+		LOOP
+
+
+			IF  subj IS NOT NULL  AND hrs IS NOT NULL THEN --carCode IS NOT NULL AND AND filNumb IS NOT NULL
+
+	
+			ELSE
+
+				flagComplete = false;
+
+				IF orgIdIterator LIKE orgId THEN
+
+					flagOrg = false;
+
+				END IF;
+
+			END IF;
+
+		END LOOP;
+
+
+		SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE person_id = userSystemId;
+		SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE person_id = userSystemId;
+
+		IF auxCountAP < auxCountAA THEN
+			flagComplete = false;
+		END IF;
+
+
+		IF flagComplete THEN -- TODOS LOS CAMOS ESTAN LLENOS
+
+			SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'K') INTO result;
+			RETURN result;
+
+		ELSE -- NO TODOS LOS CAMPOS ESTAN LLENOS
+
+			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
+			
+				FOR personItarator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
+
+				LOOP
+
+					UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE user_system_id = personIterator AND enrrollment_id = enrrollmentid;
+
+
+				END LOOP;
+
+				RETURN true;
+
+			END IF;
+
+			RETURN false;
+
+		END IF;
+
+	END IF;
+
+	------------------------------
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.nextstep(character varying, character varying)
+  OWNER TO us_kuntur2;
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

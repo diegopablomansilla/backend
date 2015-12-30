@@ -2366,6 +2366,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
         }
 
 
+        console.log(req.params);
         var sql = {};
         sql.text = "select kuntur.f_change_state($1, $2, $3) as respuesta"
         sql.values = [req.params.enrrollmentId, req.headers.usersystemid, req.params.statusCode];
