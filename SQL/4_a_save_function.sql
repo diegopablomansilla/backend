@@ -793,7 +793,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_u_enrrollment_male(character varying, character varying, boolean)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1633,7 +1633,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_login(character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 
@@ -1667,7 +1667,7 @@ $$ LANGUAGE plpgsql;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR);
+DROP FUNCTION IF EXISTS  kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR);
 
 CREATE OR REPLACE FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR) RETURNS BOOLEAN AS
 $$
@@ -1695,9 +1695,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION kuntur.perfilArray(us VARCHAR);
+DROP FUNCTION IF EXISTS  kuntur.perfilArray(us VARCHAR);
 
 CREATE OR REPLACE FUNCTION kuntur.perfilArray(us VARCHAR) RETURNS VARCHAR AS
 $$
@@ -1806,13 +1807,13 @@ BEGIN
 	RETURN sql; 
 END;
 $BODY$
-	LANGUAGE plpgsql
+	LANGUAGE plpgsql;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-DROP FUNCTION IF EXISTS kuntur.f_validateStudent(id VARCHAR, us VARCHAR)
+DROP FUNCTION IF EXISTS kuntur.f_validateStudent(id VARCHAR, us VARCHAR);
 
 CREATE OR REPLACE FUNCTION  kuntur.f_validateStudent(userId VARCHAR, us VARCHAR) RETURNS BOOLEAN AS
 $$
@@ -1830,7 +1831,7 @@ BEGIN
 	END IF;
 END;
 $$
-	LANGUAGE plpgsql
+	LANGUAGE plpgsql;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2093,7 +2094,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_d_student_nationality(character varying, character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2127,7 +2128,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_i_student_nationality(character varying, character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2160,7 +2161,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_u_student_nationality(character varying, character varying, character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2193,7 +2194,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_i_student_nationality(character varying, character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2326,7 +2327,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_u_student_address(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2554,7 +2555,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_update_stakeholders(character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 
@@ -2846,7 +2847,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.nextstep(character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 

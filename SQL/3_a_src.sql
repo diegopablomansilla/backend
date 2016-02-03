@@ -558,7 +558,7 @@ END; $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION kuntur.f_responsablesbyorg(text[])
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 

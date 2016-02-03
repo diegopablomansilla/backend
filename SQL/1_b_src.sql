@@ -244,6 +244,12 @@ $$ LANGUAGE SQL;
 
 -- SELECT * FROM kuntur.enrrollment_status
 
+
+
+
+
+--====================================================================
+/*
 SELECT  * FROM  kuntur.f_find_enrrollment_list(null, null, null, 'BRA', null, null, null, (SELECT id FROM kuntur.user_system WHERE name = '46385'));
 
 
@@ -269,5 +275,5 @@ FROM  	kuntur.f_find_enrrollment_list
 	(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = 'H'), 'MEX', 'ria', 
 	null, null, (SELECT id FROM kuntur.user_system WHERE name = '46385')
 	);	
-
+*/
 --================================================================================================

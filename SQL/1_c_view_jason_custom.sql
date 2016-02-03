@@ -697,7 +697,7 @@ $BODY$
   COST 100
   ROWS 1000;
 ALTER FUNCTION kuntur.f_find_study_program_by_id(character varying, character varying)
-  OWNER TO us_kuntur2;
+  OWNER TO postgres;
 
 
 /*
