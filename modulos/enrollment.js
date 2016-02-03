@@ -118,7 +118,7 @@ module.exports = function(server, conString) {
       ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
 
-    //console.log(sql);
+    console.log(sql);
     pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -1437,7 +1437,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             });
 
             query.on("end", function(result){
-
+              console.log(JSON.parse(result.rows[0].respuesta));
               queryResult=JSON.parse(result.rows[0].respuesta);
               callback(false)
             });//FIN CB END GUIVEN_NAME
@@ -2486,6 +2486,15 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     });
 
   });
+
+server.post({path:'/gonza', version:'0.0.1'}, function(req, res, next){
+
+ 
+  res.send(200,req.body);
+
+
+});
+
 
 }
 
