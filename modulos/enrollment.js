@@ -777,13 +777,12 @@ module.exports = function(server, conString) {
   server.put({path:'/enrrollment/:inenrrollmentId/mails', version:'0.0.1'}, function(req, res, next){
 
 
-
     if(!req.body){
       res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
       return next();
     }
 
-    if(!req.headers.usersystemidH){
+    if(!req.headers.usersystemid){
       // req.body.userSystemId=46385;
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -816,16 +815,16 @@ module.exports = function(server, conString) {
             if(mail.erased){
               //update
               sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, mail.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, mail.id];
             }
             else if(mail.id){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_email($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, mail.email, mail.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, mail.email, mail.id];
             }
             else if(!mail.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, mail.email];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, mail.email];
               //insert
             }else{
               callback(false);
@@ -897,7 +896,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
       return next();
     }
 
-    if(!req.headers.usersystemidH){
+    if(!req.headers.usersystemid){
       // req.body.userSystemId=46385;
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -931,16 +930,16 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
             if(phone.erased){
               //update
               sql.text = "select kuntur.f_u_enrrollment_Deletephone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, phone.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, phone.id];
             }
             else if(phone.id){
               //delete
               sql.text = "select kuntur.f_u_enrrollment_phone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, phone.phoneNumber, phone.countryCode, phone.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, phone.phoneNumber, phone.countryCode, phone.id];
             }
             else if(!phone.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertphone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, phone.phoneNumber, phone.countryCode];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, phone.phoneNumber, phone.countryCode];
               //insert
             }else{
               callback(false);
@@ -1138,6 +1137,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName];
     }
     else if("birthCountryCode" in req.body && "birthDate" in req.body){
+      console.log(req.body.birthDate)
       sql.text = "select kuntur.f_u_enrrollment_birth($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.birthDate, req.body.birthCountryCode];
     }
@@ -1424,6 +1424,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
             }
             else if(!studyProgram.erased){
+              console.log(req.params.inenrrollmentId);
+              console.log(req.headers.usersystemid);
+              console.log(studyProgram.subject);
+              console.log(studyProgram.org.id);
               sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id];
               //insert
@@ -1849,6 +1853,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
 
 server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
+// console.log("headers")
+//   console.log(req.headers);
     
     if(!req.headers.usersystemid){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});

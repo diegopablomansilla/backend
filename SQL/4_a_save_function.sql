@@ -1013,7 +1013,7 @@ DECLARE
     
 BEGIN
 
-	sql = 'UPDATE kuntur.enrrollment SET birth_date = ''' || coalesce(birth_date, 'null') || ''', birth_country_code = ''' || coalesce(birth_country, 'null') || ''' WHERE id = ''' || $1 || ''' ';
+	sql = 'UPDATE kuntur.enrrollment SET birth_date = ''' || coalesce(birth_date, NULL) || ''', birth_country_code = ''' || coalesce(birth_country, 'null') || ''' WHERE id = ''' || $1 || ''' ';
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_date') INTO update_ok; 
 
@@ -1344,8 +1344,8 @@ $BODY$
 
 DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING);
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING)
-  RETURNS BOOLEAN AS
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, approved boolean, legajoguarani character varying, studyprogramid character varying)
+  RETURNS boolean AS
 $BODY$
 DECLARE    	
 
@@ -1369,7 +1369,7 @@ BEGIN
 
 	ELSIF type_user = 'COORDINATOR' THEN
 
-		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ''' || $5 || ''' , approved_by = '''|| $2 ||''' WHERE id = ''' || $7 || ''' '; 	
+		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| $2 ||''' WHERE id = ''' || $7 || ''' '; 	
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1384,7 +1384,8 @@ BEGIN
 		RETURN update_ok;
 
 	ELSIF type_user = 'ALL' THEN
-		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || $5 || ' , approved_by = '''|| $2 ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+		
+		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| $2 ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1399,8 +1400,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
-
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2468,7 +2467,7 @@ BEGIN
 
 	SELECT code INTO statusCode FROM kuntur.enrrollment_status WHERE id = statusId;
 
-	IF statusCode = 'A' OR statusCode = 'C' OR statusCode = 'E' OR statusCode = 'G' THEN
+	IF statusCode = 'A' OR statusCode = 'C' OR statusCode = 'E' OR statusCode = 'G' THEN--lo tiene el estudiante
 
 		SELECT student_id INTO studentId FROM kuntur.enrrollment WHERE id = enrrollmentId;
 
@@ -2488,13 +2487,15 @@ BEGIN
 
 		RETURN true;
 
-	ELSIF statusCode = 'B' OR statusCode = 'F' OR statusCode = 'I' THEN
+	ELSIF statusCode = 'B' OR statusCode = 'F' OR statusCode = 'I' THEN--lo tiene la pri
 
 		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = enrrollmentId;
 
 		RETURN true;
 
 	ELSIF statusCode = 'D' OR statusCode = 'H' OR statusCode = 'J' THEN
+
+		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
 
 		FOR org IN SELECT DISTINCT org_id FROM 
 				(SELECT org_id FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = enrrollmentid
@@ -2503,7 +2504,7 @@ BEGIN
 
 		LOOP
 
-			UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
+			
 
 			FOR person IN SELECT DISTINCT person_id FROM
 					(SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = org
@@ -2514,7 +2515,7 @@ BEGIN
 
 				SELECT count(*) INTO auxCount FROM kuntur.enrrollment_stakeholder WHERE user_system_id = person AND enrrollment_id = enrrollmentId;
 
-				IF auxCount > 0 THEN	
+				IF auxCount > 0 THEN	--controlo si tengo q actualizar enrrollment_stakeholder o ingresar un nuevo registro
 
 					
 
@@ -2554,9 +2555,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
---ALTER FUNCTION kuntur.f_update_stakeholders(character varying)
-  --OWNER TO postgres;
-
 
 
 
@@ -2585,7 +2583,6 @@ $$ LANGUAGE plpgsql;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 -- Function: kuntur.nextstep(character varying, character varying)
 
 -- DROP FUNCTION kuntur.nextstep(character varying, character varying);
@@ -2673,7 +2670,7 @@ BEGIN
 
 			ELSE	-- NO ESTAN APROBADOS
 
-				SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'C') INTO result;
+				SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'E') INTO result;
 				RETURN result;
 
 			END IF;
@@ -2846,8 +2843,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
---ALTER FUNCTION kuntur.nextstep(character varying, character varying)
-  --OWNER TO postgres;
 
 
 
