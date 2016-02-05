@@ -1342,9 +1342,10 @@ $BODY$
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, approved BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING);
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, approved boolean, legajoguarani character varying, studyprogramid character varying)
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, appr BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, appr boolean, legajoguarani character varying, studyprogramid character varying)
   RETURNS boolean AS
 $BODY$
 DECLARE    	
@@ -1353,6 +1354,12 @@ DECLARE
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
+
+	fn VARCHAR = 'null';
+	mn VARCHAR = 'null';
+	gn VARCHAR = 'null';
+
+	var_approved BOOLEAN = false;
 	
     
 BEGIN
@@ -1369,9 +1376,21 @@ BEGIN
 
 	ELSIF type_user = 'COORDINATOR' THEN
 
-		sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| $2 ||''' WHERE id = ''' || $7 || ''' '; 	
+		SELECT approved INTO var_approved FROM kuntur.unc_in_study_program where id = $7;
 
-		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
+
+			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || '' || mn || ''' WHERE id = ''' || $7 || ''' '; 	
+
+			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+		ELSE
+
+			update_ok=true;
+
+		END IF;
 
 		RETURN update_ok;
 
@@ -1384,10 +1403,24 @@ BEGIN
 		RETURN update_ok;
 
 	ELSIF type_user = 'ALL' THEN
-		
-		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| $2 ||''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
 
-		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+		SELECT approved INTO var_approved FROM kuntur.unc_in_study_program where id = $7;
+
+		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
+
+			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
+			
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+
+			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+		ELSE
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+
+			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+		END IF;
 
 		RETURN update_ok;
 
@@ -2493,37 +2526,25 @@ BEGIN
 
 		RETURN true;
 
-	ELSIF statusCode = 'D' OR statusCode = 'H' OR statusCode = 'J' THEN
+--------------------CORRECCION------------------------------
+	ELSIF statusCode = 'D' THEN
 
 		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
 
-		FOR org IN SELECT DISTINCT org_id FROM 
-				(SELECT org_id FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = enrrollmentid
-				UNION
-				SELECT org_id FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = enrrollmentid) AS a
+		FOR org IN SELECT DISTINCT org_id FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = enrrollmentid
 
 		LOOP
 
-			
-
-			FOR person IN SELECT DISTINCT person_id FROM
-					(SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = org
-					UNION
-					SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = org) AS b
+			FOR person IN SELECT DISTINCT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = org
 
 			LOOP
 
 				SELECT count(*) INTO auxCount FROM kuntur.enrrollment_stakeholder WHERE user_system_id = person AND enrrollment_id = enrrollmentId;
 
-				IF auxCount > 0 THEN	--controlo si tengo q actualizar enrrollment_stakeholder o ingresar un nuevo registro
-
-					
+				IF auxCount > 0 THEN	--controlo si tengo q actualizar enrrollment_stakeholder o ingresar un nuevo registro (para la persona y ese enrrollment)
 
 					UPDATE kuntur.enrrollment_stakeholder SET code = 2 WHERE user_system_id = person AND enrrollment_id = $1;
 
-			--	if org like 'ff808082385897cc0138777476760029' then
-			--	RAISE 'Duplicate user %, %, %', person, enrrollmentId, org;
-			--	end if;
 				ELSE
 
 					INSERT INTO kuntur.enrrollment_stakeholder (id, erased, code, user_system_id, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, 2, person, enrrollmentId);
@@ -2535,8 +2556,70 @@ BEGIN
 		END LOOP;
 
 		RETURN true;
-		
 
+	ELSIF statusCode = 'H' THEN
+
+		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
+
+		FOR org IN SELECT DISTINCT org_id FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = enrrollmentid
+
+		LOOP
+
+			FOR person IN SELECT DISTINCT person_id FROM kuntur.unc_in_academic_office WHERE org_id = org
+
+			LOOP
+
+				SELECT count(*) INTO auxCount FROM kuntur.enrrollment_stakeholder WHERE user_system_id = person AND enrrollment_id = enrrollmentId;
+
+				IF auxCount > 0 THEN	--controlo si tengo q actualizar enrrollment_stakeholder o ingresar un nuevo registro (para la persona y ese enrrollment)
+
+					UPDATE kuntur.enrrollment_stakeholder SET code = 2 WHERE user_system_id = person AND enrrollment_id = $1;
+
+				ELSE
+
+					INSERT INTO kuntur.enrrollment_stakeholder (id, erased, code, user_system_id, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, 2, person, enrrollmentId);
+
+				END IF;
+
+			END LOOP;
+
+		END LOOP;
+
+		RETURN true;
+
+	ELSIF statusCode = 'J' THEN
+
+		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
+
+		FOR org IN SELECT DISTINCT org_id FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = enrrollmentid
+
+		LOOP
+
+			FOR person IN SELECT DISTINCT person_id FROM kuntur.unc_in_academic_office WHERE org_id = org
+
+			LOOP
+
+				SELECT count(*) INTO auxCount FROM kuntur.enrrollment_stakeholder WHERE user_system_id = person AND enrrollment_id = enrrollmentId;
+
+				IF auxCount > 0 THEN	--controlo si tengo q actualizar enrrollment_stakeholder o ingresar un nuevo registro (para la persona y ese enrrollment)
+
+					UPDATE kuntur.enrrollment_stakeholder SET code = 2 WHERE user_system_id = person AND enrrollment_id = $1;
+
+				ELSE
+
+					INSERT INTO kuntur.enrrollment_stakeholder (id, erased, code, user_system_id, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, 2, person, enrrollmentId);
+
+				END IF;
+
+			END LOOP;
+
+		END LOOP;
+
+		RETURN true;
+
+--------------------FIN CORRECCION----------------------------
+	
+	
 	ELSIF statusCode = 'K' OR statusCode = 'Z' THEN
 
 		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  enrrollment_id = enrrollmentId;
@@ -2555,7 +2638,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
 
 
 
@@ -2594,7 +2676,7 @@ DECLARE
 
 	appr BOOLEAN = false;
 	orgIdIterator VARCHAR = null;
-	personItarator VARCHAR = null;
+	personIterator VARCHAR = null;
 	
 	flagApproved BOOLEAN = true;
 	flagComplete BOOLEAN = true;
@@ -2649,7 +2731,7 @@ BEGIN
 
 				flagComplete = false;
 
-				IF orgIdIterator LIKE org_id THEN
+				IF orgIdIterator LIKE orgId THEN
 
 					flagOrg = false;
 
@@ -2679,7 +2761,7 @@ BEGIN
 
 			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
 			
-				FOR personItarator IN SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
+				FOR personIterator IN SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
 
 				LOOP
 
@@ -2754,7 +2836,7 @@ BEGIN
 
 			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
 
-				FOR personItarator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
+				FOR personIterator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
 
 				LOOP
 
@@ -2818,7 +2900,7 @@ BEGIN
 
 			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
 			
-				FOR personItarator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
+				FOR personIterator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
 
 				LOOP
 
@@ -2843,7 +2925,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
