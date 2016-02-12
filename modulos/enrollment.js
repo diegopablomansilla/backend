@@ -1424,10 +1424,6 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
             }
             else if(!studyProgram.erased){
-              console.log(req.params.inenrrollmentId);
-              console.log(req.headers.usersystemid);
-              console.log(studyProgram.subject);
-              console.log(studyProgram.org.id);
               sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id];
               //insert
@@ -2325,7 +2321,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       }
 
       var sql = {};
-      sql.text = "SELECT  * FROM f_enrrollment_status($1, $2)";
+      sql.text = "SELECT  * FROM kuntur.f_enrrollment_status($1, $2)";
       sql.values = [req.headers.usersystemid, req.params.enrrollmentId];
     
       pg.connect(conString, function(err, client, done){

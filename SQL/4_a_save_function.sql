@@ -1050,29 +1050,83 @@ $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, nac character varying);
+-- Function: kuntur.f_u_enrrollment_insertaddress(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying)
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertaddress(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
-, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, comment character varying)
-  RETURNS BOOLEAN AS
+-- DROP FUNCTION kuntur.f_u_enrrollment_insertaddress(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_insertaddress(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, comment character varying)
+  RETURNS boolean AS
 $BODY$
 DECLARE    	
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
-	
+	v_country_code varchar = 'null';
+	v_admin_area_lvl1_code varchar = 'null';
+	v_locality varchar = 'null';
+	v_neighbourhood varchar = 'null';
+	v_street varchar = 'null';
+	v_street_number varchar = 'null';
+	v_building_floor varchar = 'null';
+	v_building_room varchar = 'null';
+	v_building varchar = 'null';
+	v_postal_code varchar = 'null';
+	v_comment varchar = 'null';
     
 BEGIN
 
+	if country_code is not null then
+		v_country_code = '''' || country_code || '''';
+	end if;
+
+	if admin_area_lvl1_code is not null then
+		v_admin_area_lvl1_code = '''' || admin_area_lvl1_code || '''';
+	end if;
+
+	if locality is not null then
+		v_locality = '''' || locality || '''';
+	end if;
+
+	if neighbourhood is not null then
+		v_neighbourhood = '''' || neighbourhood || '''';
+	end if;
+
+	if street is not null then
+		v_street = '''' || street || '''';
+	end if;
+
+	if street_number is not null then
+		v_street_number = '''' || street_number || '''';
+	end if;
+
+	if building_floor is not null then
+		v_building_floor = '''' || building_floor || '''';
+	end if;
+
+	if building_room is not null then
+		v_building_room = '''' || building_room || '''';
+	end if;
+
+	if building is not null then
+		v_building = '''' || building || '''';
+	end if;
+
+	if postal_code is not null then
+		v_postal_code = '''' || postal_code || '''';
+	end if;
+
+	if comment is not null then
+		v_comment = '''' || comment || '''';
+	end if;
 
 	sql = 'INSERT INTO kuntur.enrrollment_address(id, erased, country_code, admin_area_level1_code, admin_area_level2, locality, neighbourhood, street, street_number, building_floor, building_room,
 	building, postal_code, comment, lat, lng, enrrollment_id) 
-	VALUES (uuid_generate_v4()::varchar, false, '''||coalesce(country_code, 'null')||''', '''||coalesce(admin_area_lvl1_code, 'null')||''' , null, '''||coalesce(locality, 'null')||''', '''||coalesce(neighbourhood, 'null')||'''
-	, '''||coalesce(street, 'null')||''', '''||coalesce(street_number, 'null')||''', '''||coalesce(building_floor, 'null')||''', '''||coalesce(building_room, 'null')||''', '''||coalesce(building, 'null')||'''
-	, '''||coalesce(postal_code, 'null')||''', '''||coalesce(comment, 'null')||''', null, null, '''||$1||''') ';
+	VALUES (uuid_generate_v4()::varchar, false, ' || v_country_code || ', ' || v_admin_area_lvl1_code || ', null, ' || v_locality || ', ' || v_neighbourhood || ', ' || v_street || ', ' || v_street_number || ', '
+	|| v_building_floor || ', ' || v_building_room || ', ' || v_building || ', ' || v_postal_code || ', ' || v_comment || ', null, null, '''||$1||''') ';
 
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok; 
+
 
 	RETURN update_ok;
     
@@ -1341,9 +1395,9 @@ $BODY$
   COST 100;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Function: kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
 
-
-DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_inStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying, appr BOOLEAN, legajoGuarani CHARACTER VARYING, studyProgramId CHARACTER VARYING);
+-- DROP FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, appr boolean, legajoguarani character varying, studyprogramid character varying)
   RETURNS boolean AS
@@ -1360,6 +1414,11 @@ DECLARE
 	gn VARCHAR = 'null';
 
 	var_approved BOOLEAN = false;
+
+	v_file_number VARCHAR = 'NULL';
+	v_subject VARCHAR = 'NULL';
+	v_org_id VARCHAR = 'NULL';
+
 	
     
 BEGIN
@@ -1382,7 +1441,7 @@ BEGIN
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || '' || mn || ''' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' WHERE id = ''' || $7 || ''' '; 	
 
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1406,17 +1465,38 @@ BEGIN
 
 		SELECT approved INTO var_approved FROM kuntur.unc_in_study_program where id = $7;
 
+		IF $6 IS NOT NULL THEN
+
+			v_file_number = '''' || $6 || '''';
+
+		END IF;
+
+		IF $3 IS NOT NULL THEN
+
+			v_subject = '''' || $3 || '''';
+
+		END IF;
+
+		IF $4 IS NOT NULL THEN
+
+			v_org_id = '''' || $4 || '''';
+
+		END IF;
+
+
+
+
 		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
 			
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''', approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || COALESCE($5, NULL) || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
 
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
 		ELSE
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || coalesce($6, 'null') || ''',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ' || v_file_number || ',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
 
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -2654,7 +2734,7 @@ DECLARE
 BEGIN
 
 	WITH t AS (
-	SELECT * FROM kuntur.enrrollment_status
+	SELECT * FROM kuntur.enrrollment_status ORDER BY code
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
@@ -2690,7 +2770,7 @@ DECLARE
 	statusCode VARCHAR = null;
 
 	fN VARCHAR = null;
-	validFN BOOLEAN = false;
+	validFN BOOLEAN = true;
 
 	carCode VARCHAR = null;
 	subj VARCHAR = null;
@@ -2806,9 +2886,11 @@ BEGIN
 
 		LOOP
 
-			SELECT kuntur.f_validateFileNumber(fN) INTO validFN;
+			--SELECT kuntur.f_validateFileNumber(fN) INTO validFN; NO EXISTE LA FUNCION QUE VALIDA EL FILE NUMBER CREAR
 
-			IF validFN THEN
+			
+
+			IF fN IS NOT NULL THEN
 
 	
 			ELSE
@@ -2927,6 +3009,40 @@ $BODY$
   COST 100;
 
 
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_directivos(orgId VARCHAR) RETURNS VARCHAR AS 
+$$
+DECLARE
+	result VARCHAR = null;
+	coordinadores VARCHAR = null;
+	despacho VARCHAR = null;
+
+BEGIN
+	WITH t AS (
+		SELECT p.given_name, p.family_name FROM kuntur.unc_in_academic_coordinator ac JOIN kuntur.person p ON p.id = ac.person_id WHERE ac.org_id = $1
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO coordinadores FROM t;
+
+	WITH s AS (
+		SELECT p.given_name, p.family_name FROM kuntur.unc_in_academic_office ao JOIN kuntur.person p ON p.id = ao.person_id WHERE ao.org_id = $1
+	)
+	SELECT array_to_json(array_agg(row_to_json(s.*))) INTO despacho FROM s;
+
+
+	with r as(
+		select coordinadores, despacho
+	)
+	select row_to_json(r.*) into result from r;--array_to_json()array_agg()
+
+	RETURN result;
+	
+END;
+$$ language plpgsql;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

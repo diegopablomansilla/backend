@@ -108,11 +108,13 @@ CREATE OR REPLACE FUNCTION kuntur.gui_type(inenrrollment_id VARCHAR, user_system
 $$ LANGUAGE SQL;
 
 -------------------------------------------------------------------------------------------------------------------------
+-- Function: kuntur.f_find_enrrollment_by_id(character varying, character varying)
 
-DROP FUNCTION IF EXISTS kuntur.f_find_enrrollment_by_id(inenrrollment_id VARCHAR, user_system_id VARCHAR) CASCADE;
+-- DROP FUNCTION kuntur.f_find_enrrollment_by_id(character varying, character varying);
 
-CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARCHAR, user_system_id VARCHAR) 
-	RETURNS SETOF VARCHAR AS $$
+CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id character varying, user_system_id character varying)
+  RETURNS SETOF character varying AS
+$BODY$
 	
 		SELECT 	('{ ' || '"guiView":"' || kuntur.gui_type($1, $2) || '", ' || '"data":' ||  COALESCE(e.json, 'null') || '} ') AS json
 		--FROM 	kuntur.v_unc_in_enrrollment_json_a e	
@@ -302,7 +304,7 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 							|| kuntur.json_att_util('nameStart', enrrollment_log.name_start::VARCHAR, '"', ', ' , true)
 							|| kuntur.json_att_util('codeEnd', enrrollment_log.code_end::VARCHAR, '"', ', ' , true)
 							|| kuntur.json_att_util('nameEnd', enrrollment_log.name_end::VARCHAR, '"', ', ' , true)
-							|| kuntur.json_att_util('promotionDate', enrrollment_log.promotion_date::VARCHAR, '"', ',' , true)
+							|| kuntur.json_att_util('promotionDate', (enrrollment_log.promotion_date::timestamp with time zone )::VARCHAR, '"', ',' , true)
 							-------------------------------------------------------------------------------------------------------------
 							|| '"userSystem":' ||  COALESCE(
 								'{'						
@@ -489,7 +491,10 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_by_id(inenrrollment_id VARC
 			AND TRIM($1) = e.unc_in_enrrollment_id
 			
 		;
-$$ LANGUAGE SQL;
+$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
 
 
 
