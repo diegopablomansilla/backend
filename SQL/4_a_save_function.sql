@@ -1418,6 +1418,7 @@ DECLARE
 	v_file_number VARCHAR = 'NULL';
 	v_subject VARCHAR = 'NULL';
 	v_org_id VARCHAR = 'NULL';
+	v_approved VARCHAR = 'NULL';
 
 	
     
@@ -1483,6 +1484,12 @@ BEGIN
 
 		END IF;
 
+		IF $5 IS NOT NULL THEN
+
+			v_approved = $5::VARCHAR;
+
+		END IF;
+
 
 
 
@@ -1490,8 +1497,9 @@ BEGIN
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
 			
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || COALESCE($5, NULL) || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
-
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+		
+	
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
 		ELSE
@@ -1513,6 +1521,11 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
+  OWNER TO us_kuntur2;
+
+
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2636,7 +2649,6 @@ BEGIN
 		END LOOP;
 
 		RETURN true;
-
 	ELSIF statusCode = 'H' THEN
 
 		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
@@ -2671,7 +2683,10 @@ BEGIN
 
 		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = $1;
 
-		FOR org IN SELECT DISTINCT org_id FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = enrrollmentid
+		FOR org IN SELECT DISTINCT org_id FROM --tengo q unir las dos tablas para obtener todas las organizaciones que intervienen en la postulacion y asi encontrar las personas de despacho correspondientes
+			(SELECT org_id FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = enrrollmentid
+				UNION
+				SELECT org_id FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = enrrollmentid) AS a
 
 		LOOP
 
@@ -2718,6 +2733,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+
 
 
 
@@ -3013,24 +3030,79 @@ $BODY$
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-CREATE OR REPLACE FUNCTION kuntur.f_get_directivos(orgId VARCHAR) RETURNS VARCHAR AS 
+DROP FUNCTION IF EXISTS  kuntur.f_get_directivos(orgId VARCHAR);
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_directivos(orgId VARCHAR) RETURNS VARCHAR AS
 $$
 DECLARE
-	result VARCHAR = null;
-	coordinadores VARCHAR = null;
-	despacho VARCHAR = null;
+
+	result json = null;
+	coordinadores json = null;
+	despacho json = null;
 
 BEGIN
+
+
+------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
 	WITH t AS (
-		SELECT p.given_name, p.family_name FROM kuntur.unc_in_academic_coordinator ac JOIN kuntur.person p ON p.id = ac.person_id WHERE ac.org_id = $1
+		SELECT family_name, given_name, middle_name,
+		replace(
+			replace(
+				(
+					SELECT	string_agg( person_identity::text , ', '::text) 
+					FROM (
+
+						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
+						FROM kuntur.person_identity i
+						JOIN kuntur.person_identity_type t
+							ON t.id = i.person_identity_type_id
+							AND i.person_id = p.id
+
+					     ) AS person_identity 
+				), '("', ''), '")', ''
+			)  AS person_identity ,
+
+
+				(
+				select string_agg( email::text, ', '::text) FROM (
+						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
+					) AS email 
+				) AS email
+
+		FROM kuntur.person p JOIN kuntur.unc_in_academic_coordinator ac ON ac.person_id = p.id WHERE ac.org_id = $1 group by family_name, given_name, middle_name, p.id
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO coordinadores FROM t;
 
+------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
+
 	WITH s AS (
-		SELECT p.given_name, p.family_name FROM kuntur.unc_in_academic_office ao JOIN kuntur.person p ON p.id = ao.person_id WHERE ao.org_id = $1
+		SELECT family_name, given_name, middle_name,
+		replace(
+			replace(
+				(
+					SELECT	string_agg( person_identity::text , ', '::text) 
+					FROM (
+
+						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
+						FROM kuntur.person_identity i
+						JOIN kuntur.person_identity_type t
+							ON t.id = i.person_identity_type_id
+							AND i.person_id = p.id
+
+					     ) AS person_identity 
+				), '("', ''), '")', ''
+			)  AS person_identity ,
+
+
+				(
+				select string_agg( email::text, ', '::text) FROM (
+						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
+					) AS email 
+				) AS email
+
+		FROM kuntur.person p JOIN kuntur.unc_in_academic_office ac ON ac.person_id = p.id WHERE ac.org_id = $1 group by family_name, given_name, middle_name, p.id
 	)
 	SELECT array_to_json(array_agg(row_to_json(s.*))) INTO despacho FROM s;
-
 
 	with r as(
 		select coordinadores, despacho
@@ -3038,11 +3110,170 @@ BEGIN
 	select row_to_json(r.*) into result from r;--array_to_json()array_agg()
 
 	RETURN result;
-	
+
 END;
 $$ language plpgsql;
 
 
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_org_academic_performance(us VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE
+
+  result VARCHAR = NULL;
+  rol VARCHAR = NULL;
+
+BEGIN
+
+	SELECT gs.code INTO rol FROM kuntur.user_system us JOIN kuntur.user_group ug ON ug.user_system_id = us.id JOIN kuntur.group_system gs ON gs.id = ug.group_system_id WHERE us.name = $1;
+
+	IF rol LIKE 'admin' THEN	--SI LA PERSONA ES ADMINISTRADOR DEVUELVO TODAS LAS UNIDADES ACADEMICAS
+
+		SELECT array_to_json(array_agg(row_to_json(org.*))) INTO result FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F';
+
+	ELSE	--SI LA PERSONA NO ES ADMNISTRADOR SOLO DEVUELVO LAS UNIDADES ACADEMICAS DE LAS Q ES DESPACHO
+
+		select array_to_json(array_agg(row_to_json(o.*))) into result from kuntur.unc_in_academic_office ao join kuntur.org o on o.id = ao.org_id join kuntur.user_system us on us.id = ao.person_id where us.name = $1;
+
+	END IF;
+
+	RETURN result;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_info_mails(enrrollmentId VARCHAR)RETURNS VARCHAR AS
+$$
+DECLARE
+
+	v_status VARCHAR = NULL;
+
+	mailConfig json = NULL;
+	stakeholders json = NULL;
+	result json = NULL;
+
+BEGIN
+
+	SELECT enrrollment_status_id INTO v_status FROM kuntur.enrrollment WHERE id = $1;
+
+	SELECT array_to_json(array_agg(row_to_json(mc.*))) INTO mailConfig FROM kuntur.mail_config mc WHERE mc.status_id = v_status AND mc.active = TRUE;
+
+
+
+	WITH aux AS (
+		SELECT us.email, gs.id as group_system_id, gs.code FROM kuntur.enrrollment_stakeholder es JOIN
+		kuntur.user_system us ON us.id = es.user_system_id JOIN
+			kuntur.user_group ug ON ug.user_system_id = us.id JOIN
+				kuntur.group_system gs ON gs.id = ug.group_system_id
+					WHERE es.enrrollment_id = $1
+	)
+	SELECT array_to_json(array_agg(row_to_json(aux.*))) INTO stakeholders FROM aux;
+
+	WITH t AS (
+		SELECT mailConfig, stakeholders
+	)
+
+	SELECT row_to_json(t.*) INTO result FROM t;
+
+	RETURN result;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_all_directivos() RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result json = null;
+	coordinadores json = null;
+	despacho json = null;
+
+BEGIN
+
+
+------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
+	WITH t AS (
+		SELECT family_name, given_name, middle_name,
+		replace(
+			replace(
+				(
+					SELECT	string_agg( person_identity::text , ', '::text) 
+					FROM (
+
+						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
+						FROM kuntur.person_identity i
+						JOIN kuntur.person_identity_type t
+							ON t.id = i.person_identity_type_id
+							AND i.person_id = p.id
+
+					     ) AS person_identity 
+				), '("', ''), '")', ''
+			)  AS person_identity ,
+
+
+				(
+				select string_agg( email::text, ', '::text) FROM (
+						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
+					) AS email 
+				) AS email
+
+		FROM kuntur.person p JOIN kuntur.unc_in_academic_coordinator ac ON ac.person_id = p.id group by family_name, given_name, middle_name, p.id
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO coordinadores FROM t;
+
+------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
+
+	WITH s AS (
+		SELECT family_name, given_name, middle_name,
+		replace(
+			replace(
+				(
+					SELECT	string_agg( person_identity::text , ', '::text) 
+					FROM (
+
+						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
+						FROM kuntur.person_identity i
+						JOIN kuntur.person_identity_type t
+							ON t.id = i.person_identity_type_id
+							AND i.person_id = p.id
+
+					     ) AS person_identity 
+				), '("', ''), '")', ''
+			)  AS person_identity ,
+
+
+				(
+				select string_agg( email::text, ', '::text) FROM (
+						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
+					) AS email 
+				) AS email
+
+		FROM kuntur.person p JOIN kuntur.unc_in_academic_office ac ON ac.person_id = p.id group by family_name, given_name, middle_name, p.id
+	)
+	SELECT array_to_json(array_agg(row_to_json(s.*))) INTO despacho FROM s;
+
+	with r as(
+		select coordinadores, despacho
+	)
+	select row_to_json(r.*) into result from r;--array_to_json()array_agg()
+
+	RETURN result;
+
+END;
+$$ language plpgsql;
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

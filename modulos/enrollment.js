@@ -15,7 +15,7 @@ var rollback = function(client, done) {
   });
 };
 
-module.exports = function(server, conString) {
+module.exports = function(server, conString, activeMail) {
 
   server.get({path : '/postulacionData', version : '0.0.1'}, function(req,res,next){
 
@@ -2352,6 +2352,49 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
       });
     });
+
+
+  server.get({path : '/userSystem/org', version : '0.0.1'} , function(req, res , next){
+
+    // console.log(req.headers);
+      if(!req.headers.usersystemid){
+        res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+        return next();
+      }
+
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.f_get_org_academic_performance($1)";
+      sql.values = [req.headers.usersystemid];
+    
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          res.send(200,JSON.parse(result.rows[0].f_get_org_academic_performance));
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+  
   
 
 
@@ -2381,28 +2424,30 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         query.on("end", function(result){
 
-          var transporter = nodemailer.createTransport({//smtpTransport(
-              host: 'titan.unc.edu.ar',
-              tls: {
-                    "rejectUnauthorized": false
-              }
-          });//)
+          // var transporter = nodemailer.createTransport({//smtpTransport(
+          //     host: 'titan.unc.edu.ar',
+          //     tls: {
+          //           "rejectUnauthorized": false
+          //     }
+          // });//)
 
-          var mailOptions = {
-          from: 'Fred Foo <foo@blurdybloop.com>', // sender address
-          to: 'alejandro_1564@hotmail.com, abiagetti@unc.edu.ar', // list of receivers
-          subject: 'Hello', // Subject line
-          text: 'Hello world', // plaintext body
-          html: '<b>Hello world</b>' // html body
-          };
+          // var mailOptions = {
+          // from: 'Fred Foo <foo@blurdybloop.com>', // sender address
+          // to: 'alejandro_1564@hotmail.com, abiagetti@unc.edu.ar', // list of receivers
+          // subject: 'Hello', // Subject line
+          // text: 'Hello world', // plaintext body
+          // html: '<b>Hello world</b>' // html body
+          // };
 
-          transporter.sendMail(mailOptions, function(error, info){
-          if(error){
-              return console.log(error);
-          }
-          console.log('Message sent: ' + info.response);
+          // transporter.sendMail(mailOptions, function(error, info){
+          // if(error){
+          //     return console.log(error);
+          // }
+          // console.log('Message sent: ' + info.response);
 
-          });
+          // });
+
+          sendMail(req.params.enrrollmentId);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
@@ -2422,6 +2467,129 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
   });
  //else if("name" in req.body && "web" in req.body && "country" in req.body){
+
+  var sendMail = function(enrrollmentId){
+
+    if(activeMail){// se activa/desactiva el mail desde el archivo config
+
+
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_info_mails($1) as respuesta"
+        sql.values = [enrrollmentId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+
+
+
+          for(var i in queryResult.mailconfig){
+
+            for(var j in queryResult.stakeholders){
+
+              if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
+
+
+
+                var transporter = nodemailer.createTransport({//smtpTransport(
+                  host: 'titan.unc.edu.ar',
+                  tls: {
+                  "rejectUnauthorized": false
+                  }
+                });//)
+
+               console.log(queryResult.mailconfig)
+
+                var mailOptions = {
+                  from: 'Fred Foo <foo@blurdybloop.com>', // sender address
+                  to: queryResult.stakeholders[j].email, // list of receivers
+                  subject: queryResult.mailConfig[i].subject, // Subject line
+                  text: queryResult.mailConfig[i].body // plaintext body
+                  /*html: '<b>Hello world</b>'*/ // html body
+                };
+
+                
+
+                transporter.sendMail(mailOptions, function(error, info){
+                  if(error){
+                    return console.log(error);
+                  }
+                  // console.log('Message sent: ' + info.response);
+
+                  console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+
+                });                
+
+              }
+
+            }
+
+
+          }
+
+
+        });
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+        });
+
+
+
+        
+    });
+
+
+
+
+
+
+        // var transporter = nodemailer.createTransport({//smtpTransport(
+        //   host: 'titan.unc.edu.ar',
+        //   tls: {
+        //   "rejectUnauthorized": false
+        //   }
+        // });//)
+
+        // var mailOptions = {
+        //   from: 'Fred Foo <foo@blurdybloop.com>', // sender address
+        //   to: 'alejandro_1564@hotmail.com, abiagetti@unc.edu.ar', // list of receivers
+        //   subject: 'Hello', // Subject line
+        //   text: 'Hello world', // plaintext body
+        //   html: '<b>Hello world</b>' // html body
+        // };
+
+        // transporter.sendMail(mailOptions, function(error, info){
+        //   if(error){
+        //     return console.log(error);
+        //   }
+        // console.log('Message sent: ' + info.response);
+
+        // });
+
+
+    }
+
+
+  }
 
 
       server.get({path : '/nextState', version : '0.0.1'}, function(req, res, next){
@@ -2448,28 +2616,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         query.on("end", function(result){
 
-          var transporter = nodemailer.createTransport({//smtpTransport(
-              host: 'titan.unc.edu.ar',
-              tls: {
-                    "rejectUnauthorized": false
-              }
-          });//)
-
-          var mailOptions = {
-          from: 'Fred Foo <foo@blurdybloop.com>', // sender address
-          to: 'alejandro_1564@hotmail.com, abiagetti@unc.edu.ar', // list of receivers
-          subject: 'Hello', // Subject line
-          text: 'Hello world', // plaintext body
-          html: '<b>Hello world</b>' // html body
-          };
-
-          transporter.sendMail(mailOptions, function(error, info){
-          if(error){
-              return console.log(error);
-          }
-          console.log('Message sent: ' + info.response);
-
-          });
+          sendMail(req.params.enrrollmentId);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
