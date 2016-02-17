@@ -1521,8 +1521,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
-  OWNER TO us_kuntur2;
+--ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
+ -- OWNER TO us_kuntur2;
 
 
 
