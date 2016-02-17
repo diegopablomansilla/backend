@@ -1,0 +1,6 @@
+psql -p5432 -Upostgres -h localhost kuntur_dev < kunturtur_activiti_prod_backup.sql 
+
+psql -p5432 -Upostgres -h localhost kuntur_dev < kuntur_prod_backup.sql 
+
+psql -p5432 -Upostgres -h localhost kuntur_dev < nahuel_dev_backup.sql 
+
