@@ -14,6 +14,7 @@ var server = restify.createServer({
 var config = JSON.parse(fs.readFileSync('/etc/nodejs-config/kuntur.json')).backend;
 var ip_addr = config.host;
 var port    =  config.port;
+var activeMail = config.sendMail;
 
 // connection string to Kuntur database
 var conString = "postgres://" +
@@ -83,7 +84,7 @@ server.post({path: '/file'}, function(req, res, next) {
 
 require('./modulos/university')(server, conString);
 require('./modulos/agreement')(server, conString);
-require('./modulos/enrollment')(server, conString);
+require('./modulos/enrollment')(server, conString, activeMail);
 
 
 

@@ -1,7 +1,7 @@
 ﻿--=================================================================================================================================================
 							-- CARGA DE PERSONAS	
  --=================================================================================================================================================
-
+DELETE FROM kuntur.user_group CASCADE;
 DELETE FROM kuntur.enrrollment_stakeholder CASCADE;
 DELETE FROM kuntur.unc_in_academic_coordinator CASCADE;
 DELETE FROM kuntur.unc_in_academic_office CASCADE;
@@ -205,14 +205,17 @@ UPDATE physical_person_b_tmp t SET name = (SELECT x.name FROM physical_person_di
 UPDATE physical_person_b_tmp t SET last_name = (SELECT x.last_name FROM physical_person_distinct_tmp x WHERE COALESCE(x.identification_number, '') ILIKE  COALESCE(t.identification_number, '')) WHERE t.identification_number IS NOT NULL;
 
 
+-- SELECT sys_file_id FROM physical_person_b_tmp  WHERE sys_file_id IS NOT NULL ORDER BY sys_file_id;
+
 --=================================================================================================================================================
 
--- SELECT * FROM physical_person_distinct_tmp;
+DROP VIEW IF EXISTS v_person_tmp CASCADE;
 
-INSERT INTO  kuntur.person (
+CREATE OR REPLACE VIEW v_person_tmp AS
 
 	SELECT 	p.id,
 		false::BOOLEAN AS erased,
+		--'Person'::varchar AS class_discriminator,
 		p.name AS given_name,
 		null::VARCHAR AS middle_name,
 		p.last_name AS family_name,
@@ -256,7 +259,7 @@ INSERT INTO  kuntur.person (
 		 (
 			SELECT 	CASE 	WHEN bc.iso_alfa3 IS NOT NULL AND TRIM(bc.iso_alfa3)::VARCHAR <> 'ARG' THEN TRIM(bc.iso_alfa3)::VARCHAR 
 					WHEN c.iso_alfa3 IS NOT NULL AND TRIM(c.iso_alfa3)::VARCHAR <> 'ARG' THEN TRIM(c.iso_alfa3)::VARCHAR 
-					ELSE NULL::VARCHAR END AS birth_country_code
+					ELSE 'XXX'::VARCHAR END AS birth_country_code
 			FROM 	physical_person_b_tmp x 
 			LEFT JOIN address ba
 				ON ba.id = x.birth_address_id
@@ -275,13 +278,29 @@ INSERT INTO  kuntur.person (
 	        null::DOUBLE PRECISION AS birth_lat, 
 	        null::DOUBLE PRECISION AS birth_lng  
 		
-	FROM 	physical_person_distinct_tmp p
-);
+	FROM 	physical_person_distinct_tmp p;
+
+
+-- SELECT * FROM v_person_tmp;
+-- SELECT COUNT(*) FROM v_person_tmp;
+
+-- SELECT sys_file_id FROM physical_person_b_tmp  WHERE sys_file_id IS NOT NULL ORDER BY sys_file_id;
+-- SELECT url_photo FROM v_person_tmp ORDER BY url_photo;
+
+--=================================================================================================================================================
+
+-- SELECT * FROM physical_person_distinct_tmp;
+
+-- SELECT * FROM v_person_tmp WHERE birth_country_code IS NULL;
+
+INSERT INTO  kuntur.person ( SELECT * FROM v_person_tmp );
 
 -- SELECT COUNT(*) FROM kuntur.person; --1053
 -- SELECT * FROM kuntur.person; 
 -- SELECT * FROM kuntur.person ORDER BY birth_country_code; 
 -- SELECT * FROM kuntur.person WHERE birth_country_code IS NULL ORDER BY birth_country_code; --130
+
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 --=================================================================================================================================================
 
@@ -565,14 +584,17 @@ WHERE 	identity_number = 'PC8201745';
 */
 
  ----------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- SELECT * FROM v_person_identity WHERE country_code IS NULL;
  
  INSERT INTO kuntur.person_identity (
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		pi.erased, 
 		pi.identity_number, 
 		pi.code, 
-		pi.name,		
-		pi.country_code, 
+		pi.name,	
+		CASE WHEN pi.country_code IS NULL THEN 'XXX' ELSE pi.country_code END,
+		--pi.country_code, 
 		pi.comment, 
 		pi.person_id, 
 		pi.person_identity_type_id 
@@ -818,12 +840,13 @@ CREATE OR REPLACE VIEW v_person_phone_e AS
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
+-- SELECT * FROM v_person_phone_e WHERE country_code IS NULL
 	
 INSERT INTO kuntur.person_phone (
 
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		erased,
-		country_code,
+		CASE WHEN country_code IS NULL THEN 'XXX' ELSE country_code END,
 		phone_number,
 		comment,		
 		person_id
@@ -1042,16 +1065,19 @@ INSERT INTO kuntur.person_address (
 
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		erased, 
-		country_code, 
+		CASE WHEN country_code IS NULL THEN 'XXX' ELSE country_code END, 
 		admin_area_level1_code, 
 		admin_area_level2, 
-		locality, neighbourhood, 
+		CASE 	WHEN locality IS NULL AND country_code IS NOT NULL THEN  country_code 
+			WHEN locality IS NULL AND country_code IS NULL THEN  'Sin especificar' 
+		ELSE locality END, 
+		neighbourhood, 
 		street, 
 		street_number, 
 		building_floor, 
 		building_room, 
 		building, 
-		postal_code, 
+		CASE WHEN postal_code IS NULL THEN 'Sin especificar' ELSE postal_code END, 		 
 		comment, 
 		lat, 
 		lng, 
@@ -1064,6 +1090,8 @@ INSERT INTO kuntur.person_address (
 -- SELECT * FROM kuntur.person_address; 	
 
 --=================================================================================================================================================
+
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 DROP VIEW IF EXISTS v_user_system_a CASCADE;
 
@@ -1100,7 +1128,16 @@ SELECT * FROM v_user_system_b WHERE email <> name;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
-INSERT INTO kuntur.user_system (SELECT * FROM v_user_system_b);
+INSERT INTO kuntur.user_system (
+		SELECT 	id,
+			erased,
+			name,
+			pass,
+			email,
+			comment,
+			false::boolean AS checked_email
+		FROM 	v_user_system_b
+	);
 
 -- SELECT COUNT(*) FROM kuntur.user_system; -- 992
 -- SELECT * FROM kuntur.user_system; 
@@ -1114,6 +1151,7 @@ WHERE (SELECT COUNT(x.*) FROM act_id_user_tmp x WHERE x.email = t.email) > 0;
 
 
 --=================================================================================================================================================
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 -- SELECT * FROM physical_person_b_tmp;
 -- SELECT * FROM kuntur.person;
@@ -1161,7 +1199,7 @@ CREATE OR REPLACE VIEW v_org_u_b AS
 
 		SELECT	i.id::VARCHAR AS id,			
 			true::BOOLEAN AS erased,
-			null::VARCHAR AS short_name, 
+			'Sin especificar'::VARCHAR AS short_name, 
 			TRIM(i.name)::VARCHAR AS name, 
 			TRIM(i.name)::VARCHAR AS original_name, 
 			null::VARCHAR AS photo_url, 
@@ -1204,6 +1242,8 @@ CREATE OR REPLACE VIEW v_org_u_c AS
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
 
 
+
+
 INSERT INTO kuntur.org (SELECT DISTINCT * FROM v_org_u_c ORDER BY name);			
 
 -- SELECT COUNT(*) FROM kuntur.org WHERE erased = true AND org_type_id = (SELECT id FROM kuntur.org_type x WHERE x.code = 'U'); -- 284
@@ -1211,7 +1251,7 @@ INSERT INTO kuntur.org (SELECT DISTINCT * FROM v_org_u_c ORDER BY name);
 
 
 --=================================================================================================================================================
-
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
 
 -- SELECT * FROM physical_person_b_tmp
 
@@ -1259,6 +1299,8 @@ CREATE OR REPLACE VIEW v_p_d AS
 -- SELECT * FROM v_p_d;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
 
 DROP VIEW IF EXISTS v_student_a CASCADE;
 
@@ -1353,6 +1395,8 @@ CREATE OR REPLACE VIEW v_student_c AS
 -- SELECT * FROM v_student_c;	
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
 
 INSERT INTO kuntur.student (
 
@@ -1361,10 +1405,19 @@ INSERT INTO kuntur.student (
 		e.file_number, 
 
 		CASE 	WHEN e.institution_original_name IS NULL THEN 'Sin especificar'::varchar 
+			ELSE e.institution_original_name
+		END AS institution_short_name,		
+
+		CASE 	WHEN e.institution_original_name IS NULL THEN 'Sin especificar'::varchar 
+			ELSE e.institution_original_name 
+		END AS institution_name,		
+
+		CASE 	WHEN e.institution_original_name IS NULL THEN 'Sin especificar'::varchar 
 			ELSE e.institution_original_name 
 		END AS institution_original_name,		
 		 
 		'Sin especificar'::varchar AS institution_web_site, 
+		
 		CASE 	WHEN institution_country_code IS NULL 
 			THEN 'Sin especificar'::varchar 
 			ELSE institution_country_code 
@@ -1379,6 +1432,24 @@ INSERT INTO kuntur.student (
 
 -- SELECT COUNT(*) FROM kuntur.student; -- 874
 -- SELECT * FROM kuntur.student;	
+
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------					
+/*
+SELECT 	i.*, h.*
+FROM 	kuntur.person p
+LEFT JOIN kuntur.person_identity i
+	ON p.id = i.person_id
+LEFT JOIN kuntur.person_phone h
+	ON p.id = h.person_id	
+	AND h.country_code <> 'ARG'
+WHERE 	p.birth_country_code ilike 'xxx'
+*/
+
+UPDATE kuntur.person SET birth_country_code = 'Sin especificar' WHERE birth_country_code ilike 'xxx';
+UPDATE kuntur.person_identity SET country_code = 'Sin especificar' WHERE country_code ilike 'xxx';
+UPDATE kuntur.person_phone SET country_code = 'Sin especificar' WHERE country_code ilike 'xxx';
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------					
 

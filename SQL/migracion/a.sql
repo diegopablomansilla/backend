@@ -1,4 +1,7 @@
-﻿-- SELECT * FROM physical_person;
+﻿-- SELECT back_end_path FROM sys_file ORDER BY back_end_path;
+
+
+-- SELECT * FROM physical_person;
 
 DROP TABLE IF EXISTS physical_person_tmp CASCADE;
 
@@ -123,8 +126,13 @@ UPDATE physical_person_tmp SET last_name = REPLACE(last_name, 'Dr.', 'Dr. ');
 UPDATE physical_person_tmp SET name = INITCAP(name); 
 UPDATE physical_person_tmp SET last_name = INITCAP(last_name); 
 
+-- select sys_file_id from physical_person_tmp order by sys_file_id
+
 -- SELECT COUNT(*) FROM physical_person_tmp; -- 4418
 -- SELECT * FROM physical_person_tmp ORDER BY last_name, name, identification_number; -- 4418
+
+-- SELECT back_end_path FROM sys_file ORDER BY back_end_path;
+-- SELECT sys_file_id FROM physical_person_tmp ORDER BY sys_file_id;
 
 --=================================================================================================================================================
 --=================================================================================================================================================
@@ -561,6 +569,9 @@ UPDATE address SET country_id = null WHERE country_id = '18';
  -- SELECT COUNT(*) FROM physical_person_a_tmp; -- 1119
  -- SELECT * FROM physical_person_a_tmp; 
 
+-- SELECT back_end_path FROM sys_file ORDER BY back_end_path;
+-- SELECT sys_file_id FROM physical_person_a_tmp ORDER BY sys_file_id;
+
 --=================================================================================================================================================
 --=================================================================================================================================================
 
@@ -601,6 +612,7 @@ UPDATE act_id_user_tmp SET picture_id = null WHERE CHAR_LENGTH(picture_id) = 0;
 
 -- SELECT COUNT(*) FROM act_id_user_tmp; -- 1920
 -- SELECT * FROM act_id_user_tmp;
+-- SELECT picture_id FROM act_id_user_tmp ORDER BY picture_id;
 
 --=================================================================================================================================================
 

@@ -1,6 +1,6 @@
 ﻿-- select * from kuntur.unc_in_enrrollment
 
-
+DELETE FROM kuntur.user_group  CASCADE;
 DELETE FROM kuntur.enrrollment_stakeholder CASCADE;
 DELETE FROM kuntur.unc_in_academic_coordinator CASCADE;
 DELETE FROM kuntur.unc_in_academic_office CASCADE;
@@ -709,7 +709,10 @@ CREATE OR REPLACE VIEW v_admission_period AS
 		ap.year,
 		ap.semester,
 		
-		CASE WHEN ap.in_type = true THEN year || '-IN-' || ap.semester ELSE year || '-OUT-' || ap.semester END AS title,
+		CASE 	--WHEN (SELECT COUNT(x.*) FROM v_admission_period_b x WHERE x.year = ap.year AND x.semester = ap.semester) > 1 AND ap.in_type = true THEN year || '-IN-' || ap.semester || '_' || (SELECT COUNT(x.*) FROM v_admission_period_b x WHERE x.year = ap.year AND x.semester = ap.semester) 
+			--WHEN (SELECT COUNT(x.*) FROM v_admission_period_b x WHERE x.year = ap.year AND x.semester = ap.semester) < 2 AND ap.in_type = true THEN year || '-IN-' || ap.semester 
+			WHEN ap.in_type = true THEN year || '-IN-' || ap.semester || '_' || ap.from_date || '_' || ap.to_date
+			ELSE year || '-OUT-' || ap.semester END AS title,
 
 		ap.from_date,
 		ap.to_date,
@@ -752,18 +755,21 @@ INSERT INTO kuntur.admission_period (SELECT * FROM admission_period_tmp ORDER BY
 	
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+-- SELECT * FROM kuntur.person WHERE url_photo IS NULL
+
 DROP VIEW IF EXISTS v_enrrollment CASCADE;
 
 CREATE OR REPLACE VIEW v_enrrollment AS
 
 	SELECT 	p.id::VARCHAR AS id, 
-		false::BOOLEAN AS erased, 
+		false::BOOLEAN AS erased, 		
 		pp.given_name::VARCHAR AS given_name, 
 		pp.middle_name::VARCHAR AS middle_name, 
 		pp.family_name::VARCHAR AS family_name, 
 		pp.birth_date::DATE AS birth_date, 
 		pp.male::BOOLEAN AS male, 
-		pp.url_photo::VARCHAR AS url_photo, 
+
+		CASE WHEN pp.url_photo IS NULL THEN 'Sin especificar' ELSE pp.url_photo::VARCHAR END AS url_photo, 
 		pp.comment::VARCHAR AS comment, 
 		pp.birth_country_code::VARCHAR AS birth_country_code, 
 		pp.birth_admin_area_level1_code::VARCHAR AS birth_admin_area_level1_code, 
@@ -771,6 +777,8 @@ CREATE OR REPLACE VIEW v_enrrollment AS
 		pp.birth_locality::VARCHAR AS birth_locality, 
 		pp.birth_lat::double precision AS birth_lat, 
 		pp.birth_lng::double precision AS birth_lng, 
+		s.institution_short_name::VARCHAR AS institution_short_name, 
+		s.institution_name::VARCHAR AS institution_name, 
 		s.institution_original_name::VARCHAR AS institution_original_name, 
 		s.institution_web_site::VARCHAR AS institution_web_site, 
 		s.institution_country_code::VARCHAR AS institution_country_code, 
@@ -845,13 +853,22 @@ INSERT INTO kuntur.enrrollment_identity (
 		SELECT 	uuid_generate_v4()::VARCHAR AS id, 
 			erased, 
 			identity_number, 
-			code, 
-			name, 
+			 
+			CASE 	WHEN person_identity_type_id IS NULL THEN (SELECT x.code FROM kuntur.person_identity_type x WHERE x.CODE = 'PASS')
+				ELSE code
+			END AS code,	
+				
+			CASE 	WHEN person_identity_type_id IS NULL THEN (SELECT x.name FROM kuntur.person_identity_type x WHERE x.CODE = 'PASS')
+				ELSE name
+			END AS name,
 			country_code, 
 			comment, 
 			enrrollment_id, 
-			person_identity_type_id 
-		FROM 	v_enrrollment_identity);
+			CASE 	WHEN person_identity_type_id IS NULL THEN (SELECT x.id FROM kuntur.person_identity_type x WHERE x.CODE = 'PASS')
+				ELSE person_identity_type_id
+			END AS person_identity_type_id 
+		FROM 	v_enrrollment_identity
+	);
 
 -- SELECT COUNT(*) FROM kuntur.enrrollment_identity; -- 927
 -- SELECT * FROM kuntur.enrrollment_identity;
@@ -1479,7 +1496,19 @@ DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(s
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
-INSERT INTO kuntur.unc_in_study_program (SELECT * FROM unc_in_study_program_tmp);
+INSERT INTO kuntur.unc_in_study_program (
+	SELECT 	id,
+		erased,
+		'Sin especificar'::VARCHAR AS career_code,
+		subject,
+		approved,
+		approved_by,
+		file_number,
+		comment,
+		unc_in_enrrollment_id,
+		org_id
+	FROM 	unc_in_study_program_tmp
+);
 
 -- SELECT COUNT(*) FROM kuntur.unc_in_study_program; -- 3309
 -- SELECT * FROM kuntur.unc_in_study_program ORDER BY unc_in_enrrollment_id, subject;
@@ -1543,6 +1572,7 @@ CREATE OR REPLACE VIEW v_unc_in_grading_scale AS
 			false::boolean AS erased, 
 			note_in_numbers AS rate_number,
 			note_in_letters AS rate_letter,
+			'2'::VARCHAR AS career_type,
 			null::varchar AS comment
 		FROM 	v_unc_in_grading_scale_a g 
 		WHERE	(note_in_numbers = 7 AND note_in_letters = 'Distinguido') = false
@@ -1567,6 +1597,7 @@ CREATE OR REPLACE VIEW v_unc_in_academic_performance AS
 
 		SELECT 	uuid_generate_v4()::varchar AS id,
 			false::boolean AS erased,
+			'Sin especificar'::VARCHAR AS career_code,
 			trim(s.name)::varchar AS subject,
 			true::BOOLEAN AS approved,
 			null::VARCHAR AS approved_by,
@@ -1601,6 +1632,7 @@ CREATE TABLE unc_in_academic_performance_tmp
 (
 	  id character varying NOT NULL UNIQUE,
 	  erased boolean NOT NULL,
+	  career_code varchar NOT NULL,
 	  subject character varying NOT NULL,
 	  approved BOOLEAN NOT NULL,
 	  approved_by VARCHAR,
@@ -1617,8 +1649,23 @@ INSERT INTO unc_in_academic_performance_tmp (SELECT * FROM v_unc_in_academic_per
 UPDATE unc_in_academic_performance_tmp SET subject = null WHERE char_length(trim(subject)) = 0;
 
 -- SELECT * FROM unc_in_academic_performance_tmp;
+-- SELECT * FROM unc_in_academic_performance_tmp WHERE file_number IS NULL;
 
-INSERT INTO kuntur.unc_in_academic_performance (SELECT * FROM unc_in_academic_performance_tmp);
+INSERT INTO kuntur.unc_in_academic_performance (
+	SELECT 	  id,
+		  erased,
+		  career_code,
+		  subject,
+		  approved,
+		  approved_by,
+		  CASE WHEN file_number IS NULL THEN 'Sin especificar' ELSE file_number END AS file_number,  
+		  hs,
+		  unc_in_enrrollment_id,
+		  unc_in_grading_scale_id,
+		  unc_in_studied_type_id,
+		  org_id
+	FROM 	unc_in_academic_performance_tmp
+);
 
 -- SELECT * FROM kuntur.unc_in_academic_performance;
 
@@ -1666,15 +1713,15 @@ CREATE OR REPLACE VIEW 	v_person_z AS
 
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		--t.id::varchar AS id, 
-		false::boolean AS erased, 
+		false::boolean AS erased, 		
 		first::varchar AS given_name, 
 		t.id_user::varchar AS middle_name, 
 		last::varchar AS family_name, 
-		null::date AS birth_date, 
-		null::boolean AS male, 
+		'1979-11-12'::date AS birth_date, 
+		true::boolean AS male, 
 		pwd::varchar AS url_photo, 
 		t.email::varchar AS comment, 
-		null::varchar AS birth_country_code, 
+		'ARG'::varchar AS birth_country_code, 
 		null::varchar AS birth_admin_area_level1_code, 
 		null::varchar AS birth_admin_area_level2, 
 		null::varchar AS birth_locality, 
@@ -1687,7 +1734,7 @@ CREATE OR REPLACE VIEW 	v_person_z AS
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
-INSERT INTO kuntur.person (SELECT * FROM v_person_z);
+INSERT INTO kuntur.person (SELECT * FROM v_person_z); 
 
 -- SELECT COUNT(*) FROM kuntur.person; -- 1108
 -- SELECT * FROM kuntur.person;
@@ -1724,8 +1771,9 @@ CREATE OR REPLACE VIEW 	v_user_system_z AS
 		false::boolean AS erased, 
 		t.middle_name::varchar AS name, 
 		t.url_photo::varchar AS pass, 
-		t.comment::varchar AS email, 
-		(coalesce(t.family_name, '') || ' ' || coalesce(t.given_name, ''))::varchar AS  comment
+		t.comment::varchar AS email, 		
+		(coalesce(t.family_name, '') || ' ' || coalesce(t.given_name, ''))::varchar AS  comment,
+		false
 	FROM 	kuntur.person p
 	JOIN	v_person_z t
 		ON p.middle_name::varchar = t.middle_name::varchar;
@@ -2090,14 +2138,15 @@ CREATE OR REPLACE VIEW 	v_person_admin AS
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		--t.id::varchar AS id, 
 		false::boolean AS erased, 
+		
 		first::varchar AS given_name, 
 		t.id_user::varchar AS middle_name, 
 		last::varchar AS family_name, 
-		null::date AS birth_date, 
-		null::boolean AS male, 
+		'1979-11-12'::date AS birth_date, 
+		false::boolean AS male, 
 		pwd::varchar AS url_photo, 
 		t.email::varchar AS comment, 
-		null::varchar AS birth_country_code, 
+		'ARG'::varchar AS birth_country_code, 
 		null::varchar AS birth_admin_area_level1_code, 
 		null::varchar AS birth_admin_area_level2, 
 		null::varchar AS birth_locality, 
@@ -2139,7 +2188,8 @@ CREATE OR REPLACE VIEW 	v_user_system_admin AS
 		t.middle_name::varchar AS name, 
 		t.url_photo::varchar AS pass, 
 		t.comment::varchar AS email, 
-		(coalesce(t.family_name, '') || ' ' || coalesce(t.given_name, ''))::varchar AS  comment
+		(coalesce(t.family_name, '') || ' ' || coalesce(t.given_name, ''))::varchar AS  comment,
+		false
 	FROM 	kuntur.person p
 	JOIN	v_person_admin t
 		ON p.middle_name::varchar = t.middle_name::varchar;
@@ -2213,6 +2263,70 @@ UPDATE kuntur.enrrollment_status SET name = 'En carga de actuación académica' 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
+-- SELECT url_photo FROM  kuntur.person ORDER BY url_photo;
+-- SELECT url_photo FROM  kuntur.enrrollment ORDER BY url_photo;
 
+-- SELECT DISTINCT CHAR_LENGTH(TRIM(back_end_path)) FROM sys_file WHERE back_end_path IS NOT NULL;
+
+-- SELECT DISTINCT CHAR_LENGTH(TRIM(url_photo)) FROM  kuntur.person;
+-- SELECT DISTINCT CHAR_LENGTH(TRIM(url_photo)) FROM  kuntur.enrrollment;
+
+
+UPDATE kuntur.person 
+	SET url_photo = null 
+WHERE CHAR_LENGTH(TRIM(url_photo)) <> (SELECT DISTINCT CHAR_LENGTH(TRIM(back_end_path)) FROM sys_file WHERE back_end_path IS NOT NULL);
+----------------------------------------------------------------------------------------------------------------------------------------------------	
+
+SELECT * FROM kuntur.group_system;
+SELECT * FROM kuntur.user_group;
+SELECT * FROM kuntur.user_system;
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 			
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'coordinator') AS group_system_id,
+		u.id AS user_system_id
+	FROM 	kuntur.user_system u
+	JOIN	kuntur.unc_in_academic_coordinator c
+		ON u.id = c.person_id
+
+);
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 			
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'office') AS group_system_id,
+		u.id AS user_system_id
+	FROM 	kuntur.user_system u
+	JOIN	kuntur.unc_in_academic_office o
+		ON u.id = o.person_id
+
+);	
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased,		
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'student') AS group_system_id,
+		u.id AS user_system_id
+	FROM 	kuntur.user_system u
+	JOIN	kuntur.student s
+		ON u.id = s.id
+);
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 			
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'admin') AS group_system_id,
+		u.id AS user_system_id
+	FROM 	kuntur.user_system u
+	WHERE	u.email ILIKE '%pri.unc.edu.ar%'
+
+);	
+
+----------------------------------------------------------------------------------------------------------------------------------------------------	
 
 SELECT 'FIN DEL PROCESO C'::VARCHAR FROM postulation LIMIT 100;

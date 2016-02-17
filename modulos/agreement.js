@@ -439,11 +439,20 @@ module.exports = function(server, conString) {
 
   server.post({path: "/insertarAgreement",version: '0.0.1'}, function(req,res){
 
+    var agreementTo = req.body.agreement.to;
+
+    if(!agreementTo){
+      agreementTo=null;
+    }
+    else{
+      agreementTo="'"+req.body.agreement.to+"'"
+    }
+
 
   	var sql="INSERT INTO kuntur.agreement("+
               "id, erased, title, from_date, to_date, comment, agreement_type_id, "+
               "agreement_status_id, org_id)"+
-  	"VALUES (uuid_generate_v4()::varchar, false,'"+req.body.agreement.name+"', '"+req.body.agreement.from+"', '"+req.body.agreement.to+"', 'asdasd', '"+req.body.agreement.type+"',"+
+  	"VALUES (uuid_generate_v4()::varchar, false,'"+req.body.agreement.name+"', '"+req.body.agreement.from+"', "+agreementTo+", 'asdasd', '"+req.body.agreement.type+"',"+
   	"'"+req.body.agreement.status+"', 'b57e010c-426a-45d4-b218-f819fd1bf4e7') RETURNING id;"
 
       pg.connect(conString, function(err, client, done){
@@ -475,9 +484,19 @@ module.exports = function(server, conString) {
   					// var agreementItemDetail = elementAgreementItem.agreementItemOu.first(function(i) { return i.id === 'UNC' });
   					var agreementItemDetail = findFirstOccurrence(elementAgreementItem.agreementItemOu,'id','UNC')
 
+            var auxIn=agreementItemDetail.in;
+            var auxOut=agreementItemDetail.out;
+
+            if(auxIn=='*'){
+              auxIn='NULL'
+            }
+            if(auxOut=='*'){
+              auxOut='NULL';
+            }
+
   					var sql="INSERT INTO kuntur.agreement_item("+
   						    "id, erased, in_units, out_units, agreement_id, org_id)"+
-  					"VALUES (uuid_generate_v4()::varchar, false, '"+agreementItemDetail.in+"', '"+agreementItemDetail.out+"', '"+agreementId+"', '"+elementAgreementItem.id+"')"+
+  					"VALUES (uuid_generate_v4()::varchar, false, "+auxIn+", "+auxOut+", '"+agreementId+"', '"+elementAgreementItem.id+"')"+
   					"RETURNING id;"
 
 
@@ -691,6 +710,7 @@ module.exports = function(server, conString) {
     +"WHERE agreement_item_agreement_id= '"+agreementId+"' AND erased = false AND agreement_item_erased = false "
     +"GROUP BY org_original_name, org_short_name, agreement_contact_reception_student, agreement_contact_sending_student, person_family_name, person_given_name, org_id, erased ORDER BY org_original_name";
 
+// console.log(sql);
 
   	pg.connect(conString, function(err, client, done){
 
@@ -1284,4 +1304,71 @@ module.exports = function(server, conString) {
   	});
 
   });
+
+  //Historial
+
+
+
+
+
+
+  server.get({path : '/getHistory', version : '0.0.1'} , function(req, res , next){
+    var sql={};
+    sql.text = "SELECT kuntur.f_q_enrrollment_log_json ($1, $2)";
+    sql.values = [req.params.inenrrollment_id, req.params.userSystemId];
+
+
+     
+
+
+    pg.connect(conString, function(err, client, done){
+
+      if(err) {
+        done();
+          res.send(500,err);
+          console.log(err);
+                return ;
+        }
+
+      client.query('BEGIN', function(err) {
+
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+                return ;
+          }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end",function(result){
+          client.query('COMMIT', done);
+          res.send(200,result.rows);
+        });
+
+        query.on("error",function(error){
+          rollback(client, done);
+          console.log(error);
+          res.send(500,error.message);
+          return ;
+        });
+
+        });
+    });
+  });   
+
+//Fin Historial
+
+
+
+
+
+
+
+
+
 }

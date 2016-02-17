@@ -15,6 +15,10 @@ UPDATE kuntur.org SET original_name = TRIM(split_part(original_name, '/', 2 )) W
 --SELECT COUNT(*) FROM kuntur.org WHERE name IS NOT NULL
 --SELECT TRIM(split_part(original_name, '/', 1 )) AS name, TRIM(split_part(original_name, '/', 2 )) AS original_name FROM kuntur.org WHERE original_name ILIKE '%/%' -- 4318
 
+-- SELECT * FROM kuntur.org WHERE name IS NULL;
+UPDATE kuntur.org SET name = TRIM(original_name) WHERE name IS NULL;
+
+ALTER TABLE kuntur.org ALTER COLUMN name SET NOT NULL;
 
 
 

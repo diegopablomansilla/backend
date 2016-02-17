@@ -117,6 +117,8 @@ SELECT 	e.id,
 	ap.id AS admission_period_id,
 	ap.year,
 	ap.semester,
+	ap.number_admission_period,
+	ap.title,
 	--CASE 	WHEN ap.semester = 1 THEN '1er Semestre'::varchar
 	--	WHEN ap.semester = 2 THEN '2do Semestre'::varchar
 	--	ELSE ''::varchar
@@ -129,6 +131,9 @@ SELECT 	e.id,
 
 
 	COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '') || ', ' || COALESCE((SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id), '') AS nationality,
+	--(   COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '')   )::VARCHAR  AS nationality,
+	--(   'MEX'  )::VARCHAR  AS nationality,
+	--(   COALESCE(birth_country_code, '') || ', '  )::VARCHAR  AS nationality,
 
 /*
 	CASE 	WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NOT NULL
@@ -165,10 +170,10 @@ ORDER BY e.number_enrrollment DESC;
 -- SELECT * FROM kuntur.user_system;
 
 DROP FUNCTION IF EXISTS kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
-					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR) CASCADE;
+					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER) CASCADE;
 
 CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
-					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR) 
+					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER) 
 	RETURNS SETOF kuntur.v_enrrollment_list AS $$
 	
 		SELECT 	id, 
@@ -176,6 +181,8 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			admission_period_id, 
 			year, 
 			semester, 
+			number_admission_period,
+			title,
 			enrrollment_status_id, 
 			enrrollment_status, 
 			student_id, student, 
@@ -185,12 +192,14 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			org_institution_id
 					
 		FROM 	kuntur.v_enrrollment_list e
-		WHERE 	(($1 IS NOT NULL AND $1 = e.year) OR $1 IS NULL)  
+		WHERE 	(($1 IS NOT NULL AND $1 = e.year) OR $1 IS NULL)
+			AND (($9 IS NOT NULL AND $9 = e.number_admission_period) OR $9 IS NULL)  
 			AND (($2 IS NOT NULL AND $2 = e.semester) OR $2 IS NULL)  
 			AND (($3 IS NOT NULL AND $3 = e.enrrollment_status_id) OR $3 IS NULL)  
 
-			AND (($4 IS NOT NULL 
-				AND trim(lower($4))::varchar ILIKE '%' || e.nationality || '%') OR $4 IS NULL)  
+			--AND (($4 IS NOT NULL 
+			--	AND trim(lower($4))::varchar ILIKE '%' || e.nationality || '%') OR $4 IS NULL)  
+			AND ($4 IS NULL OR (trim(lower(e.nationality))::varchar ILIKE '%' || $4 || '%')   )  
 			
 			/*
 			AND (($4 IS NOT NULL 
@@ -225,7 +234,6 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 		;
 $$ LANGUAGE SQL;
 
-
 -- SELECT * FROM kuntur.v_enrrollment_list x 
 -- SELECT * FROM kuntur.enrrollment_stakeholder 
 -- SELECT * FROM kuntur.user_system WHERE name = '46385'
@@ -236,7 +244,13 @@ $$ LANGUAGE SQL;
 
 -- SELECT * FROM kuntur.enrrollment_status
 
-SELECT  * FROM  kuntur.f_find_enrrollment_list(null, null, null, null, null, null, null, null);
+
+
+
+
+--====================================================================
+/*
+SELECT  * FROM  kuntur.f_find_enrrollment_list(null, null, null, 'BRA', null, null, null, (SELECT id FROM kuntur.user_system WHERE name = '46385'));
 
 
 SELECT  * 
@@ -261,5 +275,5 @@ FROM  	kuntur.f_find_enrrollment_list
 	(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = 'H'), 'MEX', 'ria', 
 	null, null, (SELECT id FROM kuntur.user_system WHERE name = '46385')
 	);	
-
+*/
 --================================================================================================

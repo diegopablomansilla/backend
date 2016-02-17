@@ -83,7 +83,7 @@ CREATE OR REPLACE VIEW kuntur.v_agreement AS
 
 ----------------------------------------------------------------------------------------------------------------------------------------
 --DROP VIEW kuntur.v_responsables;
-/*
+
 CREATE OR REPLACE VIEW kuntur.v_responsables AS
   SELECT contact.id,
     contact.erased,
@@ -131,6 +131,8 @@ CREATE OR REPLACE VIEW kuntur.v_responsables AS
     person_phone.person_id AS person_phone_person_id,
     agreement_contact.id AS agreement_contact_id,
     agreement_contact.erased AS agreement_contact_erased,
+    agreement_contact.reception_student AS agreement_contact_reception_student,
+    agreement_contact.sending_student AS agreement_contact_sending_student,
     agreement_contact.agreement_item_id AS agreement_contact_agreement_item_id,
     agreement_contact.contact_id AS agreement_contact_contact_id
    FROM kuntur.contact
@@ -140,7 +142,7 @@ CREATE OR REPLACE VIEW kuntur.v_responsables AS
      LEFT JOIN kuntur.agreement_item agreement_item ON agreement_item.id::text = agreement_contact.agreement_item_id::text
      LEFT JOIN kuntur.person_email person_email ON person_email.person_id::text = person.id::text
      LEFT JOIN kuntur.person_phone person_phone ON person_phone.person_id::text = person.id::text;
-*/
+
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------
@@ -179,75 +181,75 @@ CREATE OR REPLACE VIEW kuntur.v_agreement_item_ou AS
 
 ----DROP VIEW kuntur.v_responsables;
 
-CREATE OR REPLACE VIEW kuntur.v_responsables AS
-SELECT
-		contact.id /*id*/,
-		contact.erased /*erased*/,
+--CREATE OR REPLACE VIEW kuntur.v_responsables AS
+--SELECT
+--		contact.id /*id*/,
+--		contact.erased /*erased*/,
 	------------------------------------------
-		org.id AS org_id /*id*/,
-		org.erased AS org_erased /*erased*/,
-		org.short_name AS org_short_name /*Sigla*/,
-		org.name AS org_name /*Nombre*/,
-		org.original_name AS org_original_name /*Nombre en el idioma original*/,
-		org.url_photo AS org_url_photo /*Logo*/,
-		org.web_site AS org_web_site /*Sitio Web*/,
-		org.comment AS org_comment /*Comentario*/,
-		org.country_code AS org_country_code /*País - Código ISO 3166-1 Alfa-2*/,
-		org.primary_org AS org_primary_org /*Institución Primaria del Sistema*/,
+--		org.id AS org_id /*id*/,
+--		org.erased AS org_erased /*erased*/,
+--		org.short_name AS org_short_name /*Sigla*/,
+--		org.name AS org_name /*Nombre*/,
+---		org.original_name AS org_original_name /*Nombre en el idioma original*/,
+--		org.url_photo AS org_url_photo /*Logo*/,
+--		org.web_site AS org_web_site /*Sitio Web*/,
+--		org.comment AS org_comment /*Comentario*/,
+--		org.country_code AS org_country_code /*País - Código ISO 3166-1 Alfa-2*/,
+--		org.primary_org AS org_primary_org /*Institución Primaria del Sistema*/,
 	------------------------------------------
-		person.id AS person_id /*id*/,
-		person.erased AS person_erased /*erased*/,
-		person.given_name AS person_given_name /*Nombre de Pila*/,
-		person.middle_name AS person_middle_name /*Segundo Nombre*/,
-		person.family_name AS person_family_name /*Apellido*/,
-		person.birth_date AS person_birth_date /*Fecha de Nacimiento*/,
-		person.male AS person_male /*Masculino*/,
-		person.url_photo AS person_url_photo /*Foto*/,
-		person.comment AS person_comment /*Comentario*/,
-		person.birth_country_code AS person_birth_country_code /*País Nacimiento - Código ISO 3166-1 Alfa-2*/,
-		person.birth_admin_area_level1_code AS person_birth_admin_area_level1_code /*Provincia Nacimiento - Código ISO 3166-2*/,
-		person.birth_admin_area_level2 AS person_birth_admin_area_level2 /*Departamento / Distrito Nacimiento*/,
-		person.birth_locality AS person_birth_locality /*Localidad Nacimiento*/,
-		person.birth_lat AS person_birth_lat /*Latitud Nacimiento*/,
-		person.birth_lng AS person_birth_lng /*Longitud Nacimiento*/,
+--		person.id AS person_id /*id*/,
+---		person.erased AS person_erased /*erased*/,
+--		person.given_name AS person_given_name /*Nombre de Pila*/,
+--		person.middle_name AS person_middle_name /*Segundo Nombre*/,
+--		person.family_name AS person_family_name /*Apellido*/,
+--		person.birth_date AS person_birth_date /*Fecha de Nacimiento*/,
+--		person.male AS person_male /*Masculino*/,
+---		person.url_photo AS person_url_photo /*Foto*/,
+--		person.comment AS person_comment /*Comentario*/,
+---		person.birth_country_code AS person_birth_country_code /*País Nacimiento - Código ISO 3166-1 Alfa-2*/,
+--		person.birth_admin_area_level1_code AS person_birth_admin_area_level1_code /*Provincia Nacimiento - Código ISO 3166-2*/,
+--		person.birth_admin_area_level2 AS person_birth_admin_area_level2 /*Departamento / Distrito Nacimiento*/,
+--		person.birth_locality AS person_birth_locality /*Localidad Nacimiento*/,
+--		person.birth_lat AS person_birth_lat /*Latitud Nacimiento*/,
+--		person.birth_lng AS person_birth_lng /*Longitud Nacimiento*/,
 
 	--------------------------------------------
-		agreement_item.id as agreement_item_id,
-		agreement_item.erased as agreement_item_erased,
-		agreement_item.in_units as agreement_item_in_units,
-		agreement_item.out_units as agreement_item_out_units,
-		agreement_item.agreement_id as agreement_item_agreement_id,
-		agreement_item.org_id as agreement_item_org_id,
+--		agreement_item.id as agreement_item_id,
+--		agreement_item.erased as agreement_item_erased,
+---		agreement_item.in_units as agreement_item_in_units,
+--		agreement_item.out_units as agreement_item_out_units,
+---		agreement_item.agreement_id as agreement_item_agreement_id,
+--		agreement_item.org_id as agreement_item_org_id,
 	---------------------------------------------
-		person_email.id as person_email_id,
-		person_email.erased as person_email_erased,
-		person_email.email as person_email_email,
-		person_email.comment as person_email_comment,
-		person_email.person_id as person_email_person_id,
+--		person_email.id as person_email_id,
+--		person_email.erased as person_email_erased,
+--		person_email.email as person_email_email,
+--		person_email.comment as person_email_comment,
+--		person_email.person_id as person_email_person_id,
 	-----------------------------------------------
-		person_phone.id as person_phone_id,
-		person_phone.erased as person_phone_erased,
-		person_phone.country_code as person_phone_country_code,
-		person_phone.phone_number as person_phone_phone_number,
-		person_phone.comment as person_phone_comment,
-		person_phone.person_id as person_phone_person_id
+--		person_phone.id as person_phone_id,
+--		person_phone.erased as person_phone_erased,
+--		person_phone.country_code as person_phone_country_code,
+--		person_phone.phone_number as person_phone_phone_number,
+--		person_phone.comment as person_phone_comment,
+--		person_phone.person_id as person_phone_person_id
 
-	FROM kuntur.contact
+--	FROM kuntur.contact
 	------------------------------------------
-	LEFT JOIN kuntur.org org
-		ON kuntur.contact.org_id = org.id
+--	LEFT JOIN kuntur.org org
+--		ON kuntur.contact.org_id = org.id
 	------------------------------------------
-	LEFT JOIN kuntur.person person
-		ON kuntur.contact.person_id = person.id
+--	LEFT JOIN kuntur.person person
+--		ON kuntur.contact.person_id = person.id
 	------------------------------------------
-	LEFT JOIN kuntur.agreement_item agreement_item
-		ON agreement_item.org_id = org.id
+--	LEFT JOIN kuntur.agreement_item agreement_item
+--		ON agreement_item.org_id = org.id
 	------------------------------------------
-	LEFT JOIN kuntur.person_email person_email
-		ON person_email.person_id = person.id
+--	LEFT JOIN kuntur.person_email person_email
+---		ON person_email.person_id = person.id
 
-	LEFT JOIN kuntur.person_phone person_phone
-		ON person_phone.person_id=person.id;
+--	LEFT JOIN kuntur.person_phone person_phone
+--		ON person_phone.person_id=person.id;
 
 --DROP FUNCTION IF EXISTS findAgreements(busqueda TEXT) CASCADE;
 
@@ -512,16 +514,50 @@ END; $BODY$
 ----------------------------------------------------------------------------------------------------------------------------------
 --DROP FUNCTION IF EXISTS f_responsablesByOrg(org text[]);
 
-CREATE OR REPLACE FUNCTION f_responsablesByOrg(orgs text[]) RETURNS TEXT AS $$
+CREATE OR REPLACE FUNCTION kuntur.f_responsablesbyorg(orgs text[])
+  RETURNS text AS
+$BODY$
 DECLARE result_var TEXT;
 DECLARE sql TEXT;
 BEGIN
-		select array_to_json(array_agg(row_to_json(t))) into result_var from (select * from kuntur.v_responsables res
-		where res.org_short_name =any(org)) as t;
 
-		RETURN result_var;
-END; $$
-LANGUAGE PLPGSQL;
+
+  with r as(
+
+SELECT	    contact.id,
+	    contact.erased,
+	    org.id AS org_id,
+	    org.erased AS org_erased,
+	    org.short_name AS org_short_name,
+	    org.name AS org_name,
+	    org.original_name AS org_original_name,
+	    org.url_photo AS org_url_photo,
+	    org.web_site AS org_web_site,
+	    org.comment AS org_comment,
+	    org.country_code AS org_country_code,
+	    org.primary_org AS org_primary_org,
+	    person.id AS person_id,
+	    person.erased AS person_erased,
+	    person.given_name AS person_given_name,
+	    person.middle_name AS person_middle_name,
+	    person.family_name AS person_family_name,
+	    person.birth_date AS person_birth_date,
+	    person.male AS person_male,
+	    person.url_photo AS person_url_photo,
+	    person.comment AS person_comment
+	FROM kuntur.contact contact
+	LEFT JOIN kuntur.person person ON person.id = contact.person_id
+	LEFT JOIN kuntur.org org ON org.id = contact.org_id where org.id = any(orgs) AND contact.erased = false
+
+  )
+  select array_to_json(array_agg(row_to_json(r.*))) into result_var from r;
+
+	RETURN result_var;
+
+END; $BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
 
 
 
