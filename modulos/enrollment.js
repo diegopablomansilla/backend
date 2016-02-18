@@ -2646,6 +2646,207 @@ server.post({path:'/gonza', version:'0.0.1'}, function(req, res, next){
 });
 
 
+// ##### COORDINADORES Y DESPACHO ###### //
+
+server.get({path : '/coordinators', version : '0.0.1'} , function(req, res , next){
+
+    // console.log(req.headers);
+      if(!req.headers.usersystemid){
+        res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+        return next();
+      }
+
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.f_get_directivos($1)";
+      sql.values = [req.params.orgId];
+
+    
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+          
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          res.send(200,JSON.parse(result.rows[0].f_get_directivos));
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , next){
+
+    // console.log(req.headers);
+      if(!req.headers.usersystemid){
+        res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+        return next();
+      }
+
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.f_get_all_directivos()";
+      //sql.values = [req.params.orgId];
+
+    
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+          
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          res.send(200,JSON.parse(result.rows[0].f_get_all_directivos));
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, function(req, res, next){
+
+
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    console.log(req.body)
+
+    if(!req.headers.usersystemid){
+      // req.body.userSystemId=46385;
+      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+      return next();
+    }
+
+    /*
+    if(!req.body.enrrollmentEmailList){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No enrrollmentEmailList found in request.'});
+      return next();
+    }
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+      client.query('BEGIN', function(err) {
+        if(err) {
+          console.log(err);
+            done();
+            return res.send(500,err);
+        }
+
+        var queryResult=false;
+        async.each(req.body.enrrollmentEmailList,
+          function(mail, callback){
+            var sql = {};
+            if(mail.erased){
+              //update
+              sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.auId, req.headers.usersystemid, mail.id];
+            }
+            else if(mail.id){
+              //delete
+              sql.text = "select kuntur.f_u_enrrollment_email($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+              sql.values = [req.params.auId, req.headers.usersystemid, mail.email, mail.id];
+            }
+            else if(!mail.erased){
+              sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.auId, req.headers.usersystemid, mail.email];
+              //insert
+            }else{
+              callback(false);
+            }
+
+            var query = client.query(sql);
+
+            query.on("row", function(row, result){
+             result.addRow(row);
+            });
+
+            query.on("end", function(result){
+              // done();
+              // if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
+              //   res.send(200,"OK");
+              // }else{
+              //   res.send(500,"Error in function f_u_enrrollment_url_photo");
+              // }
+              //hacer cosac cuando termine
+              queryResult=JSON.parse(result.rows[0].respuesta);
+              callback(false)
+            });//FIN CB END GUIVEN_NAME
+
+          query.on("error",function(error){
+            console.log(error);
+            // done();
+            // res.send(500,error.message);
+            callback(error);
+          });
+
+          },
+          function(err){
+            //termine!
+            if(err){
+              console.log(err);
+              rollback(client, done);
+              res.send(500,err);
+            }else{
+              client.query('COMMIT', done);
+              res.send(200,queryResult);
+            }
+
+          }
+        );//end async
+      });
+
+    });//connect
+*/
+        // var sql = {};
+    // sql.text = "select kuntur.f_u_enrrollment_mails($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+    // sql.values = [req.params.auId, req.headers.usersystemidH, req.body.givenName, req.body.middleName, req.body.familyName];
+
+
+
+  });
+
+
+
+
 }
 
 
