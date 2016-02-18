@@ -1199,6 +1199,13 @@ CREATE OR REPLACE VIEW v_org_f_b AS
 		ORDER BY trim(au.name);
 
 -- SELECT * FROM v_org_f_b;
+-- SELECT * FROM v_org_f_b where id = '489090263d5ee1bd013d5fe6d3640005'
+
+ --SELECT * FROM academic_unit_tmp
+-- where id = '489090263d5ee1bd013d5fe6d3640005'
+
+
+-- SELECT * FROM v_org_f_b;
 
 DROP TABLE IF EXISTS org_f_tmp_b CASCADE;
 
@@ -1222,7 +1229,7 @@ CREATE TABLE org_f_tmp_b
 
 INSERT INTO org_f_tmp_b (SELECT * FROM v_org_f_b );
 
-
+-- SELECT * FROM org_f_tmp_b where id = '489090263d5ee1bd013d5fe6d3640005'
 
 
 -- SELECT * FROM org_f_tmp_b ORDER BY name;
@@ -1252,7 +1259,12 @@ UPDATE org_f_tmp_b SET code_guarani = '14' WHERE web_site = 'FO - Odontología';
 UPDATE org_f_tmp_b SET code_guarani = '75' WHERE web_site = 'FP - Psicología';
 UPDATE org_f_tmp_b SET code_guarani = '20' WHERE web_site = 'ETS - Trabajo Social';
 
+UPDATE org_f_tmp_b SET code_guarani = '06025' WHERE web_site = 'FCM - Kinesio';
 
+ --SELECT * FROM v_org_f ORDER BY id, org_id;
+
+ -- select * from org_f_tmp_b
+--9090263d5ee1bd013d5fe6d3640005
 
 
 
@@ -1356,7 +1368,11 @@ CREATE OR REPLACE VIEW v_unc_in_study_program AS
 		JOIN	academic_unit_tmp au
 			ON au.id::VARCHAR = c.academic_unit_id::VARCHAR	
 		WHERE 	sp.state_enable = true	
+			--and au.id = '489090263d5ee1bd013d5fe6d3640005'
 		ORDER BY p.id, spt.order_number;
+
+
+--select * from academic_unit_tmp where id = '489090263d5ee1bd013d5fe6d3640005'
 
 
 -- SELECT * FROM v_unc_in_study_program;
@@ -1404,6 +1420,10 @@ CREATE OR REPLACE VIEW v_unc_in_study_program_a AS
 	SELECT unc_in_enrrollment_id, approved, file_number, org_id, (STRING_TO_ARRAY(comment, '|'))[9] AS subject FROM v_unc_in_study_program_x;  
 
 
+--SELECT * FROM v_unc_in_study_program_a where org_id = '489090263d5ee1bd013d5fe6d3640005'
+
+
+
 DROP VIEW IF EXISTS v_unc_in_study_program_b CASCADE;
 
 CREATE OR REPLACE VIEW v_unc_in_study_program_b AS
@@ -1418,7 +1438,8 @@ CREATE OR REPLACE VIEW v_unc_in_study_program_b AS
 		AND CHAR_LENGTH(TRIM(subject)) > 0
 	ORDER BY unc_in_enrrollment_id, subject;
 
--- SELECT * FROM v_unc_in_study_program_b;
+-- SELECT * FROM v_unc_in_study_program_b
+	--where org_id = '489090263d5ee1bd013d5fe6d3640005'
 
 DROP VIEW IF EXISTS v_unc_in_study_program_c CASCADE;
 
@@ -1426,7 +1447,8 @@ CREATE OR REPLACE VIEW v_unc_in_study_program_c AS
 
 	SELECT DISTINCT * FROM v_unc_in_study_program_b;
 
--- SELECT * FROM v_unc_in_study_program_c;
+-- SELECT * FROM v_unc_in_study_program_c
+ -- where org_id = '489090263d5ee1bd013d5fe6d3640005'
 
 DROP TABLE IF EXISTS unc_in_study_program_tmp CASCADE;
 
@@ -1456,7 +1478,11 @@ INSERT INTO unc_in_study_program_tmp (
 		unc_in_enrrollment_id,
 		org_id		
 	FROM 	v_unc_in_study_program_c 
-	WHERE 	subject IS NOT NULL);
+	WHERE 	subject IS NOT NULL
+);
+
+-- SELECT * FROM unc_in_study_program_tmp
+ --where org_id = '489090263d5ee1bd013d5fe6d3640005'
 
 UPDATE unc_in_study_program_tmp SET id = null WHERE char_length(trim(id)) = 0;
 UPDATE unc_in_study_program_tmp SET subject = null WHERE char_length(trim(subject)) = 0;
@@ -1494,6 +1520,10 @@ DELETE FROM unc_in_study_program_tmp WHERE subject IS NULL OR CHAR_LENGTH(TRIM(s
 -- SELECT COUNT(*) FROM unc_in_study_program_tmp; -- 1037
 -- SELECT * FROM unc_in_study_program_tmp;
 
+ --SELECT * FROM unc_in_study_program_tmp
+ --where org_id = '489090263d5ee1bd013d5fe6d3640005'
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
 INSERT INTO kuntur.unc_in_study_program (
@@ -1508,7 +1538,12 @@ INSERT INTO kuntur.unc_in_study_program (
 		unc_in_enrrollment_id,
 		org_id
 	FROM 	unc_in_study_program_tmp
+	--where org_id = '489090263d5ee1bd013d5fe6d3640005'
 );
+
+--select * from kuntur.org where id = '489090263d5ee1bd013d5fe6d3640005'
+
+
 
 -- SELECT COUNT(*) FROM kuntur.unc_in_study_program; -- 3309
 -- SELECT * FROM kuntur.unc_in_study_program ORDER BY unc_in_enrrollment_id, subject;
