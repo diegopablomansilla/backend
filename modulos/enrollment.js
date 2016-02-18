@@ -118,6 +118,7 @@ module.exports = function(server, conString, activeMail) {
       ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
 
+
     console.log(sql);
     pg.connect(conString, function(err, client, done){
         if(err) {
