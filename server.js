@@ -27,6 +27,11 @@ server.get({path: '/test'}, function(req, res, next) {
   res.send('Ok');
 });
 
+server.use(function(req, res, next) {
+  console.log(req.url);
+  next();
+})
+
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
 var corsOptions={
