@@ -1456,7 +1456,13 @@ BEGIN
 
 	ELSIF type_user = 'OFFICE' THEN
 
-		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || $6 || ''' WHERE id = ''' || $7 || ''''; 	
+		IF $6 IS NOT NULL THEN
+
+			v_file_number = '''' || $6 || '''';
+
+		END IF;
+
+		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ' WHERE id = ''' || $7 || ''''; 	
 
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1521,8 +1527,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
---ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
- -- OWNER TO us_kuntur2;
+
 
 
 
@@ -2885,9 +2890,10 @@ BEGIN
 		RETURN result;	
 
 	ELSIF statusCode LIKE 'E' THEN --MODIFICACION PLAN 1
-
+	
+		UPDATE kuntur.unc_in_study_program SET approved = null where unc_in_enrrollment_id = enrrollmentId AND approved = false;--LAS MATERIAS POR LAS QUE SE DESAPROBO SE VUELVEN A NULO PARA Q SEAN REEVALUADAS
 		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'D') INTO result;
-		RETURN result;	
+		RETURN result;			
 
 	ELSIF statusCode LIKE 'G' THEN -- MODIFICACION PLAN 2
 
@@ -2956,7 +2962,7 @@ BEGIN
 	------------------------------
 
 	ELSIF statusCode LIKE 'J' THEN -- EN MATRICULACION
-		
+
 		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;
 		
 		FOR carCode, subj, filNumb, hrs, orgIdIterator IN SELECT career_code, subject, file_number, hs, org_id from kuntur.unc_in_academic_performance where unc_in_enrrollment_id = enrrollmentId
@@ -2982,14 +2988,17 @@ BEGIN
 		END LOOP;
 
 
-		SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE person_id = userSystemId;
-		SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE person_id = userSystemId;
+		--SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE person_id = userSystemId;
+		--SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE person_id = userSystemId;
 
-		IF auxCountAP < auxCountAA THEN
+		SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = $2;
+		SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = $2;
+
+		IF auxCountAP <> auxCountAA THEN
 			flagComplete = false;
 		END IF;
 
-
+		--RAISE EXCEPTION 'algo';
 		IF flagComplete THEN -- TODOS LOS CAMOS ESTAN LLENOS
 
 			SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'K') INTO result;
@@ -3275,5 +3284,32 @@ END;
 $$ language plpgsql;
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------para ver las postulaciones disponibles-------------------------------------------------------------------------------------------------------------------------
+
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_admission_period_by_org(orgId VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result JSON = null;
+
+BEGIN
+
+
+	WITH t AS(
+		SELECT * FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = $1
+	)
+
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
