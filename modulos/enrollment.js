@@ -2741,7 +2741,7 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-    console.log(req.body)
+    console.log(req.body.coordinadoresNuevos)
 
     if(!req.headers.usersystemid){
       // req.body.userSystemId=46385;
@@ -2749,11 +2749,8 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-    /*
-    if(!req.body.enrrollmentEmailList){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No enrrollmentEmailList found in request.'});
-      return next();
-    }
+   
+   
 
     pg.connect(conString, function(err, client, done){
       if(err){
@@ -2771,70 +2768,121 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
         }
 
         var queryResult=false;
-        async.each(req.body.enrrollmentEmailList,
-          function(mail, callback){
-            var sql = {};
-            if(mail.erased){
-              //update
-              sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.auId, req.headers.usersystemid, mail.id];
-            }
-            else if(mail.id){
-              //delete
-              sql.text = "select kuntur.f_u_enrrollment_email($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.auId, req.headers.usersystemid, mail.email, mail.id];
-            }
-            else if(!mail.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.auId, req.headers.usersystemid, mail.email];
-              //insert
-            }else{
-              callback(false);
-            }
+        async.series([
+          function(callback){
+            var sql = "DELETE FROM kuntur.unc_in_academic_coordinator WHERE org_id=$1"; 
+            var params =[
+                  req.params.auId
+            ]
+            
 
-            var query = client.query(sql);
+            var query = client.query(sql,params, function(error){
 
-            query.on("row", function(row, result){
-             result.addRow(row);
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
+
+            });
+          }, function(callback){
+            var sql = "DELETE FROM kuntur.unc_in_academic_office WHERE org_id=$1"; 
+            var params =[
+                  req.params.auId
+            ]
+            
+
+            var query = client.query(sql,params, function(error){
+
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
+
+            });
+          }, function(callback){
+
+            async.forEach(req.body.coordinadoresNuevos, function(person,callbackInterno){
+
+               var sql = "INSERT INTO kuntur.unc_in_academic_coordinator VALUES (uuid_generate_v4()::varchar, false, $1, $2 )";
+               var params = [
+                  person.id,
+                  req.params.auId
+               ]
+
+
+              var query = client.query(sql,params, function(error){
+
+              if(error){
+                callbackInterno(error);
+              }else{
+                callbackInterno(null);
+              }
+
             });
 
-            query.on("end", function(result){
-              // done();
-              // if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
-              //   res.send(200,"OK");
-              // }else{
-              //   res.send(500,"Error in function f_u_enrrollment_url_photo");
-              // }
-              //hacer cosac cuando termine
-              queryResult=JSON.parse(result.rows[0].respuesta);
-              callback(false)
-            });//FIN CB END GUIVEN_NAME
+            }, function(error){
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
 
-          query.on("error",function(error){
-            console.log(error);
-            // done();
-            // res.send(500,error.message);
-            callback(error);
-          });
+            })
 
-          },
-          function(err){
-            //termine!
-            if(err){
-              console.log(err);
-              rollback(client, done);
-              res.send(500,err);
-            }else{
-              client.query('COMMIT', done);
-              res.send(200,queryResult);
-            }
+           
 
+           
+          }, function(callback){
+
+            async.forEach(req.body.despachoNuevo, function(person,callbackInterno){
+
+               var sql = "INSERT INTO kuntur.unc_in_academic_office VALUES (uuid_generate_v4()::varchar, false, $1, $2 )";
+               var params = [
+                  person.id,
+                  req.params.auId
+               ]
+
+
+              var query = client.query(sql,params, function(error){
+
+              if(error){
+                callbackInterno(error);
+              }else{
+                callbackInterno(null);
+              }
+
+            });
+
+            }, function(error){
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
+
+            })
+
+           
+
+           
           }
-        );//end async
+        ],function(error){
+          done();
+           if(error){
+                console.log(error);
+                rollback(client, done);
+                res.send(500,err);
+              }else{
+                client.query('COMMIT', done);
+                res.send(200,queryResult);
+            }
+        });//end async
       });
 
     });//connect
-*/
+
         // var sql = {};
     // sql.text = "select kuntur.f_u_enrrollment_mails($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
     // sql.values = [req.params.auId, req.headers.usersystemidH, req.body.givenName, req.body.middleName, req.body.familyName];

@@ -3045,7 +3045,7 @@ BEGIN
 
 ------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
 	WITH t AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3076,7 +3076,7 @@ BEGIN
 ------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
 
 	WITH s AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3205,7 +3205,7 @@ BEGIN
 
 ------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
 	WITH t AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3236,7 +3236,7 @@ BEGIN
 ------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
 
 	WITH s AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
