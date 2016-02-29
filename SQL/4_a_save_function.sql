@@ -3526,3 +3526,95 @@ END;
 $$ language plpgsql;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+------------------------------------frunciones de ggrupos---------------------------------------------------------------------------------
+
+
+-----------------------------------users por id de grupo ------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_usersby_group(groupId VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result json = null;
+	users json = null;
+
+BEGIN
+	WITH t AS (
+		SELECT p.* 
+		FROM kuntur.user_system us 
+		JOIN kuntur.user_group ug 
+			ON ug.user_system_id = us.id 
+			JOIN kuntur.group_system gs 
+				ON gs.id = ug.group_system_id 
+				JOIN kuntur.person p
+					ON us.id = p.id
+
+		WHERE gs.id = $1			
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+END;
+$$ language plpgsql;
+
+
+--------------------------------grupos disponibles--------------------------------------------------------------------------------------- 
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_groups() RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result json = null;
+
+BEGIN
+	WITH t AS (
+		SELECT * 
+		FROM kuntur.group_system	
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+END;
+$$ language plpgsql;	
+
+
+--------------------------------AGREGAR PERSONA A GRUPO--------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_add_to_group(usID VARCHAR, groupId VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE
+
+	result json = null;
+
+BEGIN
+
+	INSERT INTO kuntur.user_group VALUES (uuid_generate_v4()::varchar, FALSE, $1, $2);
+
+	RETURN TRUE;
+END;
+$$ language plpgsql;
+
+
+-------------------------------QUITA UNA PERSNA DE UN GRUPO---------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_remove_from_group(usID VARCHAR, groupId VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE
+
+	result json = null;
+
+BEGIN
+
+	DELETE FROM kuntur.user_group WHERE user_system_id = $1 AND group_system_id = $2;
+
+	RETURN TRUE;
+END;
+$$ language plpgsql;
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+
