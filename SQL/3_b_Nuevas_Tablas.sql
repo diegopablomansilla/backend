@@ -17,3 +17,6 @@ WITH (
 )
 ;
 
+ALTER TABLE kuntur.admission_period
+  ADD COLUMN is_agreement boolean NOT NULL;
+
