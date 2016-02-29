@@ -3311,5 +3311,32 @@ LANGUAGE plpgsql;
 
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------Todos los usuarios----------------------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION kuntur.f_get_all_users() RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result json = null;
+	users json = null;
+
+BEGIN
+	WITH t AS (
+		SELECT p.id, family_name, given_name, middle_name, url_photo, us.name, us.email
+		FROM kuntur.person p 
+		JOIN kuntur.user_system us ON us.id = p.id 
+			GROUP BY family_name, given_name, middle_name, p.id, us.name, us.email			
+		
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO users FROM t;
+
+
+	WITH r AS(
+		SELECT users
+	)
+	SELECT row_to_json(r.*) INTO result FROM r;--array_to_json()array_agg()
+
+	RETURN result;
+END;
+$$ language plpgsql;
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
