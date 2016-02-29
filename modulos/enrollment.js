@@ -1420,12 +1420,12 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             }
             else if(studyProgram.id){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
+              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id, studyProgram.comment];
             }
             else if(!studyProgram.erased){
-              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id];
+              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.comment];
               //insert
             }else{
               callback(false);
@@ -2636,13 +2636,95 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
   });
 
-server.post({path:'/gonza', version:'0.0.1'}, function(req, res, next){
 
- 
-  res.send(200,req.body);
+  server.get({path : '/admissionPeriodAvaible', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
 
 
-});
+        var sql = {};
+        sql.text = "select kuntur.f_get_admission_period_by_org($1, (select id from kuntur.user_system where name = $2)) as respuesta"
+        sql.values = [req.params.orgId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+
+
+        
+    });
+
+  });
+
+  server.post({path : '/enrrollment', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_insert_enrrollment($1, (select id from kuntur.user_system where name = $2)) as respuesta"
+        sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+
+
+        
+    });
+
+  });
+
 
 
 // ##### COORDINADORES Y DESPACHO ###### //
