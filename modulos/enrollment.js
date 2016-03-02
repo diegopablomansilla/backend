@@ -86,7 +86,7 @@ var options = { format: 'Letter' };
     var mes = meses[d.getMonth()]
     var anio = d.getFullYear()
 
-    var html  =  htmlTemplate
+    /*var html  =  htmlTemplate
                       .replace("$apellidoPostulante",req.body.familyName)
                       .replace("$nombrePostulante",req.body.givenName)
                       .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
@@ -95,9 +95,39 @@ var options = { format: 'Letter' };
                       .replace("$paisOrigen",req.body.org.countryCode)
                       .replace("$semestre",req.body.admissionPeriod.semester)
                       .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                      .replace("$diaCreacion",dia)
                       .replace("$mesCreacion",mes)
-                      .replace("$anioCreacion",anio);
+                      .replace("$anioCreacion",anio);*/
+
+    if (dia==1) {
+      var html = htmlTemplate.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "");
+
+    }else{
+      var html = htmlTemplate.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días");
+    };
 
 
 
