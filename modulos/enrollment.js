@@ -2849,6 +2849,174 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
+
+    server.get({path : '/groups', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_get_groups() as respuesta"
+        //sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+  server.get({path : '/usergroup/:groupId', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_get_usersby_group($1) as respuesta"
+        sql.values = [req.params.groupId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+
+  server.post({path : '/usergroup', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_add_to_group($1, $2) as respuesta"
+        sql.values = [req.params.user_system_id, req.params.groupId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+
+  server.del({path : '/usergroup', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_remove_from_group($1, $2) as respuesta"
+        sql.values = [req.params.user_system_id, req.params.groupId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+
 // ##### COORDINADORES Y DESPACHO ###### //
 
 server.get({path : '/coordinators', version : '0.0.1'} , function(req, res , next){
