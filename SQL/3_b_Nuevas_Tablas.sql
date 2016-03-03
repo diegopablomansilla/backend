@@ -20,3 +20,6 @@ WITH (
 ALTER TABLE kuntur.admission_period
   ADD COLUMN is_agreement boolean NOT NULL;
 
+ALTER TABLE kuntur.user_group
+  ADD CONSTRAINT user_group_unique_user_group UNIQUE (group_system_id, user_system_id);
+
