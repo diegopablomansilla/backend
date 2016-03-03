@@ -91,11 +91,11 @@ BEGIN
 
 		RETURN true;	
 
-	ELSEIF $2 = 'enrrollment_address' AND ($1 = '1A' OR $1 = '3C') THEN
+	ELSEIF $2 = 'enrrollment_address' AND ($1 = '1A' OR $1 = '3C' OR $1 = '7G') THEN
 
 		RETURN true;	
 
-	ELSEIF $2 = 'enrrollment_phone' AND ($1 = '1A' OR $1 = '3C') THEN
+	ELSEIF $2 = 'enrrollment_phone' AND ($1 = '1A' OR $1 = '3C' OR $1 = '7G') THEN
 
 		RETURN true;																		
 
@@ -603,7 +603,7 @@ BEGIN
 	sql = 'UPDATE kuntur.enrrollment_email SET email = ''' || m || ''' WHERE id = ''' || mailId || ''' ';
 
 	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -632,7 +632,7 @@ BEGIN
 
 	sql = 'INSERT INTO kuntur.enrrollment_email(id, erased, email, comment, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, ''' || m || ''', '''', ''' || $1 || ''') ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -661,7 +661,7 @@ BEGIN
 
 	sql = 'DELETE FROM kuntur.enrrollment_email WHERE id = ''' || m || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -692,7 +692,7 @@ BEGIN
 	sql = 'UPDATE kuntur.enrrollment_phone SET phone_number = ''' || p || ''',country_code = ''' || c || ''' WHERE id = ''' || phoneId || ''' ';
 
 	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone.phone_number') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -722,7 +722,7 @@ BEGIN
 
 	sql = 'INSERT INTO kuntur.enrrollment_phone(id, erased, country_code, phone_number, comment, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, ''' || c || ''', ''' || p || ''', '''', ''' || $1 || ''') ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -751,7 +751,7 @@ BEGIN
 
 	sql = 'DELETE FROM kuntur.enrrollment_phone WHERE id = ''' || p || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone.phone') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -3533,9 +3533,13 @@ $$ language plpgsql;
 
 -----------------------------------users por id de grupo ------------------------------------------------------------------------------------
 
+-- Function: kuntur.f_get_usersby_group(character varying)
 
-CREATE OR REPLACE FUNCTION kuntur.f_get_usersby_group(groupId VARCHAR) RETURNS VARCHAR AS
-$$
+-- DROP FUNCTION kuntur.f_get_usersby_group(character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_usersby_group(groupid character varying)
+  RETURNS character varying AS
+$BODY$
 DECLARE
 
 	result json = null;
@@ -3543,7 +3547,7 @@ DECLARE
 
 BEGIN
 	WITH t AS (
-		SELECT p.* 
+		SELECT p.*, us.email
 		FROM kuntur.user_system us 
 		JOIN kuntur.user_group ug 
 			ON ug.user_system_id = us.id 
@@ -3558,7 +3562,9 @@ BEGIN
 
 	RETURN result;
 END;
-$$ language plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 
 --------------------------------grupos disponibles--------------------------------------------------------------------------------------- 
@@ -3592,7 +3598,7 @@ DECLARE
 
 BEGIN
 
-	INSERT INTO kuntur.user_group VALUES (uuid_generate_v4()::varchar, FALSE, $1, $2);
+	INSERT INTO kuntur.user_group VALUES (uuid_generate_v4()::varchar, FALSE, $2, $1);
 
 	RETURN TRUE;
 END;
@@ -3615,6 +3621,68 @@ BEGIN
 END;
 $$ language plpgsql;
 
-----------------------------------------------------------------------------------------------------------------------------------------
+----------------------BUSCA LOS NO ESTUDIANTES---------------------------------------------------------------------------
+
+
+-- Function: kuntur.f_get_users_not_students()
+
+-- DROP FUNCTION kuntur.f_get_users_not_students();
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_users_not_students()
+  RETURNS character varying AS
+$BODY$
+DECLARE
+
+	result JSON = NULL;
+
+BEGIN
+
+	/*WITH t AS(
+		SELECT	p.*, us.email 
+		FROM 	kuntur.user_system us 
+		JOIN 	kuntur.person p
+		ON 	us.id = p.id
+		LEFT JOIN 
+			kuntur.user_group ug 
+		ON 	ug.user_system_id = us.id 
+		LEFT JOIN 
+			kuntur.group_system gs 
+		ON 	gs.id = ug.group_system_id --
+			AND GS.CODE NOT LIKE 'student'
+		)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;*/
+
+	WITH t AS(
+		SELECT	p.*, us.email
+				FROM 	kuntur.user_system us 
+				JOIN 	kuntur.person p
+				ON 	us.id = p.id
+				WHERE   us.id NOT IN (SELECT gs.user_system_id FROM kuntur.user_group gs )
+				UNION ALL		
+				SELECT	p.*, us.email
+				FROM 	kuntur.user_system us 
+				JOIN 	kuntur.person p
+				ON 	us.id = p.id
+				WHERE   us.id IN (SELECT gs.user_system_id FROM kuntur.user_group gs WHERE gs.group_system_id <> (select id from kuntur.group_system where code = 'student'))
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_get_users_not_students()
+  OWNER TO us_kuntur2;
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE kuntur.user_group
+  ADD CONSTRAINT user_group_unique_user_group UNIQUE (group_system_id, user_system_id);
+
+
 
 

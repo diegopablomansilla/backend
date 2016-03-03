@@ -778,11 +778,11 @@ var options = { format: 'Letter' };
       return next();
     }
 
-    if(!req.body.userSystemId){
-      // req.headers.usersystemidH=46385;
-      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      return next();
-    }
+    // if(!req.body.userSystemId){
+    //   // req.headers.usersystemidH=46385;
+    //   res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+    //   return next();
+    // }
 
 
     pg.connect(conString, function(err, client, done){
@@ -807,17 +807,17 @@ var options = { format: 'Letter' };
             if(iden.erased){
               //delete
           
-              sql.text = "select kuntur.f_u_enrrollment_Deletenationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.id];
+              sql.text = "select kuntur.f_u_deleteenrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
             else if(iden.id){
               //update
               sql.text = "select kuntur.f_u_enrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.countryCode, iden.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.id];
             }
             else if(!iden.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertnationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.countryCode];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode];
               //insert
             }else{
               callback(false);
@@ -2861,6 +2861,48 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
   });
 
+
+  server.get({path : '/usersnotstudents', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_get_users_not_students() as respuesta"
+        //sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
   server.get({path : '/usergroup/:groupId', version : '0.0.1'}, function(req, res, next){
 
     // console.log(req.body);
@@ -2947,7 +2989,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
   server.del({path : '/usergroup', version : '0.0.1'}, function(req, res, next){
 
-    // console.log(req.body);
+    req.body=JSON.parse(req.body);
       pg.connect(conString, function(err, client, done){
         if(err){
           done();
@@ -2959,7 +3001,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         var sql = {};
         sql.text = "select kuntur.f_remove_from_group($1, $2) as respuesta"
-        sql.values = [req.params.user_system_id, req.params.groupId];
+        sql.values = [req.body.user_system_id, req.body.groupId];
 
         var query = client.query(sql);
 
