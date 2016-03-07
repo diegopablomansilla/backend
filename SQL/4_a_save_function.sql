@@ -91,11 +91,11 @@ BEGIN
 
 		RETURN true;	
 
-	ELSEIF $2 = 'enrrollment_address' AND ($1 = '1A' OR $1 = '3C') THEN
+	ELSEIF $2 = 'enrrollment_address' AND ($1 = '1A' OR $1 = '3C' OR $1 = '7G') THEN
 
 		RETURN true;	
 
-	ELSEIF $2 = 'enrrollment_phone' AND ($1 = '1A' OR $1 = '3C') THEN
+	ELSEIF $2 = 'enrrollment_phone' AND ($1 = '1A' OR $1 = '3C' OR $1 = '7G') THEN
 
 		RETURN true;																		
 
@@ -603,7 +603,7 @@ BEGIN
 	sql = 'UPDATE kuntur.enrrollment_email SET email = ''' || m || ''' WHERE id = ''' || mailId || ''' ';
 
 	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -632,7 +632,7 @@ BEGIN
 
 	sql = 'INSERT INTO kuntur.enrrollment_email(id, erased, email, comment, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, ''' || m || ''', '''', ''' || $1 || ''') ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -661,7 +661,7 @@ BEGIN
 
 	sql = 'DELETE FROM kuntur.enrrollment_email WHERE id = ''' || m || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -692,7 +692,7 @@ BEGIN
 	sql = 'UPDATE kuntur.enrrollment_phone SET phone_number = ''' || p || ''',country_code = ''' || c || ''' WHERE id = ''' || phoneId || ''' ';
 
 	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone.phone_number') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -722,7 +722,7 @@ BEGIN
 
 	sql = 'INSERT INTO kuntur.enrrollment_phone(id, erased, country_code, phone_number, comment, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, ''' || c || ''', ''' || p || ''', '''', ''' || $1 || ''') ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email.email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -751,7 +751,7 @@ BEGIN
 
 	sql = 'DELETE FROM kuntur.enrrollment_phone WHERE id = ''' || p || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone.phone') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
 
 	RETURN update_ok;
     
@@ -1359,8 +1359,12 @@ $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_InsertInStudyProgram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgId character varying)
-  RETURNS BOOLEAN AS
+-- Function: kuntur.f_u_enrrollment_insertinstudyprogram(character varying, character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_u_enrrollment_insertinstudyprogram(character varying, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_insertinstudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, comentario VARCHAR)
+  RETURNS boolean AS
 $BODY$
 DECLARE    	
 
@@ -1368,16 +1372,24 @@ DECLARE
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
+	v_comment VARCHAR = 'NULL';
 	
     
 BEGIN
 
 	select * into type_user from kuntur.f_role_stakeholder( $1, $2, 'unc_in_study_program' );
 
+	IF $5 IS NOT NULL THEN
+
+		v_comment = '''' || $5 || '''';
+
+	END IF;
+
+
 	IF type_user = 'ALL' OR type_user = 'STUDENT' THEN
 
 		sql = 'INSERT INTO kuntur.unc_in_study_program(id, erased, subject, approved, approved_by, file_number, comment, unc_in_enrrollment_id, org_id) 
-		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', null , null , null , null, '''||$1||''', '''||$4||''') ';
+		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', null , null , null ,  ' || v_comment || ', '''||$1||''', '''||$4||''') ';
 
 		
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
@@ -1394,12 +1406,11 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
+
+
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Function: kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
-
--- DROP FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying);
-
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, appr boolean, legajoguarani character varying, studyprogramid character varying)
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, appr boolean, legajoguarani character varying, studyprogramid character varying, comentarios character varying)
   RETURNS boolean AS
 $BODY$
 DECLARE    	
@@ -1419,6 +1430,7 @@ DECLARE
 	v_subject VARCHAR = 'NULL';
 	v_org_id VARCHAR = 'NULL';
 	v_approved VARCHAR = 'NULL';
+	v_comment VARCHAR = 'NULL';
 
 	
     
@@ -1435,14 +1447,21 @@ BEGIN
 		RETURN update_ok;
 
 	ELSIF type_user = 'COORDINATOR' THEN
-
+		
 		SELECT approved INTO var_approved FROM kuntur.unc_in_study_program where id = $7;
+
+		IF $8 IS NOT NULL THEN
+
+			v_comment = '''' || $8 || '''';
+
+		END IF;
+
 
 		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
 
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1490,21 +1509,24 @@ BEGIN
 
 		END IF;
 
+		IF $8 IS NOT NULL THEN
 
+			v_comment = '''' || $8 || '''';
+
+		END IF;
 
 
 		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
 			
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
 		
-	
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
 		ELSE
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ' || v_file_number || ',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ' || v_file_number || ',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_approved || ' WHERE id = ''' || $7 || ''' '; 	
 
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1521,8 +1543,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
---ALTER FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying)
- -- OWNER TO us_kuntur2;
 
 
 
@@ -2885,9 +2905,10 @@ BEGIN
 		RETURN result;	
 
 	ELSIF statusCode LIKE 'E' THEN --MODIFICACION PLAN 1
-
+	
+		UPDATE kuntur.unc_in_study_program SET approved = null where unc_in_enrrollment_id = enrrollmentId AND approved = false;--LAS MATERIAS POR LAS QUE SE DESAPROBO SE VUELVEN A NULO PARA Q SEAN REEVALUADAS
 		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'D') INTO result;
-		RETURN result;	
+		RETURN result;			
 
 	ELSIF statusCode LIKE 'G' THEN -- MODIFICACION PLAN 2
 
@@ -2956,7 +2977,7 @@ BEGIN
 	------------------------------
 
 	ELSIF statusCode LIKE 'J' THEN -- EN MATRICULACION
-		
+
 		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;
 		
 		FOR carCode, subj, filNumb, hrs, orgIdIterator IN SELECT career_code, subject, file_number, hs, org_id from kuntur.unc_in_academic_performance where unc_in_enrrollment_id = enrrollmentId
@@ -2982,14 +3003,17 @@ BEGIN
 		END LOOP;
 
 
-		SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE person_id = userSystemId;
-		SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE person_id = userSystemId;
+		--SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE person_id = userSystemId;
+		--SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE person_id = userSystemId;
 
-		IF auxCountAP < auxCountAA THEN
+		SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = $2;
+		SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = $2;
+
+		IF auxCountAP <> auxCountAA THEN
 			flagComplete = false;
 		END IF;
 
-
+		--RAISE EXCEPTION 'algo';
 		IF flagComplete THEN -- TODOS LOS CAMOS ESTAN LLENOS
 
 			SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'K') INTO result;
@@ -3045,7 +3069,7 @@ BEGIN
 
 ------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
 	WITH t AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3076,7 +3100,7 @@ BEGIN
 ------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
 
 	WITH s AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3205,7 +3229,7 @@ BEGIN
 
 ------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
 	WITH t AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3236,7 +3260,7 @@ BEGIN
 ------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
 
 	WITH s AS (
-		SELECT family_name, given_name, middle_name,
+		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
@@ -3275,5 +3299,390 @@ END;
 $$ language plpgsql;
 
 
+------------------------------------para ver las postulaciones disponibles-------------------------------------------------------------------------------------------------------------------------
+
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_admission_period_by_org(orgId VARCHAR, userSystemId VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result JSON = null;
+
+	v_coun_agreement INTEGER = null;
+
+BEGIN
+
+	SELECT count(*) INTO v_coun_agreement FROM kuntur.admission_period ap 
+	WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true;
+
+	IF v_coun_agreement > 0 THEN --CONTROLO SI EL ESTUDIANTE TIENE ACCESO A AGREEMENTS
+
+
+		WITH t AS(
+			--SELECT * FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = $1
+			SELECT * FROM kuntur.admission_period ap 
+			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
+			WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true
+		)
+		SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+
+
+	ELSE--muestro tambien los q no son agreement
+
+		WITH t AS(
+			SELECT * FROM kuntur.admission_period ap 
+			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
+			WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2)
+		)
+		SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	END IF;
+
+	RETURN result;
+	
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+--------------------------------------funcion q inserta un nuevo enrrollment---------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_insert_enrrollment(admissionPeriodId VARCHAR, personId VARCHAR) RETURNS BOOLEAN AS
+$$
+
+DECLARE
+
+	v_enrrollmentId VARCHAR = null;
+
+BEGIN
+
+INSERT INTO kuntur.enrrollment
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE, 
+	p.given_name, 
+	p.middle_name, 
+	p.family_name, 
+	p.birth_date, 
+	p.male, 
+	p.url_photo,
+	p.comment,--comment
+	p.birth_country_code, 
+	p.birth_admin_area_level1_code, 
+	p.birth_admin_area_level2, 
+	p.birth_locality,
+	p.birth_lat,
+	p.birth_lng::double precision,
+	s.institution_short_name,
+	s.institution_name, 
+	s.institution_original_name,
+	s.institution_web_site,
+	s.institution_country_code,
+	(select number_enrrollment+1 from kuntur.enrrollment order by number_enrrollment desc limit 1) as number_enrrollment,
+	(select now()),
+	s.org_id,
+	p.id,
+	s.id,
+	$1,
+	(select id from kuntur.enrrollment_status where code = 'A')
+
+FROM kuntur.person p 
+	join kuntur.student s on s.id = p.id
+
+WHERE p.id = $2
+
+RETURNING id INTO v_enrrollmentId;
+
+INSERT INTO kuntur.enrrollment_identity
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE,
+	identity_number,
+	code,
+	name,
+	country_code,
+	comment,
+	v_enrrollmentId,
+	person_identity_type_id
+FROM kuntur.person_identity
+
+WHERE person_id = $2;
+
+
+INSERT INTO kuntur.enrrollment_nationality
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE,
+	country_code,
+	comment,
+	v_enrrollmentId
+FROM kuntur.person_nationality
+
+WHERE person_id = $2;
+
+INSERT INTO kuntur.enrrollment_address
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE,
+	country_code,
+	admin_area_level1_code,
+	admin_area_level2,
+	locality,
+	neighbourhood,
+	street,
+	street_number,
+	building_floor,
+	building_room,
+	building,
+	postal_code,
+	comment,
+	lat,
+	lng,
+	v_enrrollmentId
+FROM kuntur.person_address
+
+WHERE person_id = $2;
+
+
+INSERT INTO kuntur.enrrollment_email
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE,
+	email,
+	comment,
+	v_enrrollmentId
+FROM kuntur.person_email
+
+WHERE person_id = $2;
+
+INSERT INTO kuntur.enrrollment_phone
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE,
+	country_code,
+	phone_number,
+	comment,
+	v_enrrollmentId
+FROM kuntur.person_phone
+
+WHERE person_id = $2;
+
+
+INSERT INTO kuntur.enrrollment_stakeholder--cargo gente de la pri
+SELECT	uuid_generate_v4()::varchar, 
+	FALSE,
+	3,--codigo de administradores
+	us.id,
+	v_enrrollmentId
+FROM kuntur.user_system us 
+	join kuntur.user_group ug 
+		on ug.user_system_id = us.id 
+		join kuntur.group_system gs 
+			on gs.id = ug.group_system_id 
+
+where gs.code = 'admin';
+--RAISE EXCEPTION 'Nonexistent ID --> %', v_enrrollmentId;
+INSERT INTO kuntur.enrrollment_stakeholder-- cargo al alumno
+values(uuid_generate_v4()::varchar,FALSE,2, $2, v_enrrollmentId);
+
+
+INSERT INTO kuntur.unc_in_enrrollment (id, erased) VALUES (v_enrrollmentId, FALSE); 
+
+
+
+
+RETURN true;
+
+
+END;
+$$
+LANGUAGE plpgsql;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_all_users() RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result json = null;
+	users json = null;
+
+BEGIN
+	WITH t AS (
+		SELECT p.id, family_name, given_name, middle_name, url_photo, us.name, us.email
+		FROM kuntur.person p 
+		JOIN kuntur.user_system us ON us.id = p.id 
+			GROUP BY family_name, given_name, middle_name, p.id, us.name, us.email			
+		
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO users FROM t;
+
+
+	WITH r AS(
+		SELECT users
+	)
+	SELECT row_to_json(r.*) INTO result FROM r;--array_to_json()array_agg()
+
+	RETURN result;
+END;
+$$ language plpgsql;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+------------------------------------frunciones de ggrupos---------------------------------------------------------------------------------
+
+
+-----------------------------------users por id de grupo ------------------------------------------------------------------------------------
+
+-- Function: kuntur.f_get_usersby_group(character varying)
+
+-- DROP FUNCTION kuntur.f_get_usersby_group(character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_usersby_group(groupid character varying)
+  RETURNS character varying AS
+$BODY$
+DECLARE
+
+	result json = null;
+	users json = null;
+
+BEGIN
+	WITH t AS (
+		SELECT p.*, us.email
+		FROM kuntur.user_system us 
+		JOIN kuntur.user_group ug 
+			ON ug.user_system_id = us.id 
+			JOIN kuntur.group_system gs 
+				ON gs.id = ug.group_system_id 
+				JOIN kuntur.person p
+					ON us.id = p.id
+
+		WHERE gs.id = $1			
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+--------------------------------grupos disponibles--------------------------------------------------------------------------------------- 
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_groups() RETURNS VARCHAR AS
+$$
+DECLARE
+
+	result json = null;
+
+BEGIN
+	WITH t AS (
+		SELECT * 
+		FROM kuntur.group_system	
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+END;
+$$ language plpgsql;	
+
+
+--------------------------------AGREGAR PERSONA A GRUPO--------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_add_to_group(usID VARCHAR, groupId VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE
+
+	result json = null;
+
+BEGIN
+
+	INSERT INTO kuntur.user_group VALUES (uuid_generate_v4()::varchar, FALSE, $2, $1);
+
+	RETURN TRUE;
+END;
+$$ language plpgsql;
+
+
+-------------------------------QUITA UNA PERSNA DE UN GRUPO---------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_remove_from_group(usID VARCHAR, groupId VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE
+
+	result json = null;
+
+BEGIN
+
+	DELETE FROM kuntur.user_group WHERE user_system_id = $1 AND group_system_id = $2;
+
+	RETURN TRUE;
+END;
+$$ language plpgsql;
+
+----------------------BUSCA LOS NO ESTUDIANTES---------------------------------------------------------------------------
+
+
+-- Function: kuntur.f_get_users_not_students()
+
+-- DROP FUNCTION kuntur.f_get_users_not_students();
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_users_not_students()
+  RETURNS character varying AS
+$BODY$
+DECLARE
+
+	result JSON = NULL;
+
+BEGIN
+
+	/*WITH t AS(
+		SELECT	p.*, us.email 
+		FROM 	kuntur.user_system us 
+		JOIN 	kuntur.person p
+		ON 	us.id = p.id
+		LEFT JOIN 
+			kuntur.user_group ug 
+		ON 	ug.user_system_id = us.id 
+		LEFT JOIN 
+			kuntur.group_system gs 
+		ON 	gs.id = ug.group_system_id --
+			AND GS.CODE NOT LIKE 'student'
+		)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;*/
+
+	WITH t AS(
+		SELECT	p.*, us.email
+				FROM 	kuntur.user_system us 
+				JOIN 	kuntur.person p
+				ON 	us.id = p.id
+				WHERE   us.id NOT IN (SELECT gs.user_system_id FROM kuntur.user_group gs )
+				UNION ALL		
+				SELECT	p.*, us.email
+				FROM 	kuntur.user_system us 
+				JOIN 	kuntur.person p
+				ON 	us.id = p.id
+				WHERE   us.id IN (SELECT gs.user_system_id FROM kuntur.user_group gs WHERE gs.group_system_id <> (select id from kuntur.group_system where code = 'student'))
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+
+	RETURN result;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_get_users_not_students()
+  OWNER TO us_kuntur2;
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE kuntur.user_group
+  ADD CONSTRAINT user_group_unique_user_group UNIQUE (group_system_id, user_system_id);
+
+
+
 

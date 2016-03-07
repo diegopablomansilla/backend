@@ -156,6 +156,11 @@ $BODY$
 				|| kuntur.json_att_util('webSite', kuntur.json_att_util(org.id, org.web_site)::VARCHAR, '"', ', ' , true)						
 				|| kuntur.json_att_util('countryCode', kuntur.json_att_util(org.country_code)::VARCHAR, '"', ' ' , true)				
 			|| '}', 'null') || ', '
+			-------------------------------------------------------------------------------------------------------------				
+			|| '"student":' ||  COALESCE('{'
+				|| kuntur.json_att_util('id', student.id::VARCHAR, '"', ', ', false)			
+				|| kuntur.json_att_util('fileNumber', student.file_number::VARCHAR, '"', ' ' , true)				
+			|| '}', 'null') || ', '
 			-------------------------------------------------------------------------------------------------------------			
 			|| '"admissionPeriod":' ||  COALESCE('{'
 				|| kuntur.json_att_util('id', admission_period.id::VARCHAR, '"', ', ', false)
@@ -461,7 +466,10 @@ $BODY$
 		ON kuntur.unc_in_enrrollment.id = enrrollment.id		
 	------------------------------------------
 	LEFT JOIN kuntur.org
-		ON kuntur.enrrollment.org_id = org.id		
+		ON kuntur.enrrollment.org_id = org.id	
+	------------------------------------------
+	LEFT JOIN kuntur.student
+		ON kuntur.enrrollment.student_id = student.id			
 	------------------------------------------
 	LEFT JOIN kuntur.admission_period
 		ON kuntur.enrrollment.admission_period_id = admission_period.id	

@@ -62,6 +62,546 @@ module.exports = function(server, conString, activeMail) {
 
   });
 
+
+/*################################*/
+var fs = require('fs');
+var path = require('path');
+var pdf = require('html-pdf');
+var htmlCartaDeAdmisionTemplate = fs.readFileSync('cartadeadmisiontemplate.html', 'utf8');
+var htmlCartaDeAdmision = fs.readFileSync('cartadeadmision.html','utf8');
+var htmlCertificadoAnaliticoTemplate = fs.readFileSync('certificadoanaliticotemplate.html', 'utf8');
+var htmlCertificadoAnalitico = fs.readFileSync('certificadoanalitico.html', 'utf8');
+var htmlReporteEstudiante = fs.readFileSync('reporteestudiante.html', 'utf8');
+
+var image = path.join('file://', __dirname, '../logoUncPri.png')
+var options = { format: 'Letter'};
+ 
+
+
+/* ######## CARTA DE ADMISION TEMPLATE ########### */
+ server.post({path : '/docs/:postulacionId/cartaDeAdmisionTemplate', version : '0.0.1'}, function(req,res,next){
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+    /*var html  =  htmlCartaDeAdmisionTemplate
+                      .replace("$apellidoPostulante",req.body.familyName)
+                      .replace("$nombrePostulante",req.body.givenName)
+                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                      .replace("$universidadOrigen",req.body.org.name)
+                      .replace("$paisOrigen",req.body.org.countryCode)
+                      .replace("$semestre",req.body.admissionPeriod.semester)
+                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                      .replace("$mesCreacion",mes)
+                      .replace("$anioCreacion",anio);*/
+
+    if (dia==1) {
+      var html = htmlCartaDeAdmisionTemplate.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image);
+
+    }else{
+      var html = htmlCartaDeAdmisionTemplate.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image);
+    };
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('cartadeadmisiontemplate.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+      var postulacionId = req.params.postulacionId
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          res.setHeader('Content-Type','application/pdf') 
+          res.send(200,new Buffer(data).toString('base64'));
+              
+      });
+
+    });
+
+});
+
+/*################################*/
+
+/* ###### CARTA DE ADMISION ############# */
+ server.post({path : '/docs/:postulacionId/cartaDeAdmision', version : '0.0.1'}, function(req,res,next){
+    
+
+
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+    /*var html  =  htmlCartaDeAdmisionTemplate
+                      .replace("$apellidoPostulante",req.body.familyName)
+                      .replace("$nombrePostulante",req.body.givenName)
+                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                      .replace("$universidadOrigen",req.body.org.name)
+                      .replace("$paisOrigen",req.body.org.countryCode)
+                      .replace("$semestre",req.body.admissionPeriod.semester)
+                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                      .replace("$mesCreacion",mes)
+                      .replace("$anioCreacion",anio);*/
+
+    if (dia==1) {
+      var html = htmlCartaDeAdmision.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image);
+
+    }else{
+      var html = htmlCartaDeAdmision.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image);
+    };
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+      var postulacionId = req.params.postulacionId
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          res.setHeader('Content-Type','application/pdf') 
+          res.send(200,new Buffer(data).toString('base64'));
+              
+      });
+
+    });
+
+});
+
+/*################################*/
+
+/* ######## CERTIFICADO ANALITICO TEMPLATE########### */
+ server.post({path : '/docs/:postulacionId/certificadoAnaliticoTemplate', version : '0.0.1'}, function(req,res,next){
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+    /*var html  =  htmlCartaDeAdmisionTemplate
+                      .replace("$apellidoPostulante",req.body.familyName)
+                      .replace("$nombrePostulante",req.body.givenName)
+                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                      .replace("$universidadOrigen",req.body.org.name)
+                      .replace("$paisOrigen",req.body.org.countryCode)
+                      .replace("$semestre",req.body.admissionPeriod.semester)
+                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                      .replace("$mesCreacion",mes)
+                      .replace("$anioCreacion",anio);*/
+
+
+                      /*armado de las filas*/
+    var filas = "";                  
+
+
+    for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
+      //postulacionData.data.uncInAcademicPerformanceList[i]
+      filas += "<tr><td>"+i+"</td>"+
+                    "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
+                    "<td>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
+                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
+                "</tr>"
+      
+
+    };
+
+    if (dia==1) {
+
+      var html = htmlCertificadoAnaliticoTemplate.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image)
+                             .replace('$fila', filas);
+
+
+
+
+    }else{
+      
+      var html = htmlCertificadoAnaliticoTemplate.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image)
+                             .replace('$fila', filas);
+    };
+    
+    console.log(html)
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('certificadoanaliticotemplate.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+      var postulacionId = req.params.postulacionId
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          res.setHeader('Content-Type','application/pdf') 
+          res.send(200,new Buffer(data).toString('base64'));
+              
+      });
+
+    });
+
+});
+
+/*################################*/
+
+/* ######## CERTIFICADO ANALITICO ########### */
+ server.post({path : '/docs/:postulacionId/certificadoAnalitico', version : '0.0.1'}, function(req,res,next){
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+    /*var html  =  htmlCartaDeAdmisionTemplate
+                      .replace("$apellidoPostulante",req.body.familyName)
+                      .replace("$nombrePostulante",req.body.givenName)
+                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                      .replace("$universidadOrigen",req.body.org.name)
+                      .replace("$paisOrigen",req.body.org.countryCode)
+                      .replace("$semestre",req.body.admissionPeriod.semester)
+                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                      .replace("$mesCreacion",mes)
+                      .replace("$anioCreacion",anio);*/
+
+
+                      /*armado de las filas*/
+    var filas = "";                  
+
+
+    for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
+      //postulacionData.data.uncInAcademicPerformanceList[i]
+      filas += "<tr><td>"+i+"</td>"+
+                    "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
+                    "<td>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
+                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
+                "</tr>"
+      
+
+    };
+
+    if (dia==1) {
+
+      var html = htmlCertificadoAnalitico.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image)
+                             .replace('$fila', filas);
+
+
+
+
+    }else{
+      
+      var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image)
+                             .replace('$fila', filas);
+    };
+    
+    console.log(html)
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+      var postulacionId = req.params.postulacionId
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          res.setHeader('Content-Type','application/pdf') 
+          res.send(200,new Buffer(data).toString('base64'));
+              
+      });
+
+    });
+
+});
+
+/*################################*/
+
+/* ###### REPORTE DEL ESTUDIANTE ############# */
+ server.post({path : '/docs/:postulacionId/reporteEstudiante', version : '0.0.1'}, function(req,res,next){
+    
+    var imagePerfil = path.join('file://', __dirname, '../file/'+req.body.urlPhoto)
+
+    var email = "";
+    for (var i = 0; i < req.body.enrrollmentEmailList.length; i++) {
+      email+= req.body.enrrollmentEmailList[i].email + " <br>"
+    };
+
+    var telefono = "";
+    for (var i = 0; i < req.body.enrrollmentPhoneList.length; i++) {
+      telefono+= req.body.enrrollmentPhoneList[i].phoneNumber + "("+req.body.enrrollmentPhoneList[i].countryCode+") &nbsp"
+    };
+
+    var contactoEmergencia = req.body.emergencyContact;
+
+    if(contactoEmergencia==null){
+      contactoEmergencia="";
+    }
+
+
+    var domicilio = "";
+    if(req.body.enrrollmentAddressList.buildingFloor==null){
+      for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
+        domicilio+= req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" ("+req.body.enrrollmentAddressList[i].countryCode+")<br>"
+      };
+    }else{
+      for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
+        domicilio+= req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street + " "+req.body.enrrollmentAddressList[i].streetNumber+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" ("+req.body.enrrollmentAddressList[i].countryCode+")<br>"
+      };
+    }
+
+    
+
+
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+    /*var html  =  htmlCartaDeAdmisionTemplate
+                      .replace("$apellidoPostulante",req.body.familyName)
+                      .replace("$nombrePostulante",req.body.givenName)
+                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                      .replace("$universidadOrigen",req.body.org.name)
+                      .replace("$paisOrigen",req.body.org.countryCode)
+                      .replace("$semestre",req.body.admissionPeriod.semester)
+                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                      .replace("$mesCreacion",mes)
+                      .replace("$anioCreacion",anio);*/
+
+    if (dia==1) {
+      var html = htmlReporteEstudiante.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image)
+                             .replace('$imagePerfil', imagePerfil)
+                             .replace('$fechaNacimiento', req.body.birthDate)
+                             .replace('$email', email)
+                             .replace('$telefono', telefono)
+                             .replace('$contactoEmergencia', contactoEmergencia)
+                             .replace('$domicilio', domicilio)
+                             .replace('$numeroPostulacion', req.body.numberEnrrollment)
+                             .replace('$periodoAdmision', req.body.admissionPeriod.year)
+                             .replace('$convocatoria', req.body.admissionPeriod.title);
+
+
+    }else{
+      var html = htmlReporteEstudiante.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.body.familyName)
+                             .replace("$nombrePostulante",req.body.givenName)
+                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.body.org.name)
+                             .replace("$paisOrigen",req.body.org.countryCode)
+                             .replace("$semestre",req.body.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image)
+                             .replace('$imagePerfil', imagePerfil)
+                             .replace('$fechaNacimiento', req.body.birthDate)
+                             .replace('$email', email)
+                             .replace('$telefono', telefono)
+                             .replace('$contactoEmergencia', contactoEmergencia)
+                             .replace('$domicilio', domicilio)
+                             .replace('$numeroPostulacion', req.body.numberEnrrollment)
+                             .replace('$periodoAdmision', req.body.admissionPeriod.year)
+                             .replace('$convocatoria', req.body.admissionPeriod.title);
+    };
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('reporteestudiante.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+      var postulacionId = req.params.postulacionId
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          res.setHeader('Content-Type','application/pdf') 
+          res.send(200,new Buffer(data).toString('base64'));
+              
+      });
+
+    });
+
+});
+
+/*################################*/
+
+
+
   server.get({path : '/postulaciones', version : '0.0.1'}, function(req,res,next){
 
 
@@ -687,11 +1227,11 @@ module.exports = function(server, conString, activeMail) {
       return next();
     }
 
-    if(!req.body.userSystemId){
-      // req.headers.usersystemidH=46385;
-      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      return next();
-    }
+    // if(!req.body.userSystemId){
+    //   // req.headers.usersystemidH=46385;
+    //   res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+    //   return next();
+    // }
 
 
     pg.connect(conString, function(err, client, done){
@@ -716,17 +1256,17 @@ module.exports = function(server, conString, activeMail) {
             if(iden.erased){
               //delete
           
-              sql.text = "select kuntur.f_u_enrrollment_Deletenationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.id];
+              sql.text = "select kuntur.f_u_deleteenrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
             else if(iden.id){
               //update
               sql.text = "select kuntur.f_u_enrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.countryCode, iden.id];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.id];
             }
             else if(!iden.erased){
               sql.text = "select kuntur.f_u_enrrollment_Insertnationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemidH, iden.countryCode];
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode];
               //insert
             }else{
               callback(false);
@@ -1421,12 +1961,12 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             }
             else if(studyProgram.id){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id];
+              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id, studyProgram.comment];
             }
             else if(!studyProgram.erased){
-              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id];
+              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+              sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.comment];
               //insert
             }else{
               callback(false);
@@ -2637,13 +3177,305 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
   });
 
-server.post({path:'/gonza', version:'0.0.1'}, function(req, res, next){
 
- 
-  res.send(200,req.body);
+  server.get({path : '/admissionPeriodAvaible', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
 
 
-});
+        var sql = {};
+        sql.text = "select kuntur.f_get_admission_period_by_org($1, (select id from kuntur.user_system where name = $2)) as respuesta"
+        sql.values = [req.params.orgId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+
+
+        
+    });
+
+  });
+
+  server.post({path : '/enrrollment', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_insert_enrrollment($1, (select id from kuntur.user_system where name = $2)) as respuesta"
+        sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+
+
+        
+    });
+
+  });
+
+
+
+
+    server.get({path : '/groups', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_get_groups() as respuesta"
+        //sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+
+  server.get({path : '/usersnotstudents', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_get_users_not_students() as respuesta"
+        //sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+  server.get({path : '/usergroup/:groupId', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_get_usersby_group($1) as respuesta"
+        sql.values = [req.params.groupId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+
+  server.post({path : '/usergroup', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_add_to_group($1, $2) as respuesta"
+        sql.values = [req.params.user_system_id, req.params.groupId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
+
+
+  server.del({path : '/usergroup', version : '0.0.1'}, function(req, res, next){
+
+    req.body=JSON.parse(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select kuntur.f_remove_from_group($1, $2) as respuesta"
+        sql.values = [req.body.user_system_id, req.body.groupId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          //sendMail(req.params.enrrollmentId);
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+        
+    });
+
+  });
 
 
 // ##### COORDINADORES Y DESPACHO ###### //
@@ -2742,7 +3574,7 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-    console.log(req.body)
+    console.log(req.body.coordinadoresNuevos)
 
     if(!req.headers.usersystemid){
       // req.body.userSystemId=46385;
@@ -2750,11 +3582,8 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-    /*
-    if(!req.body.enrrollmentEmailList){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No enrrollmentEmailList found in request.'});
-      return next();
-    }
+   
+   
 
     pg.connect(conString, function(err, client, done){
       if(err){
@@ -2772,70 +3601,121 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
         }
 
         var queryResult=false;
-        async.each(req.body.enrrollmentEmailList,
-          function(mail, callback){
-            var sql = {};
-            if(mail.erased){
-              //update
-              sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.auId, req.headers.usersystemid, mail.id];
-            }
-            else if(mail.id){
-              //delete
-              sql.text = "select kuntur.f_u_enrrollment_email($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
-              sql.values = [req.params.auId, req.headers.usersystemid, mail.email, mail.id];
-            }
-            else if(!mail.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
-              sql.values = [req.params.auId, req.headers.usersystemid, mail.email];
-              //insert
-            }else{
-              callback(false);
-            }
+        async.series([
+          function(callback){
+            var sql = "DELETE FROM kuntur.unc_in_academic_coordinator WHERE org_id=$1"; 
+            var params =[
+                  req.params.auId
+            ]
+            
 
-            var query = client.query(sql);
+            var query = client.query(sql,params, function(error){
 
-            query.on("row", function(row, result){
-             result.addRow(row);
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
+
+            });
+          }, function(callback){
+            var sql = "DELETE FROM kuntur.unc_in_academic_office WHERE org_id=$1"; 
+            var params =[
+                  req.params.auId
+            ]
+            
+
+            var query = client.query(sql,params, function(error){
+
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
+
+            });
+          }, function(callback){
+
+            async.forEach(req.body.coordinadoresNuevos, function(person,callbackInterno){
+
+               var sql = "INSERT INTO kuntur.unc_in_academic_coordinator VALUES (uuid_generate_v4()::varchar, false, $1, $2 )";
+               var params = [
+                  person.id,
+                  req.params.auId
+               ]
+
+
+              var query = client.query(sql,params, function(error){
+
+              if(error){
+                callbackInterno(error);
+              }else{
+                callbackInterno(null);
+              }
+
             });
 
-            query.on("end", function(result){
-              // done();
-              // if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
-              //   res.send(200,"OK");
-              // }else{
-              //   res.send(500,"Error in function f_u_enrrollment_url_photo");
-              // }
-              //hacer cosac cuando termine
-              queryResult=JSON.parse(result.rows[0].respuesta);
-              callback(false)
-            });//FIN CB END GUIVEN_NAME
+            }, function(error){
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
 
-          query.on("error",function(error){
-            console.log(error);
-            // done();
-            // res.send(500,error.message);
-            callback(error);
-          });
+            })
 
-          },
-          function(err){
-            //termine!
-            if(err){
-              console.log(err);
-              rollback(client, done);
-              res.send(500,err);
-            }else{
-              client.query('COMMIT', done);
-              res.send(200,queryResult);
-            }
+           
 
+           
+          }, function(callback){
+
+            async.forEach(req.body.despachoNuevo, function(person,callbackInterno){
+
+               var sql = "INSERT INTO kuntur.unc_in_academic_office VALUES (uuid_generate_v4()::varchar, false, $1, $2 )";
+               var params = [
+                  person.id,
+                  req.params.auId
+               ]
+
+
+              var query = client.query(sql,params, function(error){
+
+              if(error){
+                callbackInterno(error);
+              }else{
+                callbackInterno(null);
+              }
+
+            });
+
+            }, function(error){
+              if(error){
+                callback(error);
+              }else{
+                callback(null);
+              }
+
+            })
+
+           
+
+           
           }
-        );//end async
+        ],function(error){
+          done();
+           if(error){
+                console.log(error);
+                rollback(client, done);
+                res.send(500,err);
+              }else{
+                client.query('COMMIT', done);
+                res.send(200,queryResult);
+            }
+        });//end async
       });
 
     });//connect
-*/
+
         // var sql = {};
     // sql.text = "select kuntur.f_u_enrrollment_mails($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
     // sql.values = [req.params.auId, req.headers.usersystemidH, req.body.givenName, req.body.middleName, req.body.familyName];
