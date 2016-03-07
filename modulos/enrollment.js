@@ -490,11 +490,11 @@ var options = { format: 'Letter'};
     var domicilio = "";
     if(req.body.enrrollmentAddressList.buildingFloor==null){
       for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
-        domicilio+= req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+", "+req.body.enrrollmentAddressList[i].neighbourhood+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"<br>"
+        domicilio+= req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" ("+req.body.enrrollmentAddressList[i].countryCode+")<br>"
       };
     }else{
       for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
-        domicilio+= req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street + " "+req.body.enrrollmentAddressList[i].streetNumber+","+req.body.enrrollmentAddressList[i].neighbourhood+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"<br>"
+        domicilio+= req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street + " "+req.body.enrrollmentAddressList[i].streetNumber+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" ("+req.body.enrrollmentAddressList[i].countryCode+")<br>"
       };
     }
 
@@ -540,7 +540,10 @@ var options = { format: 'Letter'};
                              .replace('$email', email)
                              .replace('$telefono', telefono)
                              .replace('$contactoEmergencia', contactoEmergencia)
-                             .replace('$domicilio', domicilio);
+                             .replace('$domicilio', domicilio)
+                             .replace('$numeroPostulacion', req.body.numberEnrrollment)
+                             .replace('$periodoAdmision', req.body.admissionPeriod.year)
+                             .replace('$convocatoria', req.body.admissionPeriod.title);
 
 
     }else{
@@ -563,7 +566,10 @@ var options = { format: 'Letter'};
                              .replace('$email', email)
                              .replace('$telefono', telefono)
                              .replace('$contactoEmergencia', contactoEmergencia)
-                             .replace('$domicilio', domicilio);
+                             .replace('$domicilio', domicilio)
+                             .replace('$numeroPostulacion', req.body.numberEnrrollment)
+                             .replace('$periodoAdmision', req.body.admissionPeriod.year)
+                             .replace('$convocatoria', req.body.admissionPeriod.title);
     };
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
@@ -650,6 +656,7 @@ var options = { format: 'Letter'};
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
       ""+name+"," +
       ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+
 
 
     console.log(sql);
