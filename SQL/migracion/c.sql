@@ -717,7 +717,8 @@ CREATE OR REPLACE VIEW v_admission_period AS
 		ap.from_date,
 		ap.to_date,
 		ap.comment,
-		s.id AS admission_period_status_id
+		s.id AS admission_period_status_id,
+		false
 	FROM 	v_admission_period_b ap
 	JOIN	kuntur.admission_period_status s
 		ON s.code = ap.admission_period_status_id;
@@ -738,7 +739,8 @@ CREATE TABLE admission_period_tmp
 	  from_date date NOT NULL,
 	  to_date date NOT NULL,
 	  comment character varying,
-	  admission_period_status_id character varying
+	  admission_period_status_id character varying,
+	  is_agreement BOOLEAN
 );
 
 INSERT INTO admission_period_tmp (SELECT DISTINCT * FROM v_admission_period);
@@ -2312,32 +2314,55 @@ UPDATE kuntur.person
 WHERE CHAR_LENGTH(TRIM(url_photo)) <> (SELECT DISTINCT CHAR_LENGTH(TRIM(back_end_path)) FROM sys_file WHERE back_end_path IS NOT NULL);
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
-SELECT * FROM kuntur.group_system;
-SELECT * FROM kuntur.user_group;
-SELECT * FROM kuntur.user_system;
+-- SELECT * FROM kuntur.group_system;
+-- SELECT * FROM kuntur.user_group;
+-- SELECT * FROM kuntur.user_system;
+-- SELECT * FROM kuntur.unc_in_academic_office;
+
+
+CREATE OR REPLACE VIEW v_ca AS 
+
+	SELECT DISTINCT person_id FROM 	kuntur.unc_in_academic_coordinator;
 
 INSERT INTO kuntur.user_group (
-
+/*
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		false::BOOLEAN erased, 			
 		(SELECT id FROM kuntur.group_system x WHERE x.code = 'coordinator') AS group_system_id,
 		u.id AS user_system_id
 	FROM 	kuntur.user_system u
-	JOIN	kuntur.unc_in_academic_coordinator c
-		ON u.id = c.person_id
+	WHERE	(SELECT count(c.*) FROM kuntur.unc_in_academic_coordinator c WHERE c.person_id = u.id)	> 1
+*/
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 			
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'coordinator') AS group_system_id,
+		person_id AS user_system_id 
+	FROM 	v_ca
+	
 
 );
 
+CREATE OR REPLACE VIEW v_co AS 
+
+	SELECT DISTINCT person_id FROM 	kuntur.unc_in_academic_office ;
+
 INSERT INTO kuntur.user_group (
 
+/*
 	SELECT 	uuid_generate_v4()::varchar AS id, 
 		false::BOOLEAN erased, 			
 		(SELECT id FROM kuntur.group_system x WHERE x.code = 'office') AS group_system_id,
 		u.id AS user_system_id
 	FROM 	kuntur.user_system u
-	JOIN	kuntur.unc_in_academic_office o
-		ON u.id = o.person_id
+	WHERE	(SELECT count(c.*) FROM kuntur.unc_in_academic_office c WHERE c.person_id = u.id)	> 1
+*/
 
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased, 			
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'office') AS group_system_id,
+		person_id AS user_system_id 
+	FROM 	v_co
 );	
 
 INSERT INTO kuntur.user_group (
@@ -2351,6 +2376,11 @@ INSERT INTO kuntur.user_group (
 		ON u.id = s.id
 );
 
+
+
+
+
+
 INSERT INTO kuntur.user_group (
 
 	SELECT 	uuid_generate_v4()::varchar AS id, 
@@ -2361,6 +2391,19 @@ INSERT INTO kuntur.user_group (
 	WHERE	u.email ILIKE '%pri.unc.edu.ar%'
 
 );	
+
+
+INSERT INTO kuntur.user_group (
+
+	SELECT 	uuid_generate_v4()::varchar AS id, 
+		false::BOOLEAN erased,		
+		(SELECT id FROM kuntur.group_system x WHERE x.code = 'student') AS group_system_id,
+		u.id AS user_system_id
+	FROM 	kuntur.user_system u
+	WHERE 	u.id NOT IN (SELECT user_system_id FROM kuntur.user_group) 
+		AND u.id NOT IN (SELECT id FROM kuntur.student)
+
+);
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 

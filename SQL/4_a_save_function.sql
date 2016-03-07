@@ -3673,8 +3673,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION kuntur.f_get_users_not_students()
-  OWNER TO us_kuntur2;
+
 
 
 

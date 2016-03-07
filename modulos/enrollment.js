@@ -1662,11 +1662,11 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPhoto];
     }
-    else if("org" in req.body){
+    else if("org" in req.body){//en el caso que el estudiante haya encontrado su universidad cargada en el sistema
       sql.text = "select kuntur.f_u_enrrollment_org_id($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.org.id];
     }
-    else if("name" in req.body && "web" in req.body && "country" in req.body){
+    else if("name" in req.body && "web" in req.body && "country" in req.body){//este es el caso que el estudiante no haya encontrado su universidad y tenga q cargarla manual
       sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName];
     }
