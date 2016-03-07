@@ -81,9 +81,13 @@ server.post({path: '/file'}, function(req, res, next) {
     })
   };
   mkFileName(function(err, result) {
-    if(err) return res.send(500, err)
-    req.pipe(fs.createOutputStream(result.path));
-    res.send(200, {file: result.file});
+    if(err) return res.send(500, err);
+    var file = new Buffer(req.body.file, 'base64');
+    fs.outputFile(result.path, file, function(err) {
+      if(err) return res.send(500, err);
+      res.send(200, {file: result.file});
+    });
+
   })
 });
 
