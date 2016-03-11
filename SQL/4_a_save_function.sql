@@ -575,6 +575,8 @@ BEGIN
 	
 	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok; 
 
+	UPDATE kuntur.enrrollment SET org_id = NULL WHERE id = '' || $1 || '';
+
 	RETURN update_ok;
     
 END;
@@ -1980,9 +1982,13 @@ $$
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION kuntur.f_u_studentProfile(fName VARCHAR, mName VARCHAR, lName VARCHAR, gender BOOLEAN, bDate VARCHAR, bPlace VARCHAR, idOrg VARCHAR, iShortName VARCHAR, iName VARCHAR, iOriginalName VARCHAR, iWeb VARCHAR, 
-iCountry VARCHAR, us VARCHAR, idPerson VARCHAR) RETURNS BOOLEAN AS 
-$$
+-- Function: kuntur.f_u_studentprofile(character varying, character varying, character varying, boolean, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_u_studentprofile(character varying, character varying, character varying, boolean, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_studentprofile(fname character varying, mname character varying, lname character varying, gender boolean, bdate character varying, bplace character varying, idorg character varying, ishortname character varying, iname character varying, ioriginalname character varying, iweb character varying, icountry character varying, us character varying, idperson character varying, urlPhoto character varying)
+  RETURNS boolean AS
+$BODY$
 DECLARE
 
 	per BOOLEAN = false;
@@ -2001,7 +2007,7 @@ BEGIN
 
 	IF per THEN
 		UPDATE kuntur.person SET given_name = '' || $1 || '', middle_name = '' || $2 || '', family_name = '' || $3 || '', birth_date = $5::DATE , male =  $4 , 
-		birth_country_code = '' || $6 || '' WHERE id = '' || $14 || '';
+		birth_country_code = '' || $6 || '', url_photo = '' || $15 || '' WHERE id = '' || $14 || '';
 
 		IF idOrg is null THEN
 
@@ -2022,8 +2028,11 @@ BEGIN
 	RETURN true;
 
 END;
-$$
- LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3682,6 +3691,228 @@ $BODY$
 ALTER TABLE kuntur.user_group
   ADD CONSTRAINT user_group_unique_user_group UNIQUE (group_system_id, user_system_id);
 
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_urlPhoto(inenrrollment_id VARCHAR, user_system_id VARCHAR,urlPhoto VARCHAR);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_urlPhoto(inenrrollment_id VARCHAR, user_system_id VARCHAR,urlPhoto VARCHAR) RETURNS BOOLEAN AS
+$$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	sql VARCHAR = null;
+    
+BEGIN
+
+	sql = 'UPDATE kuntur.unc_in_enrrollment SET url_photo = ' || coalesce(urlPhoto, 'null') || ' WHERE id = ''' || $1 || ''' ';
+	
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	RETURN update_ok;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_origininal_transcript(inenrrollment_id character varying, user_system_id character varying, url_transcript character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_transcript IS NOT NULL AND CHAR_LENGTH(TRIM(url_transcript)) > 0 THEN
+
+		url = '''' || TRIM(url_transcript) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_origininal_transcript = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_origininal_transcript') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_cv(inenrrollment_id character varying, user_system_id character varying, url_cv character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_cv IS NOT NULL AND CHAR_LENGTH(TRIM(url_cv)) > 0 THEN
+
+		url = '''' || TRIM(url_cv) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_cv = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_cv') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_Passport(inenrrollment_id character varying, user_system_id character varying, url_pass character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_pass IS NOT NULL AND CHAR_LENGTH(TRIM(url_pass)) > 0 THEN
+
+		url = '''' || TRIM(url_pass) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_passport = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_passport') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_application_letter(inenrrollment_id character varying, user_system_id character varying, url_al character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_al IS NOT NULL AND CHAR_LENGTH(TRIM(url_al)) > 0 THEN
+
+		url = '''' || TRIM(url_al) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_application_letter = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_application_letter') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_language_certificate(inenrrollment_id character varying, user_system_id character varying, url_lc character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_lc IS NOT NULL AND CHAR_LENGTH(TRIM(url_lc)) > 0 THEN
+
+		url = '''' || TRIM(url_lc) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_language_certificate = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_language_certificate') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_certificate_psychophysical(inenrrollment_id character varying, user_system_id character varying, url_cp character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_cp IS NOT NULL AND CHAR_LENGTH(TRIM(url_cp)) > 0 THEN
+
+		url = '''' || TRIM(url_cp) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_certificate_psychophysical = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_certificate_psychophysical') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 

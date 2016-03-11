@@ -1643,7 +1643,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
   server.put({path:'/enrrollment/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
 
-
+    console.log("llegas")
+    console.log(req.body)
 
     if(!req.body){
       res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
@@ -1713,6 +1714,30 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.text = "select kuntur.f_u_enrrollment_languageCertificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.languageCertificate];
     }
+    else if("urlOrigininalTranscript" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_origininal_transcript($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlOrigininalTranscript];
+    }
+    else if("urlCv" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_cv($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlCv];
+    }
+    else if("urlPassport" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_Passport($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPassport];
+    }
+    else if("urlApplicationLetter" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_application_letter($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlApplicationLetter];
+    }
+    else if("urlLanguageCertificate" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_language_certificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlLanguageCertificate];
+    }
+    else if("urlCertificatePsychophysical" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_certificate_psychophysical($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlCertificatePsychophysical];
+    }
     else if("visa" in req.body){
       if(!req.body.visa){
         req.body.visa=null;
@@ -1739,6 +1764,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.comment, req.body.observation];
 
     }
+    // else if("urlPhoto" in req.body){
+    //         sql.text = "select kuntur.f_u_enrrollment_urlPhoto($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+    //         sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPhoto];
+    // }
     else{
       console.log("Incorrect parameters");
       res.send(409, {code: 409, message: 'Conflict', description: 'Incorrect parameters.'});
@@ -2335,13 +2364,13 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     var name=null;
     var web=null;
     var country=null; 
-    console.log(req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, req.body.person.student_org_id, req.body.person.student_short_name, req.body.person.student_institution_original_name, req.body.person.student_institution_name, req.body.person.student_institution_web_site, req.body.person.student_institution_country_code, req.headers.usersystemid, req.body.person.person_id)
+    // console.log(req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, req.body.person.student_org_id, req.body.person.student_short_name, req.body.person.student_institution_original_name, req.body.person.student_institution_name, req.body.person.student_institution_web_site, req.body.person.student_institution_country_code, req.headers.usersystemid, req.body.person.person_id)
     if(req.body.person.student_org_id){
       orgId=req.body.person.student_org_id;
 
       var sql = {};
-      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id];
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
 
     }else{
       shortName=req.body.person.student_short_name;
@@ -2350,8 +2379,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       web=req.body.person.student_institution_web_site;
       country=req.body.person.student_institution_country_code; 
       var sql = {};
-      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id];
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
 
     }
 
