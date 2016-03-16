@@ -74,7 +74,12 @@ var htmlCertificadoAnalitico = fs.readFileSync('certificadoanalitico.html', 'utf
 var htmlReporteEstudiante = fs.readFileSync('reporteestudiante.html', 'utf8');
 
 var image = path.join('file://', __dirname, '../logoUncPri.png')
-var options = { format: 'Letter'};
+var options = { format: 'Letter',
+                footer: {
+                    "height": "20mm",
+                    "contents": '<span style="color: #444;">{{page}}</span><span>{{pages}}</span>'
+                },
+              };
  
 
 
@@ -383,6 +388,9 @@ var options = { format: 'Letter'};
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
+      if(req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber<0){
+        req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber="-";
+      }
       filas += "<tr><td>"+i+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
@@ -468,11 +476,19 @@ var options = { format: 'Letter'};
 /* ###### REPORTE DEL ESTUDIANTE ############# */
  server.post({path : '/docs/:postulacionId/reporteEstudiante', version : '0.0.1'}, function(req,res,next){
     
-    var imagePerfil = path.join('file://', __dirname, '../file/'+req.body.urlPhoto)
+   var imagePerfil = path.join('file://', __dirname, '../files/'+req.body.urlPhoto.substr(0,2)+'/'+req.body.urlPhoto)
+
+ 
+
+
+    //var imagePerfil = path.join(__dirname, 'files', req.body.urlPhoto.substr(0,2), req.body.urlPhoto);
+
+    console.log("REQ BODY: ", req.body)
+
 
     var email = "";
     for (var i = 0; i < req.body.enrrollmentEmailList.length; i++) {
-      email+= req.body.enrrollmentEmailList[i].email + " <br>"
+      email+= req.body.enrrollmentEmailList[i].email + " "
     };
 
     var telefono = "";
@@ -488,17 +504,28 @@ var options = { format: 'Letter'};
 
 
     var domicilio = "";
-    if(req.body.enrrollmentAddressList.buildingFloor==null){
-      for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
-        domicilio+= req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" ("+req.body.enrrollmentAddressList[i].countryCode+")<br>"
-      };
-    }else{
-      for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
-        domicilio+= req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street + " "+req.body.enrrollmentAddressList[i].streetNumber+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" ("+req.body.enrrollmentAddressList[i].countryCode+")<br>"
-      };
-    }
 
+      console.log(req.body.enrrollmentAddressList)
+      for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
+
+        console.log(req.body.enrrollmentAddressList[i].countryName)
+
+        if(req.body.enrrollmentAddressList[i].provinceName===undefined){
+          req.body.enrrollmentAddressList[i].provinceName="";
+        }
+
+        if(req.body.enrrollmentAddressList[i].buildingFloor==null){
+          req.body.enrrollmentAddressList[i].buildingFloor="";  
+          req.body.enrrollmentAddressList[i].building="";
+          req.body.enrrollmentAddressList[i].buildingRoom="";
+        domicilio+= "[·] "+req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+"-"+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"-"+req.body.enrrollmentAddressList[i].provinceName+"-"+req.body.enrrollmentAddressList[i].countryName+"("+req.body.enrrollmentAddressList[i].countryCode+").<br>"
+        }else{
+
+        domicilio+= "[·] "+ req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street +" Nº "+ req.body.enrrollmentAddressList[i].streetNumber + " - "+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" - " +req.body.enrrollmentAddressList[i].provinceName+" - "+req.body.enrrollmentAddressList[i].countryName+" ("+req.body.enrrollmentAddressList[i].countryCode+") <br>"
+        }
+      };
     
+
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
@@ -535,7 +562,7 @@ var options = { format: 'Letter'};
                              .replace("$anioCreacion",anio)
                              .replace("$dia", "")
                              .replace('$image', image)
-                             .replace('$imagePerfil', imagePerfil)
+                             .replace('$perfil', imagePerfil)
                              .replace('$fechaNacimiento', req.body.birthDate)
                              .replace('$email', email)
                              .replace('$telefono', telefono)
@@ -543,7 +570,9 @@ var options = { format: 'Letter'};
                              .replace('$domicilio', domicilio)
                              .replace('$numeroPostulacion', req.body.numberEnrrollment)
                              .replace('$periodoAdmision', req.body.admissionPeriod.year)
-                             .replace('$convocatoria', req.body.admissionPeriod.title);
+                             .replace('$convocatoria', req.body.admissionPeriod.title)
+                             .replace('$numeroEstudiante', req.body.student.fileNumber);
+
 
 
     }else{
@@ -561,7 +590,7 @@ var options = { format: 'Letter'};
                              .replace("$anioCreacion",anio)
                              .replace("$dia", "días")
                              .replace('$image', image)
-                             .replace('$imagePerfil', imagePerfil)
+                             .replace('$perfil', imagePerfil)
                              .replace('$fechaNacimiento', req.body.birthDate)
                              .replace('$email', email)
                              .replace('$telefono', telefono)
@@ -569,9 +598,13 @@ var options = { format: 'Letter'};
                              .replace('$domicilio', domicilio)
                              .replace('$numeroPostulacion', req.body.numberEnrrollment)
                              .replace('$periodoAdmision', req.body.admissionPeriod.year)
-                             .replace('$convocatoria', req.body.admissionPeriod.title);
+                             .replace('$convocatoria', req.body.admissionPeriod.title)
+                             .replace('$numeroEstudiante', req.body.student.fileNumber);
+
+
     };
 
+    
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile('reporteestudiante.pdf', function(err, resPdf) {

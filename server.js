@@ -3,6 +3,7 @@ var restify = require('restify');
 var fs      = require('fs-extra');
 var async = require('async');
 var uuid = require('node-uuid');
+var path = require('path');
 
 var server = restify.createServer({
     name : "server kuntur"
@@ -56,7 +57,15 @@ server.use(restify.fullResponse());
 
 server.get({path: '/file/:file'}, function(req, res, next) {
   var file = req.params.file;
+
+  console.log(req.params.file)
+
   var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
+
+
+
+  console.log(filePath)
+
   fs.createReadStream(filePath).pipe(res);
 });
 
@@ -80,6 +89,20 @@ server.post({path: '/file'}, function(req, res, next) {
     res.send(200, {file: result.file});
   })
 });
+
+server.get({path:"/fileb64/:file"},function base64_encode(req, res, next) {
+    var file = req.params.file;
+
+    //console.log(req.params.file)
+
+    var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
+   // read binary data
+   var bitmap = fs.readFileSync(filePath);
+   // convert binary data to base64 encoded string
+   //console.log(new Buffer(bitmap).toString('base64'));
+   res.send(200, new Buffer(bitmap).toString('base64')) ;
+});
+
 
 require('./modulos/university')(server, conString);
 require('./modulos/agreement')(server, conString);
