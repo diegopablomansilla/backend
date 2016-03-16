@@ -2,7 +2,10 @@ var pg = require("pg")
 var fs      = require('fs');
 var async = require('async');
 var nodemailer = require('nodemailer');
+var uuid = require('node-uuid');
 // var smtpTransport = require('nodemailer-smtp-transport');
+
+var config = JSON.parse(fs.readFileSync('/etc/nodejs-config/kuntur.json'));
 
 var rollback = function(client, done) {
   client.query('ROLLBACK', function(err) {
@@ -43,6 +46,7 @@ module.exports = function(server, conString, activeMail) {
 
         done();
         if(result.rows.length > 0){
+          console.log(result.rows[0].f_find_enrrollment_by_id);
           res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
         }
         else{
@@ -1677,6 +1681,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
     else if("name" in req.body && "web" in req.body && "country" in req.body){//este es el caso que el estudiante no haya encontrado su universidad y tenga q cargarla manual
       sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName];
+      sendMailNewUniversity(req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName);
     }
     else if("birthCountryCode" in req.body && "birthDate" in req.body){
       console.log(req.body.birthDate)
@@ -2268,10 +2273,25 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
     return next();
   }
 
-  var sql = {};
-  sql.text = "select kuntur.f_new_student($1, $2, $3, $4, $5, $6) as respuesta";
-  sql.values = [req.body.name, req.body.lastName, req.body.mail, req.body.user, req.body.pass, req.body.country];
+  var token = uuid.v4();
 
+  var sql = {};
+  sql.text = "select kuntur.f_new_student($1, $2, $3, $4, $5, $6, $7) as respuesta";
+  sql.values = [req.body.name, req.body.lastName, req.body.mail, req.body.user, req.body.pass, req.body.country, token];
+
+  var url = config.frontend.protocol+'://'+config.frontend.hostname+':'+config.frontend.port+'token/'+token;
+
+
+  var transporter = nodemailer.createTransport({//smtpTransport(
+    host: 'titan.unc.edu.ar',
+    tls: {
+    "rejectUnauthorized": false
+    }
+  });//)
+
+  //console.log(queryResult.mailconfig)
+
+  
 
   pg.connect(conString, function(err, client, done){
     if(err){
@@ -2289,7 +2309,32 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
     query.on("end", function(result){
       done();
-      res.send(200,result.rows[0].respuesta);
+
+
+    var mailOptions = {
+      from: 'kuntur', // sender address
+      to: req.body.mail, // list of receivers
+      subject: 'Confirmacion de registro en kuntur', // Subject line
+      text: 'Este mail se le ha enviado porque ha ingresado una nueva cuenta de correo en el sistema kuntur de alumnos internacionales.\n'+
+      'Para confirmar la cuenta, por favor haga click en el siguiente enlace '+ url + '\n'+
+      'Si usted no ha realizado dicha acción, por favor, desestime este mensaje.'
+    };
+
+
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if(error){
+        return console.log(error);
+      }
+                    // console.log('Message sent: ' + info.response);
+
+     console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+
+    });
+
+    res.send(200,result.rows[0].respuesta);
+
+
     });//FIN CB END GUIVEN_NAME
 
     query.on("error",function(error){
@@ -2300,6 +2345,52 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
 
   });
+
+
+});
+
+server.get({path: '/validateMail/:token', version: '0.0.1'}, function(req, res, next){
+
+    var sql = {};
+    sql.text = "update kuntur.user_system set checked_mail = true where token_validation = $1 RETURNING id";
+    sql.values = [req.params.token];
+
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+
+        // console.log(result)
+        // console.log(result);
+        done();
+        if(result.rows.length>0){
+          res.send(200,true);
+        }
+        else{
+          res.send(200,false);
+        }
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+
+
+
+    });
 
 
 });
@@ -2315,7 +2406,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
     var sql = {};
     sql.text = "SELECT  * FROM kuntur.perfilArray($1)";
-    sql.values = [req.headers.usersystemid,];
+    sql.values = [req.headers.usersystemid];
   
     pg.connect(conString, function(err, client, done){
       if(err) {
@@ -3017,7 +3108,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
           // });
 
-          sendMail(req.params.enrrollmentId);
+          sendMail(req.params.enrrollmentId, req.headers.usersystemid);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
@@ -3038,7 +3129,272 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
   });
  //else if("name" in req.body && "web" in req.body && "country" in req.body){
 
-  var sendMail = function(enrrollmentId){
+  var sendMailNewUniversity = function(inenrrollmentId, usersystemid, name, web, country, shortName, institutionName){
+
+    if(activeMail){
+
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+        var sql = {};
+        sql.text = "select kuntur.f_info_mails($1) as respuesta"
+        sql.values = [enrrollmentId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+
+          queryResult=JSON.parse(result.rows[0].respuesta);
+          done();
+
+          for(var i in queryResult.mailadmins){
+
+              if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
+
+                var transporter = nodemailer.createTransport({//smtpTransport(
+                  host: 'titan.unc.edu.ar',
+                  tls: {
+                  "rejectUnauthorized": false
+                  }
+                });//)
+
+               console.log(queryResult.mailconfig)
+
+                var mailOptions = {
+                  from: 'kuntur', // sender address
+                  to: queryResult.mailadmins[i].email, // list of receivers
+                  subject: 'Nueva universidad solicitada', // Subject line
+                  text: 'El alumno numero '+ queryResult.numberStudent + ' ha cargado los siguientes datos como su universidad'+
+                  'nombre en español: '+ name + '\n'+
+                  'web: '+ web + '\n'+
+                  'pais: '+ country + '\n'+
+                  'siglas: '+ shortName + '\n'+
+                  'nombre original: '+ institutionName + '\n'+
+                  'en la postulacion numero '+queryResult.numberEnrrollment,// plaintext body
+                };
+
+  
+                
+
+                transporter.sendMail(mailOptions, function(error, info){
+                  if(error){
+                    return console.log(error);
+                  }
+                  // console.log('Message sent: ' + info.response);
+
+                  console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+
+                });                
+
+              }
+
+
+          }
+
+
+        });
+
+
+      });
+
+    }
+
+  }
+
+
+
+   var generateAnalitico = function(req){
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+    /*var html  =  htmlCartaDeAdmisionTemplate
+                      .replace("$apellidoPostulante",req.body.familyName)
+                      .replace("$nombrePostulante",req.body.givenName)
+                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+                      .replace("$universidadOrigen",req.body.org.name)
+                      .replace("$paisOrigen",req.body.org.countryCode)
+                      .replace("$semestre",req.body.admissionPeriod.semester)
+                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+                      .replace("$mesCreacion",mes)
+                      .replace("$anioCreacion",anio);*/
+
+
+                      /*armado de las filas*/
+    var filas = "";                  
+
+
+    for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
+      //postulacionData.data.uncInAcademicPerformanceList[i]
+      filas += "<tr><td>"+i+"</td>"+
+                    "<td>"+req.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>"+req.uncInAcademicPerformanceList[i].org.name+"</td>"+
+                    "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
+                    "<td>"+req.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].hs+"</td>"+
+                    "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
+                "</tr>"
+      
+
+    };
+
+    if (dia==1) {
+
+      var html = htmlCertificadoAnalitico.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.familyName)
+                             .replace("$nombrePostulante",req.givenName)
+                             .replace("$tipoDocumento",req.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.org.name)
+                             .replace("$paisOrigen",req.org.countryCode)
+                             .replace("$semestre",req.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image)
+                             .replace('$fila', filas);
+
+
+
+
+    }else{
+      
+      var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.familyName)
+                             .replace("$nombrePostulante",req.givenName)
+                             .replace("$tipoDocumento",req.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.org.name)
+                             .replace("$paisOrigen",req.org.countryCode)
+                             .replace("$semestre",req.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image)
+                             .replace('$fila', filas);
+    };
+    
+    console.log(html)
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          return new Buffer(data).toString('base64');
+              
+      });
+
+    });
+
+}
+
+
+  var generateAdmissionAct = function(req){
+    
+
+
+    //Generador de fecha actual al momento de realizar la carta de admision template
+    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var d = new Date()
+    var dia = d.getDate();
+    var mes = meses[d.getMonth()]
+    var anio = d.getFullYear()
+
+
+
+    if (dia==1) {
+      var html = htmlCartaDeAdmision.replace("$diaCreacion2","al primer día")
+                             .replace("$rotulosDias","")
+                             .replace("$apellidoPostulante",req.familyName)
+                             .replace("$nombrePostulante",req.givenName)
+                             .replace("$tipoDocumento",req.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.org.name)
+                             .replace("$paisOrigen",req.org.countryCode)
+                             .replace("$semestre",req.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "")
+                             .replace('$image', image);
+
+    }else{
+      var html = htmlCartaDeAdmision.replace("$rotulosDias","a los")
+                             .replace("$diaCreacion2",dia)
+                             .replace("$apellidoPostulante",req.familyName)
+                             .replace("$nombrePostulante",req.givenName)
+                             .replace("$tipoDocumento",req.enrrollmentIdentityList[0].name)
+                             .replace("$numeroDocumento",req.enrrollmentIdentityList[0].identityNumber)
+                             .replace("$universidadOrigen",req.org.name)
+                             .replace("$paisOrigen",req.org.countryCode)
+                             .replace("$semestre",req.admissionPeriod.semester)
+                             .replace("$anioPostulacion",req.admissionPeriod.year)
+                             .replace("$mesCreacion",mes)
+                             .replace("$anioCreacion",anio)
+                             .replace("$dia", "días")
+                             .replace('$image', image);
+    };
+
+   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+
+    pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
+      if (err) return console.log(err);
+      
+
+      
+      var content;
+// First I want to read the file
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
+
+          }
+          content = data;
+
+          return new Buffer(data).toString('base64');
+              
+      });
+
+    });
+
+  }
+
+
+
+  var sendMail = function(enrrollmentId, us){
 
     if(activeMail){// se activa/desactiva el mail desde el archivo config
 
@@ -3068,7 +3424,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
 
-
+          var admissionAct;
+          var academicPerformance;
 
           for(var i in queryResult.mailconfig){
 
@@ -3088,13 +3445,75 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                console.log(queryResult.mailconfig)
 
                 var mailOptions = {
-                  from: 'Fred Foo <foo@blurdybloop.com>', // sender address
+                  from: queryResult.mailConfig[j].from, // sender address
                   to: queryResult.stakeholders[j].email, // list of receivers
                   subject: queryResult.mailConfig[i].subject, // Subject line
-                  text: queryResult.mailConfig[i].body // plaintext body
+                  text: queryResult.mailConfig[i].body, // plaintext body
+                  attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
 
+                if(queryResult.mailConfig.sendAcademicPerformance || queryResult.mailConfig.sendAdmissionAct){
+
+
+                  var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
+                    "(SELECT id FROM kuntur.user_system WHERE name = '" + us + "'));";
+
+                    var query = client.query(sql);
+
+                    query.on("row", function(row, result){
+                      result.addRow(row);
+                    });
+
+                    query.on("end", function(result){
+                      //console.log(result.rows[0].f_find_enrrollment_by_id);
+
+                      done();
+                      if(result.rows.length > 0){
+                        res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
+
+
+
+                        if(queryResult.mailConfig.sendAdmissionAct){
+                          admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
+                          mailOptions.attachments.push({
+                            filename: 'nombre',//configurar nombre del adjuno
+                            content: admissionAct,//contenido
+                            encoding: 'base64'//codificancion
+                          });
+                        }
+
+                        if(queryResult.mailConfig.sendAcademicPerformance){
+                          academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
+                          mailOptions.attachments.push({
+                            filename: 'nombre',//configurar nombre del adjuno
+                            content: academicPerformance,//contenido
+                            encoding: 'base64'//codificancion
+                          });
+
+                        }
+
+
+                      }
+                      else{
+                        res.send(200,result.rows);
+                      }
+
+                    });
+
+                    query.on("error",function(error){
+                      console.log(error);
+                      done();
+                      res.send(500,error);
+
+                    });
+             
+
+
+                
+
+                if(queryResult.mailConfig.sendAdmissionAct){
+                }
                 
 
                 transporter.sendMail(mailOptions, function(error, info){
@@ -3110,7 +3529,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               }
 
             }
-
+}
 
           }
 
@@ -3126,10 +3545,6 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         
     });
-
-
-
-
 
 
         // var transporter = nodemailer.createTransport({//smtpTransport(
@@ -3186,7 +3601,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         query.on("end", function(result){
 
-          sendMail(req.params.enrrollmentId);
+          sendMail(req.params.enrrollmentId, req.headers.usersystemid);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
@@ -3231,7 +3646,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         query.on("end", function(result){
 
-          sendMail(req.params.enrrollmentId);
+          sendMail(req.params.enrrollmentId, req.headers.usersystemid);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
@@ -3275,7 +3690,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         query.on("end", function(result){
 
-          sendMail(req.params.enrrollmentId);
+          sendMail(req.params.enrrollmentId, req.headers.usersystemid);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();

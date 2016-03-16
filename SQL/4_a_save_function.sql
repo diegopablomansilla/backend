@@ -1814,10 +1814,9 @@ $$ LANGUAGE plpgsql;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS  kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR);
-
-CREATE OR REPLACE FUNCTION kuntur.f_new_student(name VARCHAR, lastName VARCHAR, mail VARCHAR, us VARCHAR, pass VARCHAR, country VARCHAR) RETURNS BOOLEAN AS
-$$
+CREATE OR REPLACE FUNCTION kuntur.f_new_student(name character varying, lastname character varying, mail character varying, us character varying, pass character varying, country character varying, token character varying)
+  RETURNS boolean AS
+$BODY$
 DECLARE    	
 
 	person_id varchar = 'null';
@@ -1830,7 +1829,7 @@ BEGIN
 
 	insert into kuntur.person_email(id, erased, email, person_id) values (uuid_generate_v4()::varchar, false, ''|| coalesce($3, null) ||'', person_id);
 
-	insert into kuntur.user_system(id, erased, name, pass, email, checked_mail) values (person_id, false, ''|| coalesce($4, null) ||'', ''|| coalesce($5, null) ||'', ''|| coalesce($3, null) ||'', false);
+	insert into kuntur.user_system(id, erased, name, pass, email, checked_mail, token_validation) values (person_id, false, ''|| coalesce($4, null) ||'', ''|| coalesce($5, null) ||'', ''|| coalesce($3, null) ||'', false, ''|| coalesce($7, null) ||'');
 
 	insert into kuntur.user_group(id, erased, user_system_id, group_system_id) values (uuid_generate_v4()::varchar, false, person_id, (select id from kuntur.group_system where code = 'student'));
 
@@ -1840,7 +1839,11 @@ BEGIN
 	
     
 END;
-$$ LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_new_student(character varying, character varying, character varying, character varying, character varying, character varying)
+  OWNER TO us_kuntur_demo;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3915,4 +3918,39 @@ $BODY$
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+--select * from kuntur.user_system us join kuntur.user_group ug on ug.user_system_id = us.id join kuntur.group_system gs on gs.id = ug.group_system_id where gs.code = 'admin'
 
+CREATE OR REPLACE FUNCTION kuntur.f_send_mail_new_university(inenrrollmentId VARCHAR, usersystemid VARCHAR) RETURNS VARCHAR AS
+$$
+DECLARE
+
+	mailAdmins json = null;
+	numberEnrrollment json = null;
+	numberStudent json = null;
+	result json = null;
+
+BEGIN
+
+	WITH t AS(
+		select email from kuntur.user_system us join kuntur.user_group ug on ug.user_system_id = us.id join kuntur.group_system gs on gs.id = ug.group_system_id where gs.code = 'admin'
+	)
+	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO mailAdmins FROM t;
+
+	select number_enrrollment into numberEnrrollment from kuntur.enrrollment where id = $1;
+
+	select file_number into numberStudent from kuntur.student where id = $2;
+
+
+	with r as(
+		select numberStudent, numberEnrrollment, mailAdmins
+	)
+	select row_to_json(r.*) into result from r;--array_to_json()array_agg()
+
+
+	return result;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
