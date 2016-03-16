@@ -22,45 +22,8 @@ var rollback = function(client, done) {
   });
 };
 
-var findId = function(id, array){
-  for(i in array){
-
-    if(array[i].id==id){
-
-      return i;
-    }else{
-      return null;
-    }
-  }
-}
-
-var recursiva = function(originalTree, nodo){
-
-  // nodo.children.forEach()
-  if(nodo.children.length>0){//completar
-
-    for(i in nodo.children){
-      (function(p){
-
-        if(p=='first'){
-
-        }
-        var j = findId(nodo.children[p].id, originalTree.children);
 
 
-        if(j){
-
-          recursiva(originalTree.children[j],nodo.children[p]);
-        }else{
-
-          originalTree.children.push(nodo.children[p]);
-        }
-      })(i);
-    }
-  }else{
-
-  }
-}
 
 module.exports = function(server, conString) {
   server.get({path : '/contacts', version : '0.0.1'} , function(req, res , next){
@@ -784,6 +747,120 @@ module.exports = function(server, conString) {
   	});
   });
 
+
+  var findId = function(id, array){
+
+
+    for(var i = 0; i < array.length;i++){
+    //for(i in array){
+//console.log(array);
+//console.log("id:", id)
+// console.log("id: "+id+" vs "+array[i].id)
+        if(array[i].id==id){
+
+
+          return i;
+        }
+        // else{
+        //   console.log("id: "+id);
+        //   console.log("array: "+array[i].id);
+          // console.log("arrai:"+array[i].id);
+  
+        // }
+      }
+    
+        console.log("id:"+id);
+          return null;
+  }
+
+
+
+  var recursiva = function(originalTree, nodo){
+//console.log(originalTree)
+  // nodo.children.forEach()
+  //console.log(originalTree)
+  if(nodo.children.length>0){//completar
+
+    for(i in nodo.children){
+      (function(p){
+        
+        if(p=='first'){
+
+        }
+
+        var j = findId(nodo.id, originalTree.children);//.children[p]        
+
+
+        if(j){
+          
+          recursiva(originalTree.children[j],nodo.children[p]);
+        }else{
+
+          originalTree.children.push(nodo.children[p]);
+        }
+      })(i);
+    }
+  }else{
+    
+  }
+}
+
+  var recursiva2 = function(originalTree, nodo){
+//  if(originalTree.length>1)
+//  console.log("nodo+")
+// console.log(nodo)
+  // nodo.children.forEach()
+  //console.log(originalTree)
+  //if(nodo.length>0){//completar
+
+    for(var i = 0; i < nodo.length;i++){
+    //for(i in nodo){
+      (function(p){
+        
+        // if(p=='first'){
+
+        // }
+                // console.log(p)
+        var j = findId(nodo[p].id, originalTree);//.children[p]        
+        if(nodo[p].id=='ff808082385897cc01387c4e53270065'){
+                        // ff808082385897cc01387c4e53270065
+         //  console.log("pushhhhhhhhhhhhhh")
+         // console.log(originalTree)
+         // console.log(j)
+        }
+//console.log(j)
+        if(j!=null){
+          // console.log(j)
+          if(nodo[p].children.length>0){
+            // console.log(nodo[p]);
+            // for(var x = 0; x < nodo[p].children.length;x++){
+            //for(x in nodo[p].children){
+              // (function(g){
+                 // console.log(originalTree[j].children)
+                recursiva2(originalTree[j].children,nodo[p].children);//[g]
+               // })(x);
+            // }
+          }else{
+            return;
+          }
+        }else{
+          // console.log("j:"+j)
+          // console.log(nodo[push])
+          // if(nodo[p].id=='ff808082385897cc01387c4e53270065')
+          //   console.log("pushhhhhhhhhh")
+          // console.log(originalTree)
+          originalTree.push(nodo[p]);//.children
+          
+          return;
+        }
+      })(i);
+    }
+  //}else{
+    
+  //}
+}
+
+
   //Prueba es el verdadero org2
   server.get({path : '/orgs2lvl', version : '0.0.1'} , function(req, res , next){
 
@@ -804,21 +881,27 @@ module.exports = function(server, conString) {
 
   		query.on("end",function(result){
   			done();
-  			var original=result.rows[0];
-
+  			var original=[];
+        original.push(result.rows[0]);
+        // console.log(original)
   			// for(var i=1;i<result.rows.length;i++){
 
   			// 	recursiva(original,result.rows[i])
   			// }
 
   			for(var i = 1; i < result.rows.length;i++){
+         
   		        (function(j){
-  		        	recursiva(original,result.rows[j]);
+ // console.log(j)
+                var auxArray = [];
+                auxArray.push(result.rows[j])
+  		        	recursiva2(original,auxArray);
+                
   		        })(i);
     			}
 
   			//res.send(200,result.rows);
-  			res.send(200,original);
+  			res.send(200,original[0]);
   		});
 
       query.on("error", function(row, result){

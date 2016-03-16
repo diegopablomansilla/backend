@@ -27,6 +27,11 @@ server.get({path: '/test'}, function(req, res, next) {
   res.send('Ok');
 });
 
+server.use(function(req, res, next) {
+  console.log(req.url);
+  next();
+})
+
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
 var corsOptions={
@@ -73,8 +78,11 @@ server.post({path: '/file'}, function(req, res, next) {
   var n = 0;
   var mkFileName = function(cb) {
     var file = uuid.v4();
+    // console.log(__dirname+' '+'files'+' '+ file.substr(0,2)+' '+ file);
     var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
-    fs.stat(function(err, stat) {
+    // console.log('pas{o '+filePath);
+    fs.stat(filePath, function(err, stat) {
+      console.log(err);
       if(err) return cb(null, {file: file, path: filePath});
       if(n == 40) {
         return cb({status: 'err', message: 'No se puede crear el archivo'});
@@ -84,9 +92,21 @@ server.post({path: '/file'}, function(req, res, next) {
     })
   };
   mkFileName(function(err, result) {
-    if(err) return res.send(500, err)
-    req.pipe(fs.createOutputStream(result.path));
-    res.send(200, {file: result.file});
+    // console.log('holaaaaa???');
+    if(err) {
+      console.log(err);
+      return res.send(500, err);
+    }
+    // console.log('holaaaaa???2');
+    // console.log(req.body.file.split(",")[1]);
+    // console.log(req.body.file);
+    var file = new Buffer(req.body.file.split(",")[1], 'base64');
+    // console.log(file);
+    fs.outputFile(result.path, file, function(err) {
+      if(err) return res.send(500, err);
+      res.send(200, {file: result.file});
+    });
+
   })
 });
 
