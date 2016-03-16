@@ -1754,7 +1754,7 @@ DECLARE
     
 BEGIN
 
-	SELECT count(us.id) into num from kuntur.user_system us where us.name = '' || $1 ||'' and us.pass = '' || $2 || ''; 
+	SELECT count(us.id) into num from kuntur.user_system us where us.name = '' || $1 ||'' and us.pass = '' || $2 || '' and checked_mail = true; 
 
 	IF num > 0 THEN
 
