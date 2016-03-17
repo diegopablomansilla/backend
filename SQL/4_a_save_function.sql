@@ -3954,3 +3954,32 @@ $$
 LANGUAGE plpgsql;
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------Credenciales UNiversitarias-------------------------------------------------------
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_university_credential(inenrrollment_id character varying, user_system_id character varying, url_crendential character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_credential IS NOT NULL AND CHAR_LENGTH(TRIM(url_credential)) > 0 THEN
+
+		url = '''' || TRIM(url_credential) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_university_credential = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.verduras_total_es_pri') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
