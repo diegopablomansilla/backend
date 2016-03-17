@@ -1772,6 +1772,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.text = "select kuntur.f_u_enrrollment_url_language_certificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlLanguageCertificate];
     }
+    else if("urlUniversityCredential" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_university_credential($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlUniversityCredential];
+    }
     else if("urlCertificatePsychophysical" in req.body){
       sql.text = "select kuntur.f_u_enrrollment_url_certificate_psychophysical($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlCertificatePsychophysical];
