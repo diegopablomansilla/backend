@@ -2408,9 +2408,9 @@ INSERT INTO kuntur.user_group (
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-update kuntur.unc_in_enrrollment set observation = REPLACE(observation, '"', '\\"')
+update kuntur.unc_in_enrrollment set observation = REPLACE(observation, '"', '\\"');
 
-update kuntur.unc_in_study_program set subject = REPLACE(subject, '"', '\\"')
+update kuntur.unc_in_study_program set subject = REPLACE(subject, '"', '\\"');
 ----------------------------------------------------------------------------------------------------------------------------------------------------	
 
 SELECT 'FIN DEL PROCESO C'::VARCHAR FROM postulation LIMIT 100;
