@@ -46,7 +46,6 @@ module.exports = function(server, conString, activeMail) {
 
         done();
         if(result.rows.length > 0){
-          console.log(result.rows[0].f_find_enrrollment_by_id);
           res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
         }
         else{
@@ -334,7 +333,7 @@ var options = { format: 'Letter',
                              .replace('$fila', filas);
     };
     
-    console.log(html)
+    // console.log(html)
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
@@ -447,7 +446,7 @@ var options = { format: 'Letter',
                              .replace('$fila', filas);
     };
     
-    console.log(html)
+    // console.log(html)
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
@@ -487,7 +486,7 @@ var options = { format: 'Letter',
 
     //var imagePerfil = path.join(__dirname, 'files', req.body.urlPhoto.substr(0,2), req.body.urlPhoto);
 
-    console.log("REQ BODY: ", req.body)
+    // console.log("REQ BODY: ", req.body)
 
 
     var email = "";
@@ -509,10 +508,10 @@ var options = { format: 'Letter',
 
     var domicilio = "";
 
-      console.log(req.body.enrrollmentAddressList)
+      // console.log(req.body.enrrollmentAddressList)
       for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
 
-        console.log(req.body.enrrollmentAddressList[i].countryName)
+        // console.log(req.body.enrrollmentAddressList[i].countryName)
 
         if(req.body.enrrollmentAddressList[i].provinceName===undefined){
           req.body.enrrollmentAddressList[i].provinceName="";
@@ -696,7 +695,7 @@ var options = { format: 'Letter',
 
 
 
-    console.log(sql);
+    // console.log(sql);
     pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -1680,8 +1679,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
   server.put({path:'/enrrollment/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
 
-    console.log("llegas")
-    console.log(req.body)
+    // console.log("llegas")
+    // console.log(req.body)
 
     if(!req.body){
       res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
@@ -1717,7 +1716,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sendMailNewUniversity(req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName);
     }
     else if("birthCountryCode" in req.body && "birthDate" in req.body){
-      console.log(req.body.birthDate)
+      // console.log(req.body.birthDate)
       sql.text = "select kuntur.f_u_enrrollment_birth($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.birthDate, req.body.birthCountryCode];
     }
@@ -1811,7 +1810,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
     //         sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPhoto];
     // }
     else{
-      console.log("Incorrect parameters");
+      // console.log("Incorrect parameters");
       res.send(409, {code: 409, message: 'Conflict', description: 'Incorrect parameters.'});
       return;
     }
@@ -2049,7 +2048,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             });
 
             query.on("end", function(result){
-              console.log(JSON.parse(result.rows[0].respuesta));
+              // console.log(JSON.parse(result.rows[0].respuesta));
               queryResult=JSON.parse(result.rows[0].respuesta);
               callback(false)
             });//FIN CB END GUIVEN_NAME
@@ -2206,7 +2205,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
       query.on("end", function(result){
         done();
-        console.log(result.rows[0].respuesta);
+        // console.log(result.rows[0].respuesta);
         if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el balor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
           res.send(200,result.rows[0].respuesta);
         }else{
@@ -2365,7 +2364,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
       }
                     // console.log('Message sent: ' + info.response);
 
-     console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+     // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
     });
 
@@ -2859,10 +2858,10 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
         async.each(req.body.person.identities,
           function(iden, callback){
             var sql = {};
-            console.log(req.headers.usersystemid);
+            // console.log(req.headers.usersystemid);
             if(iden.erased){
               //delete
-              console.log(iden);
+              // console.log(iden);
               sql.text = "select kuntur.f_d_student_document($1, $2, $3) as respuesta"
               sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.id];
             }
@@ -2950,10 +2949,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
         async.each(req.body.person.addresses,
           function(iden, callback){
             var sql = {};
-            console.log(req.headers.usersystemid);
+            // console.log(req.headers.usersystemid);
             if(iden.erased){
               //delete
-              console.log(iden);
+              // console.log(iden);
               sql.text = "select kuntur.f_d_student_address($1, $2, $3) as respuesta"
               sql.values = [req.params.person.person_id, req.headers.usersystemid, iden.id];
             }
@@ -3108,8 +3107,6 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           return next();
         }
 
-
-        console.log(req.params);
         var sql = {};
         sql.text = "select kuntur.f_change_state($1, $2, $3) as respuesta"
         sql.values = [req.params.enrrollmentId, req.headers.usersystemid, req.params.statusCode];
@@ -3205,7 +3202,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   }
                 });//)
 
-               console.log(queryResult.mailconfig)
+
 
                 var mailOptions = {
                   from: 'kuntur', // sender address
@@ -3229,7 +3226,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   }
                   // console.log('Message sent: ' + info.response);
 
-                  console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+                  // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
                 });                
 
@@ -3329,7 +3326,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                              .replace('$fila', filas);
     };
     
-    console.log(html)
+
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
@@ -3479,7 +3476,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   }
                 });//)
 
-               console.log(queryResult.mailconfig)
+ 
 
                 var mailOptions = {
                   from: queryResult.mailConfig[j].from, // sender address
@@ -3559,7 +3556,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   }
                   // console.log('Message sent: ' + info.response);
 
-                  console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+                  // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
                 });                
 
@@ -4055,7 +4052,6 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-    console.log(req.body.coordinadoresNuevos)
 
     if(!req.headers.usersystemid){
       // req.body.userSystemId=46385;
