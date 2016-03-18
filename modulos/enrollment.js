@@ -511,9 +511,9 @@ var options = { format: 'Letter',
       // console.log(req.body.enrrollmentAddressList)
       for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
 
-        // console.log(req.body.enrrollmentAddressList[i].countryName)
+        console.log(req.body.enrrollmentAddressList[i].countryName)
 
-        if(req.body.enrrollmentAddressList[i].provinceName===undefined){
+        if(req.body.enrrollmentAddressList[i].provinceName===undefined || req.body.enrrollmentAddressList[i].provinceName===null ){
           req.body.enrrollmentAddressList[i].provinceName="";
         }
 
