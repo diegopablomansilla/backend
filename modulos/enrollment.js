@@ -2365,6 +2365,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
     transporter.sendMail(mailOptions, function(error, info){
       if(error){
+        console.log("mail de confirmacion error:");
         return console.log(error);
       }
                     // console.log('Message sent: ' + info.response);
