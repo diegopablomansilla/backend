@@ -79,6 +79,10 @@ BEGIN
 
 		RETURN true;
 
+	ELSEIF $2 = 'enrrollment.url_exchange_form' AND ($1 = '1A' OR $1 = '3C') THEN
+
+		RETURN true;
+
 	ELSEIF $2 = 'unc_in_enrrollment.url_application_letter' AND ($1 = '1A' OR $1 = '3C') THEN
 
 		RETURN true;	
@@ -86,6 +90,10 @@ BEGIN
 	ELSEIF $2 = 'unc_in_enrrollment.url_certificate_psychophysical' AND ($1 = '1A' OR $1 = '3C') THEN
 
 		RETURN true;	
+
+	ELSEIF $2 = 'unc_in_enrrollment.url_exchange_form' AND ($1 = '1A' OR $1 = '3C') THEN
+	
+		RETURN true;		
 
 	ELSEIF $2 = 'enrrollment_nationality' AND ($1 = '1A' OR $1 = '3C') THEN
 
@@ -1446,7 +1454,35 @@ BEGIN
 
 	IF type_user = 'STUDENT' THEN
 
-		sql = 'UPDATE kuntur.unc_in_study_program SET subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''''; 		
+		IF $5 IS NOT NULL THEN
+
+			v_approved = $5::VARCHAR;
+
+		END IF;
+
+		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
+
+			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
+
+			if(mn is null) then
+				mn = 'null';
+			end if;
+
+			if(fn is null) then
+				fn = 'null';
+			end if;
+
+			if(gn is null) then
+				gn = 'null';
+			end if;
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || '''';
+
+		ELSE
+		
+			sql = 'UPDATE kuntur.unc_in_study_program SET subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''''; 		
+
+		END IF;
 		
 		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1486,7 +1522,7 @@ BEGIN
 			end if;
 			
 			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
-
+		
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
 		ELSE
@@ -1579,6 +1615,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+
 
 
 
@@ -4018,3 +4056,39 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_exchange_form(inenrrollment_id character varying, user_system_id character varying, url_form character varying)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	url VARCHAR = 'null';	
+	sql VARCHAR = null;
+    
+BEGIN
+	
+	IF url_form IS NOT NULL AND CHAR_LENGTH(TRIM(url_form)) > 0 THEN
+
+		url = '''' || TRIM(url_form) || '''';
+	
+	END IF;	
+		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_exchange_form = ' || url || ' WHERE id = ''' || $1 || ''' ';
+	--raise exception '%', sql;
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_exchange_form') INTO update_ok; 
+	
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

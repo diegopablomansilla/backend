@@ -1780,6 +1780,10 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       sql.text = "select kuntur.f_u_enrrollment_url_certificate_psychophysical($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlCertificatePsychophysical];
     }
+    else if("urlExchangeForm" in req.body){
+      sql.text = "select kuntur.f_u_enrrollment_url_exchange_form($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlExchangeForm];
+    }
     else if("visa" in req.body){
       if(!req.body.visa){
         req.body.visa=null;
@@ -2320,7 +2324,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
 
   var transporter = nodemailer.createTransport({//smtpTransport(
-    host: 'titan.unc.edu.ar',
+    host: 'tortuga.unc.edu.ar',
     tls: {
     "rejectUnauthorized": false
     }
@@ -3197,7 +3201,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: 'titan.unc.edu.ar',
+                  host: 'tortuga.unc.edu.ar',
                   tls: {
                   "rejectUnauthorized": false
                   }
@@ -3471,7 +3475,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: 'titan.unc.edu.ar',
+                  host: 'tortuga.unc.edu.ar',
                   tls: {
                   "rejectUnauthorized": false
                   }
