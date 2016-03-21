@@ -4040,9 +4040,9 @@ DECLARE
     
 BEGIN
 	
-	IF url_credential IS NOT NULL AND CHAR_LENGTH(TRIM(url_credential)) > 0 THEN
+	IF $3 IS NOT NULL AND CHAR_LENGTH(TRIM($3)) > 0 THEN
 
-		url = '''' || TRIM(url_credential) || '''';
+		url = '''' || TRIM($3) || '''';
 	
 	END IF;	
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_university_credential = ' || url || ' WHERE id = ''' || $1 || ''' ';
