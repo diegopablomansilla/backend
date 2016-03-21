@@ -2324,7 +2324,9 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
 
   var transporter = nodemailer.createTransport({//smtpTransport(
-    host: 'tortuga.unc.edu.ar'
+    host: 'tortuga.unc.edu.ar',
+    logger: true,
+    debug: true
     // tls: {
     // "rejectUnauthorized": false
     // }
