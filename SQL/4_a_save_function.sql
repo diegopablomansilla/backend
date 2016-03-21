@@ -1842,8 +1842,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION kuntur.f_new_student(character varying, character varying, character varying, character varying, character varying, character varying)
-  OWNER TO us_kuntur_demo;
+
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

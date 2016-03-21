@@ -70,11 +70,12 @@ module.exports = function(server, conString, activeMail) {
 var fs = require('fs');
 var path = require('path');
 var pdf = require('html-pdf');
-var htmlCartaDeAdmisionTemplate = fs.readFileSync('cartadeadmisiontemplate.html', 'utf8');
-var htmlCartaDeAdmision = fs.readFileSync('cartadeadmision.html','utf8');
-var htmlCertificadoAnaliticoTemplate = fs.readFileSync('certificadoanaliticotemplate.html', 'utf8');
-var htmlCertificadoAnalitico = fs.readFileSync('certificadoanalitico.html', 'utf8');
-var htmlReporteEstudiante = fs.readFileSync('reporteestudiante.html', 'utf8');
+var htmlCartaDeAdmisionTemplate = fs.readFileSync(path.join(__dirname, '../cartadeadmisiontemplate.html'), 'utf8');
+console.log("Html path nuevo:",htmlCartaDeAdmisionTemplate)
+var htmlCartaDeAdmision = fs.readFileSync(path.join(__dirname, '../cartadeadmision.html'),'utf8');
+var htmlCertificadoAnaliticoTemplate = fs.readFileSync(path.join(__dirname, '../certificadoanaliticotemplate.html'), 'utf8');
+var htmlCertificadoAnalitico = fs.readFileSync(path.join(__dirname, '../certificadoanalitico.html'), 'utf8');
+var htmlReporteEstudiante = fs.readFileSync(path.join(__dirname, '../reporteestudiante.html'), 'utf8');
 
 var image = path.join('file://', __dirname, '../logoUncPri.png')
 var options = { format: 'Letter',
@@ -142,7 +143,7 @@ var options = { format: 'Letter',
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile('cartadeadmisiontemplate.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmisiontemplate.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
       
       var postulacionId = req.params.postulacionId
@@ -227,7 +228,7 @@ var options = { format: 'Letter',
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
       
       var postulacionId = req.params.postulacionId
@@ -337,7 +338,7 @@ var options = { format: 'Letter',
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile('certificadoanaliticotemplate.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanaliticotemplate.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
       
       var postulacionId = req.params.postulacionId
@@ -450,7 +451,7 @@ var options = { format: 'Letter',
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
       
       var postulacionId = req.params.postulacionId
@@ -610,7 +611,7 @@ var options = { format: 'Letter',
     
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile('reporteestudiante.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../reporteestudiante.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
       
       var postulacionId = req.params.postulacionId

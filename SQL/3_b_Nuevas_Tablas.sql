@@ -1,4 +1,4 @@
-
+﻿
 
 CREATE TABLE kuntur.mail_config
 (
@@ -36,8 +36,11 @@ ALTER TABLE kuntur.user_group
   ADD CONSTRAINT user_group_unique_user_group UNIQUE (group_system_id, user_system_id);
 
 
+ALTER TABLE kuntur.user_system
+  ADD CONSTRAINT u_email UNIQUE (email);
 
-update kuntur.unc_in_enrrollment set observation = REPLACE(observation, '"', '\\"')
 
-update kuntur.unc_in_study_program set subject = REPLACE(subject, '"', '\\"')
+
+
+
 
