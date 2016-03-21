@@ -1412,6 +1412,10 @@ $BODY$
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Function: kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_u_enrrollment_instudyprogram(character varying, character varying, character varying, character varying, boolean, character varying, character varying, character varying);
+
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, appr boolean, legajoguarani character varying, studyprogramid character varying, comentarios character varying)
   RETURNS boolean AS
 $BODY$
@@ -1428,11 +1432,11 @@ DECLARE
 
 	var_approved BOOLEAN = false;
 
-	v_file_number VARCHAR = 'NULL';
-	v_subject VARCHAR = 'NULL';
-	v_org_id VARCHAR = 'NULL';
-	v_approved VARCHAR = 'NULL';
-	v_comment VARCHAR = 'NULL';
+	v_file_number VARCHAR = 'null';
+	v_subject VARCHAR = 'null';
+	v_org_id VARCHAR = 'null';
+	v_approved VARCHAR = 'null';
+	v_comment VARCHAR = 'null';
 
 	
     
@@ -1458,12 +1462,30 @@ BEGIN
 
 		END IF;
 
+		IF $5 IS NOT NULL THEN
+
+			v_approved = $5::VARCHAR;
+
+		END IF;
+
 
 		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || COALESCE($5, 'false') || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
+			if(mn is null) then
+				mn = 'null';
+			end if;
+
+			if(fn is null) then
+				fn = 'null';
+			end if;
+
+			if(gn is null) then
+				gn = 'null';
+			end if;
+			
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
 
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1521,6 +1543,18 @@ BEGIN
 		IF (var_approved is null and $5 is not null) or (var_approved is not null and $5 is null) or (var_approved <> $5) THEN --CONTROLO QUE SE CAMBIO EL CAMPO APPROVED, EN CASO Q NO NO SE CAMBIA PARA NO MODIFICAR EL APPROVED_BY
 
 			SELECT family_name, middle_name, given_name INTO fn, mn, gn FROM kuntur.person WHERE id = $2;
+
+			if(mn is null) then
+				mn = 'null';
+			end if;
+
+			if(fn is null) then
+				fn = 'null';
+			end if;
+
+			if(gn is null) then
+				gn = 'null';
+			end if;
 			
 			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
 		
@@ -1545,6 +1579,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+
 
 
 
