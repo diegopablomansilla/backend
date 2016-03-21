@@ -2368,6 +2368,8 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
         return console.log(error);
       }
                     // console.log('Message sent: ' + info.response);
+      console.log("mail de confirmacion");
+      console.log(info);
 
      // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
