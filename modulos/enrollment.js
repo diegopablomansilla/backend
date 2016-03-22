@@ -2324,9 +2324,9 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
 
   var transporter = nodemailer.createTransport({//smtpTransport(
-    host: 'tortuga.unc.edu.ar',
-    logger: true,
-    debug: true,
+    host: config.mailServer,
+    // logger: true,
+    // debug: true,
     tls: {
      "rejectUnauthorized": false
      }
@@ -3206,7 +3206,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: 'tortuga.unc.edu.ar',
+                  host: mailServer,
                   tls: {
                   "rejectUnauthorized": false
                   }
@@ -3215,7 +3215,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                 var mailOptions = {
-                  from: 'kuntur', // sender address
+                  from: 'admin-kuntur@psi.unc.edu.ar', // sender address
                   to: queryResult.mailadmins[i].email, // list of receivers
                   subject: 'Nueva universidad solicitada', // Subject line
                   text: 'El alumno numero '+ queryResult.numberStudent + ' ha cargado los siguientes datos como su universidad'+
@@ -3480,7 +3480,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: 'tortuga.unc.edu.ar',
+                  host: mailServer,
                   tls: {
                   "rejectUnauthorized": false
                   }
