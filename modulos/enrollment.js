@@ -2326,10 +2326,10 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
   var transporter = nodemailer.createTransport({//smtpTransport(
     host: 'tortuga.unc.edu.ar',
     logger: true,
-    debug: true
-    // tls: {
-    // "rejectUnauthorized": false
-    // }
+    debug: true,
+    tls: {
+     "rejectUnauthorized": false
+     }
   });//)
 
   //console.log(queryResult.mailconfig)
@@ -2355,7 +2355,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
 
     var mailOptions = {
-      from: 'kuntur', // sender address
+      from: 'admin-kuntur@psi.unc.edu.ar', // sender address
       to: req.body.mail, // list of receivers
       subject: 'Confirmacion de registro en kuntur', // Subject line
       text: 'Este mail se le ha enviado porque ha ingresado una nueva cuenta de correo en el sistema kuntur de alumnos internacionales.\n'+
