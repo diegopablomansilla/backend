@@ -3494,15 +3494,15 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
  
 
                 var mailOptions = {
-                  from: queryResult.mailConfig[i].from, // sender address
+                  from: queryResult.mailconfig[i].from, // sender address
                   to: queryResult.stakeholders[j].email, // list of receivers
-                  subject: queryResult.mailConfig[i].subject, // Subject line
-                  text: queryResult.mailConfig[i].body, // plaintext body
+                  subject: queryResult.mailconfig[i].subject, // Subject line
+                  text: queryResult.mailconfig[i].body, // plaintext body
                   attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
 
-                if(queryResult.mailConfig[i].sendAcademicPerformance || queryResult.mailConfig[i].sendAdmissionAct){
+                if(queryResult.mailconfig[i].sendAcademicPerformance || queryResult.mailconfig[i].sendAdmissionAct){
 
 
                   var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
@@ -3523,7 +3523,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-                        if(queryResult.mailConfig[i].sendAdmissionAct){
+                        if(queryResult.mailconfig[i].sendAdmissionAct){
                           admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
@@ -3532,7 +3532,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           });
                         }
 
-                        if(queryResult.mailConfig[i].sendAcademicPerformance){
+                        if(queryResult.mailconfig[i].sendAcademicPerformance){
                           academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
