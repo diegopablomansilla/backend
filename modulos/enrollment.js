@@ -3480,6 +3480,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
             for(var j in queryResult.stakeholders){
 
+              console.log(queryResult.mailconfig[i].group_id)
+              console.log(queryResult.stakeholders[j].group_system_id)
+
               if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
 
 
