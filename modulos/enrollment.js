@@ -2320,7 +2320,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
   sql.text = "select kuntur.f_new_student($1, $2, $3, $4, $5, $6, $7) as respuesta";
   sql.values = [req.body.name, req.body.lastName, req.body.mail, req.body.user, req.body.pass, req.body.country, token];
 
-  var url = config.frontend.protocol+'://'+config.frontend.hostname+':'+config.frontend.port+'token/'+token;
+  var url = config.frontend.protocol+'://'+config.frontend.hostname+'/token/'+token;
 
 
   var transporter = nodemailer.createTransport({//smtpTransport(
@@ -2359,7 +2359,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
       to: req.body.mail, // list of receivers
       subject: 'Confirmacion de registro en kuntur', // Subject line
       text: 'Este mail se le ha enviado porque ha ingresado una nueva cuenta de correo en el sistema kuntur de alumnos internacionales.\n'+
-      'Para confirmar la cuenta, por favor haga click en el siguiente enlace '+ url + '\n'+
+      'Para confirmar la cuenta, por favor haga click en el siguiente enlace <a href="'+ url + '">'+ url + '</a>\n'+
       'Si usted no ha realizado dicha acción, por favor, desestime este mensaje.'
     };
 
@@ -3187,7 +3187,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         var sql = {};
         sql.text = "select kuntur.f_info_mails($1) as respuesta"
-        sql.values = [enrrollmentId];
+        sql.values = [inenrrollmentId];
 
         var query = client.query(sql);
 
@@ -3206,7 +3206,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: mailServer,
+                  host: config.mailServer,
                   tls: {
                   "rejectUnauthorized": false
                   }
@@ -3480,7 +3480,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: mailServer,
+                  host: config.mailServer,
                   tls: {
                   "rejectUnauthorized": false
                   }
