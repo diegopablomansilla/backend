@@ -3474,6 +3474,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           var admissionAct;
           var academicPerformance;
 
+          console.log(queryResult)
+
           for(var i in queryResult.mailconfig){
 
             for(var j in queryResult.stakeholders){
