@@ -3231,7 +3231,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                 
 
                 transporter.sendMail(mailOptions, function(error, info){
+                  console.log("Info de mail de nueva  universidad:", info);
                   if(error){
+                    console.log("Error de nueva universidad")
                     return console.log(error);
                   }
                   // console.log('Message sent: ' + info.response);
