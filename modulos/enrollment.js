@@ -3219,13 +3219,13 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   from: 'admin-kuntur@psi.unc.edu.ar', // sender address
                   to: queryResult.mailadmins[i].email, // list of receivers
                   subject: 'Nueva universidad solicitada', // Subject line
-                  text: 'El alumno numero '+ queryResult.numberStudent + ' ha cargado los siguientes datos como su universidad'+
+                  text: 'El alumno numero '+ queryResult.numberstudent + ' ha cargado los siguientes datos como su universidad\n'+
                   'nombre en español: '+ name + '\n'+
                   'web: '+ web + '\n'+
                   'pais: '+ country + '\n'+
                   'siglas: '+ shortName + '\n'+
                   'nombre original: '+ institutionName + '\n'+
-                  'en la postulacion numero '+queryResult.numberEnrrollment,// plaintext body
+                  'en la postulacion numero '+queryResult.numberenrrollment// plaintext body
                 };
 
   
