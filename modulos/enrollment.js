@@ -3201,7 +3201,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
 
-          for(var i in queryResult.mailadmins){
+          for(var i in queryResult.stakeholders){
 
               if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
 
