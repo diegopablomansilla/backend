@@ -3186,8 +3186,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
         }
 
         var sql = {};
-        sql.text = "select kuntur.f_info_mails($1) as respuesta"
-        sql.values = [inenrrollmentId];
+        //sql.text = "select kuntur.f_info_mails($1) as respuesta"
+        sql.text = "select kuntur.f_send_mail_new_university($1, $2) as respuesta"
+        sql.values = [inenrrollmentId, usersystemid];
 
         var query = client.query(sql);
 
@@ -3201,9 +3202,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
 
-          for(var i in queryResult.stakeholders){
+          for(var i in queryResult.mailadmins){
 
-              if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
+              // if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
                   host: config.mailServer,
@@ -3242,7 +3243,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                 });                
 
-              }
+              // }
 
 
           }
