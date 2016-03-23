@@ -3492,7 +3492,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
  
 
                 var mailOptions = {
-                  from: queryResult.mailConfig[j].from, // sender address
+                  from: queryResult.mailConfig[i].from, // sender address
                   to: queryResult.stakeholders[j].email, // list of receivers
                   subject: queryResult.mailConfig[i].subject, // Subject line
                   text: queryResult.mailConfig[i].body, // plaintext body
@@ -3500,7 +3500,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
 
-                if(queryResult.mailConfig.sendAcademicPerformance || queryResult.mailConfig.sendAdmissionAct){
+                if(queryResult.mailConfig[i].sendAcademicPerformance || queryResult.mailConfig[i].sendAdmissionAct){
 
 
                   var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
@@ -3521,7 +3521,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-                        if(queryResult.mailConfig.sendAdmissionAct){
+                        if(queryResult.mailConfig[i].sendAdmissionAct){
                           admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
@@ -3530,7 +3530,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           });
                         }
 
-                        if(queryResult.mailConfig.sendAcademicPerformance){
+                        if(queryResult.mailConfig[i].sendAcademicPerformance){
                           academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
@@ -3554,17 +3554,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       res.send(500,error);
 
                     });
-             
-
-
-                
-
-                if(queryResult.mailConfig.sendAdmissionAct){
-                }
                 
 
                 transporter.sendMail(mailOptions, function(error, info){
+                  console.log("Mail cambio de estado info: ", info)
                   if(error){
+                    console.log("Mail cambio de estado error");
                     return console.log(error);
                   }
                   // console.log('Message sent: ' + info.response);
