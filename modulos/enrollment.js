@@ -3532,14 +3532,15 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       // console.log(result.rows[0].f_find_enrrollment_by_id);
 
                       done();
+                      console.log("rows: ", result.rows.length)
                       if(result.rows.length > 0){
-                        res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
+                        // res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
 
                         console.log("se genero un documento por mail")
 
                         var pdfCallback = function(pdf) {
 
-                          
+
                           console.log("mandoPDF")
                           console.log(pdf)
 
