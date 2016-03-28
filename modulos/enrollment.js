@@ -3351,19 +3351,21 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       
       var content;
 // First I want to read the file
-      // fs.readFile(resPdf.filename, function read(err, data) {
-      //     if (err) {
-      //         console.log("Error", err)  
-      //         throw err;
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
 
-      //     }
-      //     content = data;
-      //     console.log("PDFNUEvo")
-      //     console.log(new Buffer(data).toString('base64'))
-      //     return new Buffer(data).toString('base64');
+          }
+          content = data;
+          // console.log("PDFNUEvo")
+          // console.log(new Buffer(data).toString('base64'))
+          pdfAle = new Buffer(data).toString('base64');
+
+          cb(pdfAle);
               
-      // });
-      fs.readFile(resPdf.filename,cb);
+      });
+      // fs.readFile(resPdf.filename,cb);
 
     });
 
@@ -3426,18 +3428,20 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       
       var content;
 // First I want to read the file
-      // fs.readFile(resPdf.filename, function read(err, data) {
-      //     if (err) {
-      //         console.log("Error", err)  
-      //         throw err;
+      fs.readFile(resPdf.filename, function read(err, data) {
+          if (err) {
+              console.log("Error", err)  
+              throw err;
 
-      //     }
-      //     content = data;
+          }
+          content = data;
 
-      //     return new Buffer(data).toString('base64');
+          pdfAle =  new Buffer(data).toString('base64');
+
+          cb(pdfAle);
               
-      // });
-      fs.readFile(resPdf.filename,cb);
+      });
+      // fs.readFile(resPdf.filename,cb);
 
     });
 
@@ -3533,14 +3537,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         console.log("se genero un documento por mail")
 
-                        var pdfCallback = function read(err, data) {
-                          if (err) {
-                            console.log("Error", err)  
-                            throw err;
-                          }
-                          content = data;
+                        var pdfCallback = function(pdf) {
 
-                          pdf = new Buffer(data).toString('base64');
+                          
                           console.log("mandoPDF")
                           console.log(pdf)
 
