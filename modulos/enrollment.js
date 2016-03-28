@@ -3283,7 +3283,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                       /*armado de las filas*/
     var filas = "";                  
-    console.log("estoy en generarAnalitico", cb)
+    console.log("estoy en generarAnalitico", req)
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
