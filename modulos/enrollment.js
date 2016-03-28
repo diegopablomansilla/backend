@@ -3504,9 +3504,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
-
+                console.log("mailconfig", queryResult.mailconfig[i]);
                 if(queryResult.mailconfig[i].sendAcademicPerformance || queryResult.mailconfig[i].sendAdmissionAct){
 
+                  console.log("se manda mail adjunto")
 
                   var sql2 = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
                     "(SELECT id FROM kuntur.user_system WHERE name = '" + us + "'));";
