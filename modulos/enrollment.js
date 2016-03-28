@@ -3518,16 +3518,17 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                     });
 
                     query2.on("end", function(result){
-                      //console.log(result.rows[0].f_find_enrrollment_by_id);
+                      console.log(result.rows[0].f_find_enrrollment_by_id);
 
                       done();
                       if(result.rows.length > 0){
                         res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
 
-
+                        console.log("se genero un documento por mail")
 
                         if(queryResult.mailconfig[i].sendAdmissionAct){
                           admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
+                          console.log(admissionAct)
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
                             content: admissionAct,//contenido
@@ -3537,6 +3538,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         if(queryResult.mailconfig[i].sendAcademicPerformance){
                           academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
+                          console.log(academicPerformance)
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
                             content: academicPerformance,//contenido
@@ -3546,9 +3548,6 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         }
 
 
-                      }
-                      else{
-                        res.send(200,result.rows);
                       }
 
                     });
@@ -3578,7 +3577,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                 });     
 
             }
-            
+
             }
 
           }
