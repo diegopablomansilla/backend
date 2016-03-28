@@ -3358,7 +3358,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
           }
           content = data;
-          // console.log("PDFNUEvo")
+          console.log("PDFNUEvo")
           // console.log(new Buffer(data).toString('base64'))
           pdfAle = new Buffer(data).toString('base64');
 
