@@ -3552,6 +3552,18 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                       }
 
+                        transporter.sendMail(mailOptions, function(error, info){
+                        console.log("Mail cambio de estado info: ", info)
+                        if(error){
+                          console.log("Mail cambio de estado error");
+                          return console.log(error);
+                        }
+                        // console.log('Message sent: ' + info.response);
+
+                        // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+
+                      });     
+
                     });
 
                     query2.on("error",function(error){
@@ -3564,7 +3576,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
            
 
-              }
+              }else{
 
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Mail cambio de estado info: ", info)
@@ -3577,6 +3589,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
                 });     
+                }
 
             }
 
