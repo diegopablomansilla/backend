@@ -3341,7 +3341,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     
 
 
-    console.log(html)
+    // console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
@@ -3358,7 +3358,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
           }
           content = data;
-
+          console.log("PDFNUEvo")
+          console.log(new Buffer(data).toString('base64');)
           return new Buffer(data).toString('base64');
               
       });
