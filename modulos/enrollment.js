@@ -3508,16 +3508,16 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                 if(queryResult.mailconfig[i].sendAcademicPerformance || queryResult.mailconfig[i].sendAdmissionAct){
 
 
-                  var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
+                  var sql2 = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
                     "(SELECT id FROM kuntur.user_system WHERE name = '" + us + "'));";
 
-                    var query = client.query(sql);
+                    var query2 = client.query(sql2);
 
-                    query.on("row", function(row, result){
+                    query2.on("row", function(row, result){
                       result.addRow(row);
                     });
 
-                    query.on("end", function(result){
+                    query2.on("end", function(result){
                       //console.log(result.rows[0].f_find_enrrollment_by_id);
 
                       done();
@@ -3553,13 +3553,17 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                     });
 
-                    query.on("error",function(error){
+                    query2.on("error",function(error){
                       console.log(error);
                       done();
                       res.send(500,error);
 
                     });
                 
+
+           
+
+              }
 
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Mail cambio de estado info: ", info)
@@ -3571,9 +3575,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
-                });                
-
-              }
+                });     
 
             }
 }
