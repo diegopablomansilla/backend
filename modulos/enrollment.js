@@ -3505,7 +3505,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
                 console.log("mailconfig", queryResult.mailconfig[i]);
-                if(queryResult.mailconfig[i].sendAcademicPerformance || queryResult.mailconfig[i].sendAdmissionAct){
+                if(queryResult.mailconfig[i].sendacademicperformance || queryResult.mailconfig[i].sendadmissionact){
 
                   console.log("se manda mail adjunto")
 
@@ -3527,7 +3527,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         console.log("se genero un documento por mail")
 
-                        if(queryResult.mailconfig[i].sendAdmissionAct){
+                        if(queryResult.mailconfig[i].sendadmissionact){
                           admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
                           console.log(admissionAct)
                           mailOptions.attachments.push({
@@ -3537,7 +3537,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           });
                         }
 
-                        if(queryResult.mailconfig[i].sendAcademicPerformance){
+                        if(queryResult.mailconfig[i].sendacademicperformance){
                           academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
                           console.log(academicPerformance)
                           mailOptions.attachments.push({
