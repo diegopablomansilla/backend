@@ -3542,7 +3542,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                           pdf = new Buffer(data).toString('base64');
                           console.log("mandoPDF")
-                          console.log(pdf;)
+                          console.log(pdf)
 
                             mailOptions.attachments.push({
                               filename: 'nombre',//configurar nombre del adjuno
