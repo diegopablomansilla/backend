@@ -3341,6 +3341,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     
 
 
+    console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
@@ -3529,7 +3530,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         if(queryResult.mailconfig[i].sendadmissionact){
                           admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
-                          console.log(admissionAct)
+                          // console.log(admissionAct)
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
                             content: admissionAct,//contenido
@@ -3539,7 +3540,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         if(queryResult.mailconfig[i].sendacademicperformance){
                           academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
-                          console.log(academicPerformance)
+                          // console.log(academicPerformance)
                           mailOptions.attachments.push({
                             filename: 'nombre',//configurar nombre del adjuno
                             content: academicPerformance,//contenido
