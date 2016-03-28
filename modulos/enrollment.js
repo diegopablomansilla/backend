@@ -3525,7 +3525,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                     });
 
                     query2.on("end", function(result){
-                      console.log(result.rows[0].f_find_enrrollment_by_id);
+                      // console.log(result.rows[0].f_find_enrrollment_by_id);
 
                       done();
                       if(result.rows.length > 0){
@@ -3541,10 +3541,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           content = data;
 
                           pdf = new Buffer(data).toString('base64');
+                          console.log("mandoPDF")
+                          console.log(pdf;)
 
                             mailOptions.attachments.push({
                               filename: 'nombre',//configurar nombre del adjuno
-                              content: admissionAct,//contenido
+                              content: pdf,//contenido
                               encoding: 'base64'//codificancion
                             });
                           
