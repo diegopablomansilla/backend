@@ -3260,7 +3260,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-   var generateAnalitico = function(req){
+   var generateAnalitico = function(req, cb){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
@@ -3351,25 +3351,26 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       
       var content;
 // First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)  
-              throw err;
+      // fs.readFile(resPdf.filename, function read(err, data) {
+      //     if (err) {
+      //         console.log("Error", err)  
+      //         throw err;
 
-          }
-          content = data;
-          console.log("PDFNUEvo")
-          console.log(new Buffer(data).toString('base64'))
-          return new Buffer(data).toString('base64');
+      //     }
+      //     content = data;
+      //     console.log("PDFNUEvo")
+      //     console.log(new Buffer(data).toString('base64'))
+      //     return new Buffer(data).toString('base64');
               
-      });
+      // });
+      fs.readFile(resPdf.filename,cb);
 
     });
 
 }
 
 
-  var generateAdmissionAct = function(req){
+  var generateAdmissionAct = function(req, cb){
     
 
 
@@ -3425,21 +3426,24 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       
       var content;
 // First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)  
-              throw err;
+      // fs.readFile(resPdf.filename, function read(err, data) {
+      //     if (err) {
+      //         console.log("Error", err)  
+      //         throw err;
 
-          }
-          content = data;
+      //     }
+      //     content = data;
 
-          return new Buffer(data).toString('base64');
+      //     return new Buffer(data).toString('base64');
               
-      });
+      // });
+      fs.readFile(resPdf.filename,cb);
 
     });
 
   }
+
+
 
 
 
@@ -3529,41 +3533,54 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         console.log("se genero un documento por mail")
 
+                        var pdfCallback = function read(err, data) {
+                          if (err) {
+                            console.log("Error", err)  
+                            throw err;
+                          }
+                          content = data;
+
+                          pdf = new Buffer(data).toString('base64');
+
+                            mailOptions.attachments.push({
+                              filename: 'nombre',//configurar nombre del adjuno
+                              content: admissionAct,//contenido
+                              encoding: 'base64'//codificancion
+                            });
+                          
+
+
+                          transporter.sendMail(mailOptions, function(error, info){
+                            console.log("Mail cambio de estado info: ", info)
+                            if(error){
+                              console.log("Mail cambio de estado error");
+                              return console.log(error);
+                            }
+                            // console.log('Message sent: ' + info.response);
+
+                            // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
+
+                          });    
+                                  
+                        }
+
                         if(queryResult.mailconfig[i].sendadmissionact){
-                          admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data);
+                          admissionAct=generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback);
                           // console.log(admissionAct)
-                          mailOptions.attachments.push({
-                            filename: 'nombre',//configurar nombre del adjuno
-                            content: admissionAct,//contenido
-                            encoding: 'base64'//codificancion
-                          });
+
                         }
 
                         if(queryResult.mailconfig[i].sendacademicperformance){
-                          academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data)
+                          academicPerformance=generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback)
                           // console.log(academicPerformance)
-                          mailOptions.attachments.push({
-                            filename: 'nombre',//configurar nombre del adjuno
-                            content: academicPerformance,//contenido
-                            encoding: 'base64'//codificancion
-                          });
+
 
                         }
 
 
                       }
 
-                        transporter.sendMail(mailOptions, function(error, info){
-                        console.log("Mail cambio de estado info: ", info)
-                        if(error){
-                          console.log("Mail cambio de estado error");
-                          return console.log(error);
-                        }
-                        // console.log('Message sent: ' + info.response);
-
-                        // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
-
-                      });     
+ 
 
                     });
 
