@@ -3569,10 +3569,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
                           }
                           
-
+                          callback2();
                           transporter.sendMail(mailOptions, function(error, info){
                             console.log("Mail cambio de estado info: ", info)
-                            callback2();
+                            
                             if(error){
                               console.log("Mail cambio de estado error");
                               return console.log(error);
@@ -3598,7 +3598,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
-                              callback2();
+                              
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error");
@@ -3606,6 +3606,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             }
 
                           });  
+                            callback2();
                         }
 
                         // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
@@ -3624,7 +3625,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
-                              callback2();
+                              
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error");
@@ -3632,6 +3633,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             }
 
                           });  
+                            callback2();
                         }
 
 
