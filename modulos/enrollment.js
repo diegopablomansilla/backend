@@ -3542,7 +3542,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                         var pdfCallback = function(pdf, documento) {
-
+                          console.log("enviado generado")
                           mailOptions.attachments=[];
 
                           if(documento === "analitico"){
@@ -3581,13 +3581,50 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         if(queryResult.mailconfig[x].sendadmissionact && !acta){
                           generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback);
                           // console.log(admissionAct)
+                        }
 
+                        if(queryResult.mailconfig[x].sendadmissionact && acta){
+                          console.log("enviado sin generar")
+                            mailOptions.attachments.push({
+                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              content: acta,//contenido
+                              encoding: 'base64',//codificancion
+                              contentType: 'application/pdf'
+                            });
+
+                            transporter.sendMail(mailOptions, function(error, info){
+                            console.log("Mail cambio de estado info: ", info)
+                            if(error){
+                              console.log("Mail cambio de estado error");
+                              return console.log(error);
+                            }
+
+                          });  
                         }
 
                         // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
                         if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
                           generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback)
                           // console.log(academicPerformance)
+                        }
+
+                        if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
+                          console.log("enviado sin generar")
+                            mailOptions.attachments.push({
+                              filename: 'Certificado Analitico',//configurar nombre del adjuno
+                              content: analitico,//contenido
+                              encoding: 'base64',//codificancion
+                              contentType: 'application/pdf'
+                            });
+
+                            transporter.sendMail(mailOptions, function(error, info){
+                            console.log("Mail cambio de estado info: ", info)
+                            if(error){
+                              console.log("Mail cambio de estado error");
+                              return console.log(error);
+                            }
+
+                          });  
                         }
 
 
