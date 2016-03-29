@@ -3535,24 +3535,28 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       done();
                       console.log("rows: ", result.rows.length)
                       if(result.rows.length > 0){
-                        // res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
 
-                        // console.log("se genero un documento por mail")
 
                         var pdfCallback = function(pdf) {
 
-
-                          // console.log("mandoPDF")
-                          // console.log(pdf)
-
+                          if(queryResult.mailconfig[x].sendacademicperformance){
                             mailOptions.attachments.push({
-                              filename: 'nombre',//configurar nombre del adjuno
+                              filename: 'Certificado Analitico',//configurar nombre del adjuno
                               content: pdf,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
                             });
+                          }
+
+                          if(queryResult.mailconfig[x].sendadmissionact){
+                            mailOptions.attachments.push({
+                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              content: pdf,//contenido
+                              encoding: 'base64',//codificancion
+                              contentType: 'application/pdf'
+                            });
+                          }
                           
-//res.setHeader('Content-Type','application/pdf') 
 
                           transporter.sendMail(mailOptions, function(error, info){
                             console.log("Mail cambio de estado info: ", info)
@@ -3560,9 +3564,6 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                               console.log("Mail cambio de estado error");
                               return console.log(error);
                             }
-                            // console.log('Message sent: ' + info.response);
-
-                            // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
                           });    
                                   
