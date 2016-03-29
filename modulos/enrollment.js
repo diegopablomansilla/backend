@@ -3580,8 +3580,6 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         if(queryResult.mailconfig[x].sendacademicperformance){
                           generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback)
                           // console.log(academicPerformance)
-
-
                         }
 
 
