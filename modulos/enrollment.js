@@ -3539,6 +3539,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                         var pdfCallback = function(pdf, documento) {
 
+                          mailOptions.attachments=[];
+
                           if(documento === "analitico"){
                             mailOptions.attachments.push({
                               filename: 'Certificado Analitico',//configurar nombre del adjuno
