@@ -3493,7 +3493,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               var analitico = null;
               var acta = null;
 
-              async.forEach(queryResult.stakeholders, function (item, callback2) {
+              async.eachSeries(queryResult.stakeholders, function (item, callback2) {
             //for(var j in ){
               //(function(y){
 
