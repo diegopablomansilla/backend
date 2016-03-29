@@ -3488,15 +3488,15 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(queryResult)
 
           for(var i in queryResult.mailconfig){
-
+            (function(x){
             for(var j in queryResult.stakeholders){
+              (function(y){
 
 
+              if(queryResult.mailconfig[x].group_id == queryResult.stakeholders[y].group_system_id){
 
-              if(queryResult.mailconfig[i].group_id == queryResult.stakeholders[j].group_system_id){
-
-              console.log(queryResult.mailconfig[i].group_id)
-              console.log(queryResult.stakeholders[j].group_system_id)
+              console.log(queryResult.mailconfig[x].group_id)
+              console.log(queryResult.stakeholders[y].group_system_id)
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
                   host: config.mailServer,
@@ -3508,15 +3508,15 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
  
 
                 var mailOptions = {
-                  from: queryResult.mailconfig[i].from, // sender address
-                  to: queryResult.stakeholders[j].email, // list of receivers
-                  subject: queryResult.mailconfig[i].subject, // Subject line
-                  text: queryResult.mailconfig[i].body, // plaintext body
+                  from: queryResult.mailconfig[x].from, // sender address
+                  to: queryResult.stakeholders[y].email, // list of receivers
+                  subject: queryResult.mailconfig[x].subject, // Subject line
+                  text: queryResult.mailconfig[x].body, // plaintext body
                   attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
-                console.log("mailconfig", queryResult.mailconfig[i]);
-                if(queryResult.mailconfig[i].sendacademicperformance || queryResult.mailconfig[i].sendadmissionact){
+                console.log("mailconfig", queryResult.mailconfig[x]);
+                if(queryResult.mailconfig[x].sendacademicperformance || queryResult.mailconfig[x].sendadmissionact){
 
                   console.log("se manda mail adjunto")
 
@@ -3537,13 +3537,13 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       if(result.rows.length > 0){
                         // res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
 
-                        console.log("se genero un documento por mail")
+                        // console.log("se genero un documento por mail")
 
                         var pdfCallback = function(pdf) {
 
 
-                          console.log("mandoPDF")
-                          console.log(pdf)
+                          // console.log("mandoPDF")
+                          // console.log(pdf)
 
                             mailOptions.attachments.push({
                               filename: 'nombre',//configurar nombre del adjuno
@@ -3569,14 +3569,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         }
 
 
-                        if(queryResult.mailconfig[i].sendadmissionact){
+                        if(queryResult.mailconfig[x].sendadmissionact){
                           generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback);
                           // console.log(admissionAct)
 
                         }
 
-                        console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
-                        if(queryResult.mailconfig[i].sendacademicperformance){
+                        // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
+                        if(queryResult.mailconfig[x].sendacademicperformance){
                           generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback)
                           // console.log(academicPerformance)
 
@@ -3615,11 +3615,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                 });     
                 }
 
-            }
+            }//if
+          })(j);
+            }//segund for
 
-            }
-
-          }
+          })(i);
+          }//primer
 
 
         });
