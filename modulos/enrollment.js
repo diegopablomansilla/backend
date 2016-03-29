@@ -3285,7 +3285,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     var filas = "";                  
     console.log("estoy en generarAnalitico", req)
 
-    for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
+    for (var i = 0; i < req.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
       filas += "<tr><td>"+i+"</td>"+
                     "<td>"+req.uncInAcademicPerformanceList[i].subject+"</td>"+
@@ -3548,10 +3548,11 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             mailOptions.attachments.push({
                               filename: 'nombre',//configurar nombre del adjuno
                               content: pdf,//contenido
-                              encoding: 'base64'//codificancion
+                              encoding: 'base64',//codificancion
+                              contentType: 'application/pdf'
                             });
                           
-
+//res.setHeader('Content-Type','application/pdf') 
 
                           transporter.sendMail(mailOptions, function(error, info){
                             console.log("Mail cambio de estado info: ", info)
