@@ -3493,14 +3493,17 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               var analitico = null;
               var acta = null;
 
-            for(var j in queryResult.stakeholders){
-              (function(y){
+              async.forEach(queryResult.stakeholders, function (item, callback2) {
+            //for(var j in ){
+              //(function(y){
 
 
-              if(queryResult.mailconfig[x].group_id == queryResult.stakeholders[y].group_system_id){
+             // if(queryResult.mailconfig[x].group_id == queryResult.stakeholders[y].group_system_id){
+              if(queryResult.mailconfig[x].group_id == item.group_system_id){
 
               // console.log(queryResult.mailconfig[x].group_id)
               // console.log(queryResult.stakeholders[y].group_system_id)
+              
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
                   host: config.mailServer,
@@ -3513,7 +3516,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                 var mailOptions = {
                   from: queryResult.mailconfig[x].from, // sender address
-                  to: queryResult.stakeholders[y].email, // list of receivers
+                  //to: queryResult.stakeholders[y].email, // list of receivers
+                  to: item.email,
                   subject: queryResult.mailconfig[x].subject, // Subject line
                   text: queryResult.mailconfig[x].body, // plaintext body
                   attachments: []
@@ -3568,6 +3572,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                           transporter.sendMail(mailOptions, function(error, info){
                             console.log("Mail cambio de estado info: ", info)
+                            callback2();
                             if(error){
                               console.log("Mail cambio de estado error");
                               return console.log(error);
@@ -3593,6 +3598,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
+                              callback2();
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error");
@@ -3618,6 +3624,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
+                              callback2();
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error");
@@ -3660,8 +3667,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                 }
 
             }//if
-          })(j);
-            }//segund for
+          //})(j);
+           //}//segund for
+         });//async
 
           })(i);
           }//primer
