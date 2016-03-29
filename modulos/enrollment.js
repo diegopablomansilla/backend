@@ -3363,7 +3363,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           // console.log(new Buffer(data).toString('base64'))
           pdfAle = new Buffer(data).toString('base64');
 
-          cb(pdfAle);
+          cb(pdfAle, "analitico");
               
       });
       // fs.readFile(resPdf.filename,cb);
@@ -3439,7 +3439,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
           pdfAle =  new Buffer(data).toString('base64');
 
-          cb(pdfAle);
+          cb(pdfAle, "carta");
               
       });
       // fs.readFile(resPdf.filename,cb);
@@ -3537,9 +3537,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       if(result.rows.length > 0){
 
 
-                        var pdfCallback = function(pdf) {
+                        var pdfCallback = function(pdf, documento) {
 
-                          if(queryResult.mailconfig[x].sendacademicperformance){
+                          if(documento === "analitico"){
                             mailOptions.attachments.push({
                               filename: 'Certificado Analitico',//configurar nombre del adjuno
                               content: pdf,//contenido
@@ -3548,7 +3548,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
                           }
 
-                          if(queryResult.mailconfig[x].sendadmissionact){
+                          if(documento === "carta"){
                             mailOptions.attachments.push({
                               filename: 'Carta de admision',//configurar nombre del adjuno
                               content: pdf,//contenido
