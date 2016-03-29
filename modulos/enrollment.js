@@ -3667,8 +3667,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                 });     
                 }
-                callback2();
+
             }//if
+            callback2();
           //})(j);
            //}//segund for
          }, function(err){
