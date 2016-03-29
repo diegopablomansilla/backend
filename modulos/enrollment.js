@@ -3283,7 +3283,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                       /*armado de las filas*/
     var filas = "";                  
-    console.log("estoy en generarAnalitico", req)
+    // console.log("estoy en generarAnalitico", req)
 
     for (var i = 0; i < req.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
@@ -3341,12 +3341,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     
 
 
-    console.log("html")
-        console.log(html)
+    // console.log("html")
+        // console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
-      if (err) return console.log(err);
+      if (err) return console.log("error creando pdf", err);
       
 
       
@@ -3354,12 +3354,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error leyendo pdf", err)  
               throw err;
 
           }
           content = data;
-          console.log("PDFNUEvo")
+          // console.log("PDFNUEvo")
           // console.log(new Buffer(data).toString('base64'))
           pdfAle = new Buffer(data).toString('base64');
 
