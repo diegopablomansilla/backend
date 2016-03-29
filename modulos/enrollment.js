@@ -3489,6 +3489,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
           for(var i in queryResult.mailconfig){
             (function(x){
+
+              var analitico = null;
+              var acta = null;
+
             for(var j in queryResult.stakeholders){
               (function(y){
 
@@ -3542,18 +3546,20 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           mailOptions.attachments=[];
 
                           if(documento === "analitico"){
+                            analitico = pdf;
                             mailOptions.attachments.push({
                               filename: 'Certificado Analitico',//configurar nombre del adjuno
-                              content: pdf,//contenido
+                              content: analitico,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
                             });
                           }
 
                           if(documento === "carta"){
+                            acta = pdf;
                             mailOptions.attachments.push({
                               filename: 'Carta de admision',//configurar nombre del adjuno
-                              content: pdf,//contenido
+                              content: acta,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
                             });
@@ -3572,14 +3578,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         }
 
 
-                        if(queryResult.mailconfig[x].sendadmissionact){
+                        if(queryResult.mailconfig[x].sendadmissionact && !acta){
                           generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback);
                           // console.log(admissionAct)
 
                         }
 
                         // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
-                        if(queryResult.mailconfig[x].sendacademicperformance){
+                        if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
                           generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback)
                           // console.log(academicPerformance)
                         }
