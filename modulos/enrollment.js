@@ -3615,7 +3615,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           // console.log(academicPerformance)
                         }
 
-                        if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
+                        if(queryResult.mailconfig[x].sendacademicperformance && analitico){
                           console.log("enviado sin generar")
                             mailOptions.attachments.push({
                               filename: 'Certificado Analitico',//configurar nombre del adjuno
