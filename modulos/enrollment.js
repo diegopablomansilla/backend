@@ -3423,7 +3423,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
-      if (err) return console.log(err);
+      if (err) return console.log("error creando pdf", err);
       
 
       
@@ -3431,7 +3431,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error leyendo pdf", err)  
               throw err;
 
           }
@@ -3485,7 +3485,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           var admissionAct;
           var academicPerformance;
 
-          console.log(queryResult)
+          // console.log(queryResult)
 
           for(var i in queryResult.mailconfig){
             (function(x){
@@ -3495,8 +3495,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
               if(queryResult.mailconfig[x].group_id == queryResult.stakeholders[y].group_system_id){
 
-              console.log(queryResult.mailconfig[x].group_id)
-              console.log(queryResult.stakeholders[y].group_system_id)
+              // console.log(queryResult.mailconfig[x].group_id)
+              // console.log(queryResult.stakeholders[y].group_system_id)
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
                   host: config.mailServer,
@@ -3515,10 +3515,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
-                console.log("mailconfig", queryResult.mailconfig[x]);
+                // console.log("mailconfig", queryResult.mailconfig[x]);
                 if(queryResult.mailconfig[x].sendacademicperformance || queryResult.mailconfig[x].sendadmissionact){
 
-                  console.log("se manda mail adjunto")
+                  // console.log("se mansda mail adjunto")
 
                   var sql2 = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
                     "(SELECT id FROM kuntur.user_system WHERE name = '" + us + "'));";
@@ -3533,7 +3533,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       // console.log(result.rows[0].f_find_enrrollment_by_id);
 
                       done();
-                      console.log("rows: ", result.rows.length)
+                      // console.log("rows: ", result.rows.length)
                       if(result.rows.length > 0){
 
 
