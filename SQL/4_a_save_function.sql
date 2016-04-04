@@ -2902,6 +2902,9 @@ DECLARE
 	auxCountAA INTEGER = 0;
 	auxCountAP INTEGER = 0;
 
+	auxCountOAA INTEGER = 0;
+	auxCountOAp INTEGER = 0;
+
 
 BEGIN
 
@@ -3063,7 +3066,7 @@ BEGIN
 
 	ELSIF statusCode LIKE 'J' THEN -- EN MATRICULACION
 
-		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;
+		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;--BUSCO EL ID DE LA ORG DE LA PERSONA Q ESTA LOGUEADA
 		
 		FOR carCode, subj, filNumb, hrs, orgIdIterator IN SELECT career_code, subject, file_number, hs, org_id from kuntur.unc_in_academic_performance where unc_in_enrrollment_id = enrrollmentId
 --SELECT career_code, subject, file_number, hs, org_id FROM KUNTUR.unc_in_academic_performance where unc_in_enrrollment_id = '489090264e78c0ce014e931e3425002b'
@@ -3094,7 +3097,11 @@ BEGIN
 		SELECT COUNT(*) INTO auxCountAP FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = $2;
 		SELECT COUNT(*) INTO auxCountAA FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = $2;
 
-		IF auxCountAP <> auxCountAA THEN
+		SELECT COUNT(*) INTO auxCountOAp FROM kuntur.unc_in_academic_performance WHERE unc_in_enrrollment_id = $2 AND org_id = orgId;
+		SELECT COUNT(*) INTO auxCountOAA FROM kuntur.unc_in_study_program WHERE unc_in_enrrollment_id = $2 AND org_id = orgId;
+
+
+		IF auxCountAP <> auxCountAA OR auxCountOAp <> auxCountOAA THEN
 			flagComplete = false;
 		END IF;
 
@@ -3133,6 +3140,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+
 
 
 

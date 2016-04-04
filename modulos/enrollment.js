@@ -46,6 +46,7 @@ module.exports = function(server, conString, activeMail) {
 
         done();
         if(result.rows.length > 0){
+          // console.log(result.rows[0].f_find_enrrollment_by_id)
           res.send(200,JSON.parse(result.rows[0].f_find_enrrollment_by_id));
         }
         else{
@@ -3956,8 +3957,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
         var sql = {};
-        sql.text = "select kuntur.f_get_usersby_group($1) as respuesta"
-        sql.values = [req.params.groupId];
+        sql.text = "select kuntur.f_get_usersby_group($1, $2, $3) as respuesta"
+        sql.values = [req.params.groupId, req.params.offset, req.params.limit];
 
         var query = client.query(sql);
 

@@ -39,6 +39,15 @@ ALTER TABLE kuntur.user_group
 ALTER TABLE kuntur.user_system
   ADD CONSTRAINT u_email UNIQUE (email);
 
+ALTER TABLE kuntur.mail_config RENAME "sendAcademicPerformance"  TO sendacademicperformance;
+	
+ALTER TABLE kuntur.mail_config RENAME "sendAdmissionAct"  TO sendadmissionact;
+
+ALTER TABLE kuntur.person
+   ALTER COLUMN male SET DEFAULT false;
+
+
+
 
 
 
