@@ -3631,7 +3631,7 @@ $$ language plpgsql;
 
 -- DROP FUNCTION kuntur.f_get_usersby_group(character varying);
 
-CREATE OR REPLACE FUNCTION kuntur.f_get_usersby_group(groupid character varying)
+CREATE OR REPLACE FUNCTION kuntur.f_get_usersby_group(groupid character varying, offs integer, lim integer)
   RETURNS character varying AS
 $BODY$
 DECLARE
@@ -3650,7 +3650,9 @@ BEGIN
 				JOIN kuntur.person p
 					ON us.id = p.id
 
-		WHERE gs.id = $1			
+		WHERE gs.id = $1
+		OFFSET $2
+		LIMIT $3			
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
@@ -3659,6 +3661,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
 
 
 --------------------------------grupos disponibles--------------------------------------------------------------------------------------- 
