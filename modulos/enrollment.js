@@ -2358,9 +2358,9 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
     var mailOptions = {
       from: 'admin-kuntur@psi.unc.edu.ar', // sender address
       to: req.body.mail, // list of receivers
-      subject: 'Confirmacion de registro en kuntur', // Subject line
-      text: 'Este mail se le ha enviado porque ha ingresado una nueva cuenta de correo en el sistema kuntur de alumnos internacionales.\n'+
-      'Para confirmar la cuenta, por favor haga click en el siguiente enlace <a href="'+ url + '">'+ url + '</a>\n'+
+      subject: 'Verificación de Correo - Admisión de Estudiantes Internacionales - UNC', // Subject line
+      html: 'Este mail se ha enviado porque ha ingresado una nueva cuenta de correo en el sistema Kuntur de Alumnos Internacionales.\n'+
+      'Para confirmar la cuenta, por favor haga click <a href="'+ url + '"> aquí </a>\n'+
       'Si usted no ha realizado dicha acción, por favor, desestime este mensaje.'
     };
 
