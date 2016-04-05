@@ -3220,7 +3220,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   from: 'admin-kuntur@psi.unc.edu.ar', // sender address
                   to: queryResult.mailadmins[i].email, // list of receivers
                   subject: 'Nueva universidad solicitada', // Subject line
-                  text: 'El alumno numero '+ queryResult.numberstudent + ' ha cargado los siguientes datos como su universidad\n'+
+                  html: 'El alumno número '+ queryResult.numberstudent + ' ha cargado los siguientes datos como su universidad\n'+
                   'nombre en español: '+ name + '\n'+
                   'web: '+ web + '\n'+
                   'pais: '+ country + '\n'+
@@ -3520,7 +3520,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   //to: queryResult.stakeholders[y].email, // list of receivers
                   to: item.email,
                   subject: queryResult.mailconfig[x].subject, // Subject line
-                  text: queryResult.mailconfig[x].body, // plaintext body
+                  html: queryResult.mailconfig[x].body, // plaintext body
                   attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
