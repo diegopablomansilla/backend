@@ -1476,7 +1476,7 @@ BEGIN
 				gn = 'null';
 			end if;
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || '''';
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || '''';
 
 		ELSE
 		
@@ -1521,7 +1521,7 @@ BEGIN
 				gn = 'null';
 			end if;
 			
-			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
 		
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1592,7 +1592,7 @@ BEGIN
 				gn = 'null';
 			end if;
 			
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' ' || mn || ''', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
 		
 			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
 
@@ -1615,6 +1615,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
 
 
 
