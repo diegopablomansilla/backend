@@ -2358,10 +2358,20 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
     var mailOptions = {
       from: 'admin-kuntur@psi.unc.edu.ar', // sender address
       to: req.body.mail, // list of receivers
-      subject: 'Verificación de Correo - Admisión de Estudiantes Internacionales - UNC', // Subject line
-      html: 'Este mail se ha enviado porque ha ingresado una nueva cuenta de correo en el sistema Kuntur de Alumnos Internacionales.\n'+
-      'Para confirmar la cuenta, por favor haga click <a href="'+ url + '"> aquí </a>\n'+
-      'Si usted no ha realizado dicha acción, por favor, desestime este mensaje.'
+      subject: 'Verificación de Correo - Estudiantes Internacionales - UNC', // Subject line
+      html: 'Bienvenido/a a la Universidad Nacional de Córdoba. <br>
+      <br>
+      Estás a punto de registrarte en el Sistema de Admisión de Estudiantes.
+      <br>
+      <br> 
+      Este mensaje se ha enviado porque generaste una nueva cuenta de usuario. Para confirmar la cuenta, por favor hacé click <a href="'+ url + '"> aquí ('+ url + ')</a>.
+      <br>
+      <br>
+      El sistema te guiará en los próximos pasos a seguir.
+      <br>
+      <br>
+      Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba
+      '
     };
 
 
@@ -3226,7 +3236,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   'pais: '+ country + '\n'+
                   'siglas: '+ shortName + '\n'+
                   'nombre original: '+ institutionName + '\n'+
-                  'en la postulacion numero '+queryResult.numberenrrollment// plaintext body
+                  'en la postulación número: '+queryResult.numberenrrollment// plaintext body
                 };
 
   
