@@ -1,4 +1,4 @@
----------------------ESTADO INICIADA: STUDENT----------------------------------------------------
+﻿---------------------ESTADO INICIADA: STUDENT----------------------------------------------------
 
 INSERT INTO kuntur.mail_config 
 	values 
@@ -38,8 +38,7 @@ Universidad Nacional de Córdoba</b></p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
-
+	false);
 ---------------------ESTADO RECHAZADA: STUDENT----------------------------------------------------
 
 INSERT INTO kuntur.mail_config 
@@ -76,7 +75,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 ---------------------ESTADO INCOMPLETA: STUDENT----------------------------------------------------
 
@@ -102,7 +101,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 ---------------------ESTADO MODIFICACION DE PLAN 1: STUDENT----------------------------------------------------
 
@@ -128,7 +127,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 ---------------------ESTADO ADMITIDA: STUDENT----------------------------------------------------
 
@@ -181,7 +180,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	true)
+	true);
 
 ---------------------ESTADO MODIFICACION DE PLAN 2: STUDENT----------------------------------------------------
 
@@ -212,7 +211,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 ---------------------ESTADO EN MATRICULACION: STUDENT----------------------------------------------------
 
@@ -239,7 +238,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 ---------------------ESTADO FINALIZADA: STUDENT----------------------------------------------------
 
@@ -274,7 +273,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	true,
-	false)
+	false);
 
 
 ------------------COORDINATOR---------------------
@@ -308,7 +307,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 ---------------------ESTADO INICIADA: COORDINATOR----------------------------------------------------
 
@@ -340,7 +339,7 @@ que no se encuentra habilitada para recibir mensajes.</p>',
 	true,
 	'kuntur@psi.unc.edu.ar',
 	false,
-	false)
+	false);
 
 
 
