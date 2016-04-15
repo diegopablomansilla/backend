@@ -3398,27 +3398,35 @@ $$ language plpgsql;
 
 
 
-CREATE OR REPLACE FUNCTION kuntur.f_get_admission_period_by_org(orgId VARCHAR, userSystemId VARCHAR) RETURNS VARCHAR AS
-$$
+-- Function: kuntur.f_get_admission_period_by_org(character varying, character varying)
+
+-- DROP FUNCTION kuntur.f_get_admission_period_by_org(character varying, character varying);
+
+CREATE OR REPLACE FUNCTION kuntur.f_get_admission_period_by_org(orgid character varying, usersystemid character varying)
+  RETURNS character varying AS
+$BODY$
 DECLARE
 
 	result JSON = null;
 
 	v_coun_agreement INTEGER = null;
+	v_orgId VARCHAR = null;
 
 BEGIN
 
-	SELECT count(*) INTO v_coun_agreement FROM kuntur.admission_period ap 
-	WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true;
+	select org_id into v_orgId from kuntur.student where id = $2;
+
+	SELECT count(*) INTO v_coun_agreement FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id
+	WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true AND api.org_id = org_id;
 
 	IF v_coun_agreement > 0 THEN --CONTROLO SI EL ESTUDIANTE TIENE ACCESO A AGREEMENTS
 
 
 		WITH t AS(
-			--SELECT * FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = $1
-			SELECT * FROM kuntur.admission_period ap 
+			SELECT DISTINCT ap.* FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = org_id
+			--SELECT * FROM kuntur.admission_period ap 
 			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
-			WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true
+			AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true
 		)
 		SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
@@ -3429,7 +3437,7 @@ BEGIN
 		WITH t AS(
 			SELECT * FROM kuntur.admission_period ap 
 			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
-			WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2)
+			WHERE ap.is_agreement = false AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2)
 		)
 		SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
@@ -3439,8 +3447,11 @@ BEGIN
 	
 
 END;
-$$
-LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_get_admission_period_by_org(character varying, character varying)
+  OWNER TO us_kuntur_dev;
 
 
 

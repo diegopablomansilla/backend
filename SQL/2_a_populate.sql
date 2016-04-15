@@ -39,6 +39,11 @@ INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, co
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
 	VALUES (uuid_generate_v4(), false, 'PER_DNI', 'Documento Nacional de Identidad', 'PER', null);
 
+-- DNIT
+
+INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
+	VALUES (uuid_generate_v4(), false, 'ARG_DNIT', 'Documento Nacional de Identidad Temporario', 'ARG', null);
+
 -- DUI
 
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
@@ -60,7 +65,14 @@ INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, co
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
 	VALUES (uuid_generate_v4(), false, 'VEN_CI', 'Cédula de Identidad', 'VEN', null);
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
-	VALUES (uuid_generate_v4(), false, 'LTU_CI', 'Cédula de Identidad', 'LTU', 'Asmens tapatybės kortelė, Personal Identity Card');		
+	VALUES (uuid_generate_v4(), false, 'LTU_CI', 'Cédula de Identidad', 'LTU', 'Asmens tapatybės kortelė, Personal Identity Card');	
+INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
+	VALUES (uuid_generate_v4(), false, 'PAN_CI', 'Cédula de Identidad', 'PAN', null); -- Panama
+
+-- TDI
+INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
+	VALUES (uuid_generate_v4(), false, 'HND_TDI', 'Tarjeta de Identidad', 'TDI', null); -- Honduras	
+
 
 -- CIC
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
@@ -123,10 +135,7 @@ INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, co
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
 	VALUES (uuid_generate_v4(), false, 'MLT_DI', 'Documento de Identidad', 'MLT', 'KARTA TA'' L-IDENTITÀ');
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
-	VALUES (uuid_generate_v4(), false, 'NLD_DI', 'Documento de Identidad', 'NLD', 'NEDERLANDSE IDENTITEITSKAART, IDENTITY CARD, CARTE D''IDENTITÉ');
-	
-
-	
+	VALUES (uuid_generate_v4(), false, 'NLD_DI', 'Documento de Identidad', 'NLD', 'NEDERLANDSE IDENTITEITSKAART, IDENTITY CARD, CARTE D''IDENTITÉ');	
 INSERT INTO kuntur.person_identity_type(id, erased, code, name, country_code, comment) 
 	VALUES (uuid_generate_v4(), false, 'HTI_DI', 'Documento de Identidad', 'HTI', null);
 
