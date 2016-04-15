@@ -2359,19 +2359,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
       from: 'admin-kuntur@psi.unc.edu.ar', // sender address
       to: req.body.mail, // list of receivers
       subject: 'Verificación de Correo - Estudiantes Internacionales - UNC', // Subject line
-      html: 'Bienvenido/a a la Universidad Nacional de Córdoba. <br>
-      <br>
-      Estás a punto de registrarte en el Sistema de Admisión de Estudiantes.
-      <br>
-      <br> 
-      Este mensaje se ha enviado porque generaste una nueva cuenta de usuario. Para confirmar la cuenta, por favor hacé click <a href="'+ url + '"> aquí ('+ url + ')</a>.
-      <br>
-      <br>
-      El sistema te guiará en los próximos pasos a seguir.
-      <br>
-      <br>
-      Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba
-      '
+      html: 'Bienvenido/a a la Universidad Nacional de Córdoba.<br><br>Estás a punto de registrarte en el Sistema de Admisión de Estudiantes.<br><br> Este mensaje se ha enviado porque generaste una nueva cuenta de usuario. Para confirmar la cuenta, por favor hacé click <a href="'+ url + '"> aquí ('+ url + ')</a>.<br><br>El sistema te guiará en los próximos pasos a seguir.<br><br>Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba'
     };
 
 
