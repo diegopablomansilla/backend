@@ -2499,6 +2499,13 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     console.log("header");
     console.log(req.headers.usersystemid);
 
+    const buf = Buffer.from(req.headers.userSystemId64, 'base64');
+
+    var srt64 = str.toString('utf-8');
+
+    console.log("base64");
+    console.log(srt64);
+
     var orgId = null;
     var shortName=null;
     var originalName=null;
@@ -2511,7 +2518,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, srt64, req.body.person.person_id, req.body.person.person_url_photo];
 
     }else{
       shortName=req.body.person.student_short_name;
@@ -2521,7 +2528,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       country=req.body.person.student_institution_country_code; 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, srt64, req.body.person.person_id, req.body.person.person_url_photo];
 
     }
 
