@@ -2496,6 +2496,9 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     console.log("put student");
     console.log(req.body);
 
+    console.log("header");
+    console.log(req.headers.usersystemid);
+
     var orgId = null;
     var shortName=null;
     var originalName=null;
