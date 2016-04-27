@@ -2501,7 +2501,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
     const buf = new Buffer(req.headers.usersystemid64, 'base64');
 
-    var srt64 = str.toString('utf-8');
+    var srt64 = buf.toString('utf-8');
 
     console.log("base64");
     console.log(srt64);
