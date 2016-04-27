@@ -2499,7 +2499,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     console.log("header");
     console.log(req.headers.usersystemid);
 
-    const buf = Buffer.from(req.headers.userSystemId64, 'base64');
+    const buf = new Buffer(req.headers.userSystemId64, 'base64');
 
     var srt64 = str.toString('utf-8');
 
