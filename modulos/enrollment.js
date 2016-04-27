@@ -2493,6 +2493,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       res.send(409, {code: 409, message: 'Conflict', description: 'No person found in request.'});
       return next();
     }
+    console.log("put student");
+    console.log(req.body);
 
     var orgId = null;
     var shortName=null;
@@ -2535,6 +2537,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 //JSON.parse(result.rows[0].perfilArray)
     query.on("end",function(result){
       // console.log(result);
+      console.log(result);
       done();
       res.send(200,result.rows[0].f_u_studentProfile);//JSON.parse(
     });
