@@ -24,8 +24,8 @@ module.exports = function(server, conString, activeMail) {
 
     postulacionId=req.params.postulacionId;
 
-    var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+postulacionId+"', "+
-      "(SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'));";
+    var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+postulacionId+"', '"+req.headers.usersystemid+"');";
+      //"(SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'));";
 
     pg.connect(conString, function(err, client, done){
       if(err) {
@@ -85,14 +85,14 @@ var options = { format: 'Letter',
                     "contents": '<span style="color: #444;">{{page}}</span><span>{{pages}}</span>'
                 },
               };
-
+ 
 
 
 /* ######## CARTA DE ADMISION TEMPLATE ########### */
  server.post({path : '/docs/:postulacionId/cartaDeAdmisionTemplate', version : '0.0.1'}, function(req,res,next){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -146,22 +146,22 @@ var options = { format: 'Letter',
 
     pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmisiontemplate.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-
+      
       var postulacionId = req.params.postulacionId
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)
+              console.log("Error", err)  
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf')
+          res.setHeader('Content-Type','application/pdf') 
           res.send(200,new Buffer(data).toString('base64'));
-
+              
       });
 
     });
@@ -172,12 +172,12 @@ var options = { format: 'Letter',
 
 /* ###### CARTA DE ADMISION ############# */
  server.post({path : '/docs/:postulacionId/cartaDeAdmision', version : '0.0.1'}, function(req,res,next){
-
+    
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -231,22 +231,22 @@ var options = { format: 'Letter',
 
     pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-
+      
       var postulacionId = req.params.postulacionId
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)
+              console.log("Error", err)  
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf')
+          res.setHeader('Content-Type','application/pdf') 
           res.send(200,new Buffer(data).toString('base64'));
-
+              
       });
 
     });
@@ -259,7 +259,7 @@ var options = { format: 'Letter',
  server.post({path : '/docs/:postulacionId/certificadoAnaliticoTemplate', version : '0.0.1'}, function(req,res,next){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -278,7 +278,7 @@ var options = { format: 'Letter',
 
 
                       /*armado de las filas*/
-    var filas = "";
+    var filas = "";                  
 
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
@@ -291,7 +291,7 @@ var options = { format: 'Letter',
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
-
+      
 
     };
 
@@ -317,7 +317,7 @@ var options = { format: 'Letter',
 
 
     }else{
-
+      
       var html = htmlCertificadoAnaliticoTemplate.replace("$rotulosDias","a los")
                              .replace("$diaCreacion2",dia)
                              .replace("$apellidoPostulante",req.body.familyName)
@@ -334,29 +334,29 @@ var options = { format: 'Letter',
                              .replace('$image', image)
                              .replace('$fila', filas);
     };
-
+    
     // console.log(html)
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanaliticotemplate.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-
+      
       var postulacionId = req.params.postulacionId
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)
+              console.log("Error", err)  
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf')
+          res.setHeader('Content-Type','application/pdf') 
           res.send(200,new Buffer(data).toString('base64'));
-
+              
       });
 
     });
@@ -369,7 +369,7 @@ var options = { format: 'Letter',
  server.post({path : '/docs/:postulacionId/certificadoAnalitico', version : '0.0.1'}, function(req,res,next){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -388,7 +388,7 @@ var options = { format: 'Letter',
 
 
                       /*armado de las filas*/
-    var filas = "";
+    var filas = "";                  
 
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
@@ -404,7 +404,7 @@ var options = { format: 'Letter',
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
-
+      
 
     };
 
@@ -430,7 +430,7 @@ var options = { format: 'Letter',
 
 
     }else{
-
+      
       var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
                              .replace("$diaCreacion2",dia)
                              .replace("$apellidoPostulante",req.body.familyName)
@@ -447,29 +447,29 @@ var options = { format: 'Letter',
                              .replace('$image', image)
                              .replace('$fila', filas);
     };
-
+    
     // console.log(html)
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-
+      
       var postulacionId = req.params.postulacionId
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)
+              console.log("Error", err)  
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf')
+          res.setHeader('Content-Type','application/pdf') 
           res.send(200,new Buffer(data).toString('base64'));
-
+              
       });
 
     });
@@ -480,10 +480,10 @@ var options = { format: 'Letter',
 
 /* ###### REPORTE DEL ESTUDIANTE ############# */
  server.post({path : '/docs/:postulacionId/reporteEstudiante', version : '0.0.1'}, function(req,res,next){
-
+    
    var imagePerfil = path.join('file://', __dirname, '../files/'+req.body.urlPhoto.substr(0,2)+'/'+req.body.urlPhoto)
 
-
+ 
 
 
     //var imagePerfil = path.join(__dirname, 'files', req.body.urlPhoto.substr(0,2), req.body.urlPhoto);
@@ -520,7 +520,7 @@ var options = { format: 'Letter',
         }
 
         if(req.body.enrrollmentAddressList[i].buildingFloor==null){
-          req.body.enrrollmentAddressList[i].buildingFloor="";
+          req.body.enrrollmentAddressList[i].buildingFloor="";  
           req.body.enrrollmentAddressList[i].building="";
           req.body.enrrollmentAddressList[i].buildingRoom="";
         domicilio+= "[·] "+req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+"-"+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"-"+req.body.enrrollmentAddressList[i].provinceName+"-"+req.body.enrrollmentAddressList[i].countryName+"("+req.body.enrrollmentAddressList[i].countryCode+").<br>"
@@ -529,13 +529,13 @@ var options = { format: 'Letter',
         domicilio+= "[·] "+ req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street +" Nº "+ req.body.enrrollmentAddressList[i].streetNumber + " - "+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" - " +req.body.enrrollmentAddressList[i].provinceName+" - "+req.body.enrrollmentAddressList[i].countryName+" ("+req.body.enrrollmentAddressList[i].countryCode+") <br>"
         }
       };
-
+    
 
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -609,27 +609,27 @@ var options = { format: 'Letter',
 
     };
 
-
+    
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile(path.join(__dirname, '../reporteestudiante.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-
+      
       var postulacionId = req.params.postulacionId
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)
+              console.log("Error", err)  
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf')
+          res.setHeader('Content-Type','application/pdf') 
           res.send(200,new Buffer(data).toString('base64'));
-
+              
       });
 
     });
@@ -693,7 +693,8 @@ var options = { format: 'Letter',
     //console.log(req.headers.usersystemid);
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
       ""+name+"," +
-      ""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+      //""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+      ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
 
 
@@ -821,7 +822,7 @@ var options = { format: 'Letter',
   });
 
 
-
+  
 
   server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
 
@@ -1002,7 +1003,7 @@ var options = { format: 'Letter',
         }
 
         var sql = {};
-        sql.text = "select kuntur.f_u_enrrollment_names($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5)"
+        sql.text = "select kuntur.f_u_enrrollment_names($1, $2, $3, $4, $5)"
         sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.guivenName, req.body.middleName, req.body.familyName];
 
 
@@ -1066,7 +1067,7 @@ var options = { format: 'Letter',
         }
 
         var sql = {};
-        sql.text = "select kuntur.f_u_enrrollment_male($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3)"
+        sql.text = "select kuntur.f_u_enrrollment_male($1, $2, $3)"
         sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
 
 
@@ -1129,7 +1130,7 @@ var options = { format: 'Letter',
       //   }
 
         var sql = {};
-        sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3)"
+        sql.text = "select kuntur.f_u_enrrollment_url_photo($1, $2, $3)"
         sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
 
 
@@ -1195,17 +1196,17 @@ var options = { format: 'Letter',
             var sql = {};
             if(iden.erased){
               //delete
-
-              sql.text = "select kuntur.f_u_enrrollment_Deletecitizenship($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+          
+              sql.text = "select kuntur.f_u_enrrollment_Deletecitizenship($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
             else if(iden.id){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_citizenship($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_citizenship($1, $2, $3, $4, $5, $6, $7) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.identityNumber, iden.code, iden.name, iden.id];
             }
             else if(!iden.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertcitizenship($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Insertcitizenship($1, $2, $3, $4, $5, $6) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.identityNumber, iden.code, iden.name];
               //insert
             }else{
@@ -1293,17 +1294,17 @@ var options = { format: 'Letter',
             var sql = {};
             if(iden.erased){
               //delete
-
-              sql.text = "select kuntur.f_u_deleteenrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+          
+              sql.text = "select kuntur.f_u_deleteenrrollment_nationality($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
             else if(iden.id){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_nationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_nationality($1, $2, $3, $4) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode, iden.id];
             }
             else if(!iden.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertnationality($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Insertnationality($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.countryCode];
               //insert
             }else{
@@ -1393,16 +1394,16 @@ var options = { format: 'Letter',
             var sql = {};
             if(mail.erased){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Deleteemail($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, mail.id];
             }
             else if(mail.id){
               //delete
-              sql.text = "select kuntur.f_u_enrrollment_email($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_email($1, $2, $3, $4) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, mail.email, mail.id];
             }
             else if(!mail.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Insertemail($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, mail.email];
               //insert
             }else{
@@ -1508,16 +1509,16 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
             var sql = {};
             if(phone.erased){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_Deletephone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Deletephone($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, phone.id];
             }
             else if(phone.id){
               //delete
-              sql.text = "select kuntur.f_u_enrrollment_phone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_phone($1, $2, $3, $4, $5) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, phone.phoneNumber, phone.countryCode, phone.id];
             }
             else if(!phone.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertphone($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Insertphone($1, $2, $3, $4) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, phone.phoneNumber, phone.countryCode];
               //insert
             }else{
@@ -1619,17 +1620,17 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             var sql = {};
             if(address.erased){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_Deleteaddress($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Deleteaddress($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, address.id];
 
             }
             else if(address.id){
               //delete
-              sql.text = "select kuntur.f_u_enrrollment_address($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_address($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment, address.id];
             }
             else if(!address.erased){
-              sql.text = "select kuntur.f_u_enrrollment_Insertaddress($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_Insertaddress($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, address.countryCode, address.adminAreaLevel1Code, address.locality, address.neighbourhood, address.street, address.streetNumber, address.buildingFloor, address.buildingRoom, address.building, address.postalCode, address.comment];
               //insert
             }else{
@@ -1697,92 +1698,92 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     var sql = {};
     if("givenName" in req.body && "familyName" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_names($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_names($1, $2, $3, $4, $5) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.givenName, req.body.middleName, req.body.familyName];
     }
     else if("male" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_male($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_male($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.male];
     }
     else if("urlPhoto" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_photo($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_photo($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPhoto];
     }
     else if("org" in req.body){//en el caso que el estudiante haya encontrado su universidad cargada en el sistema
-      sql.text = "select kuntur.f_u_enrrollment_org_id($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_org_id($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.org.id];
     }
     else if("name" in req.body && "web" in req.body && "country" in req.body){//este es el caso que el estudiante no haya encontrado su universidad y tenga q cargarla manual
-      sql.text = "select kuntur.f_u_enrrollment_orgs($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_orgs($1, $2, $3, $4, $5, $6, $7) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName];
       sendMailNewUniversity(req.params.inenrrollmentId, req.headers.usersystemid, req.body.name, req.body.web, req.body.country, req.body.shortName, req.body.institutionName);
     }
     else if("birthCountryCode" in req.body && "birthDate" in req.body){
       // console.log(req.body.birthDate)
-      sql.text = "select kuntur.f_u_enrrollment_birth($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_birth($1, $2, $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.birthDate, req.body.birthCountryCode];
     }
     else if("emergencyContact" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_emergency_contact($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_emergency_contact($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.emergencyContact];
     }
     else if("agreement" in req.body){
       // if(!req.body.agreementName){
       //   req.body.agreementName='null';
       // }
-      sql.text = "select kuntur.f_u_enrrollment_agreement($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_agreement($1, $2, $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.agreement, req.body.agreementName];
     }
     else if("program" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_program($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_program($1, $2, $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.program, req.body.exchangeProgramName];
     }
     else if("amountPaid" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_amountPaid($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_amountPaid($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.amountPaid];
     }
     else if("originalDoc" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_originalDoc($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_originalDoc($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.originalDoc];
     }
     else if("insurance" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_insurance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_insurance($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.insurance];
     }
     else if("languageCertificate" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_languageCertificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_languageCertificate($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.languageCertificate];
     }
     else if("urlOrigininalTranscript" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_origininal_transcript($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_origininal_transcript($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlOrigininalTranscript];
     }
     else if("urlCv" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_cv($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_cv($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlCv];
     }
     else if("urlPassport" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_Passport($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_Passport($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlPassport];
     }
     else if("urlApplicationLetter" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_application_letter($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_application_letter($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlApplicationLetter];
     }
     else if("urlLanguageCertificate" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_language_certificate($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_language_certificate($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlLanguageCertificate];
     }
     else if("urlUniversityCredential" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_university_credential($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_university_credential($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlUniversityCredential];
     }
     else if("urlCertificatePsychophysical" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_certificate_psychophysical($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_certificate_psychophysical($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlCertificatePsychophysical];
     }
     else if("urlExchangeForm" in req.body){
-      sql.text = "select kuntur.f_u_enrrollment_url_exchange_form($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_url_exchange_form($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.urlExchangeForm];
     }
     else if("visa" in req.body){
@@ -1790,7 +1791,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
         req.body.visa=null;
       }
 
-      sql.text = "select kuntur.f_u_enrrollment_visa($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_visa($1, $2, $3) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.visa];
 
     }
@@ -1807,7 +1808,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
         req.body.comment="'"+req.body.comment+"'";
       }
 
-      sql.text = "select kuntur.f_u_enrrollment_comment($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4) as respuesta"
+      sql.text = "select kuntur.f_u_enrrollment_comment($1, $2, $3, $4) as respuesta"
       sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, req.body.comment, req.body.observation];
 
     }
@@ -1858,7 +1859,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
 
-
+  
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -1892,7 +1893,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     var sql="select * from kuntur.unc_in_grading_scale ";
 
-
+  
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -1927,7 +1928,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     var sql="select * from kuntur.unc_in_studied_type";
 
-
+  
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -1968,9 +1969,9 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
     }
 
     var sql = {};
-    sql.text = "SELECT  * FROM kuntur.f_find_study_program_by_id ($1, (SELECT id FROM kuntur.user_system WHERE name = $2))";
+    sql.text = "SELECT  * FROM kuntur.f_find_study_program_by_id ($1, $2)";
     sql.values = [req.params.inenrrollmentId, req.headers.usersystemid];
-
+  
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2009,7 +2010,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
     }
-
+  
     pg.connect(conString, function(err, client, done){
       if(err){
         done();
@@ -2032,16 +2033,16 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             var sql = {};
             if("id" in studyProgram && studyProgram.erased){
               //delete
-              sql.text = "select kuntur.f_u_enrrollment_DeleteInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_DeleteInStudyProgram($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.id];
             }
             else if(studyProgram.id){
               //update
-              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_inStudyProgram($1, $2, $3, $4, $5, $6, $7, $8) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.approved, studyProgram.fileNumber, studyProgram.id, studyProgram.comment];
             }
             else if(!studyProgram.erased){
-              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_InsertInStudyProgram($1, $2, $3, $4, $5) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, studyProgram.subject, studyProgram.org.id, studyProgram.comment];
               //insert
             }else{
@@ -2097,7 +2098,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
     }
-
+  
     pg.connect(conString, function(err, client, done){
       if(err){
         done();
@@ -2120,17 +2121,17 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             var sql = {};
             if("id" in academicPerformance && academicPerformance.erased){
               //delete
-              sql.text = "select kuntur.f_u_enrrollment_DeleteacademicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_DeleteacademicPerformance($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.id];
             }
             else if(academicPerformance.id){
               //update
-
-              sql.text = "select kuntur.f_u_enrrollment_academicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7, $8) as respuesta"
+ 
+              sql.text = "select kuntur.f_u_enrrollment_academicPerformance($1, $2, $3, $4, $5, $6, $7, $8) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id, academicPerformance.id];
             }
             else if(!academicPerformance.erased){
-              sql.text = "select kuntur.f_u_enrrollment_InsertAcademicPerformance($1, (SELECT id FROM kuntur.user_system WHERE name = $2), $3, $4, $5, $6, $7) as respuesta"
+              sql.text = "select kuntur.f_u_enrrollment_InsertAcademicPerformance($1, $2, $3, $4, $5, $6, $7) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id];
               //insert
             }else{
@@ -2335,7 +2336,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
   //console.log(queryResult.mailconfig)
 
-
+  
 
   pg.connect(conString, function(err, client, done){
     if(err){
@@ -2448,11 +2449,12 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
     }
-
+    //ERRORUSID
+    //arreglado
     var sql = {};
     sql.text = "SELECT  * FROM kuntur.perfilArray($1)";
     sql.values = [req.headers.usersystemid];
-
+  
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2498,37 +2500,31 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
     console.log("header");
     console.log(req.headers.usersystemid);
-
-    const buf = new Buffer(req.headers.usersystemid64, 'base64');
-
-    var srt64 = buf.toString('utf-8');
-
-    console.log("base64");
-    console.log(srt64);
-
+    //ERRORUSID
+    //ARREGLADO
     var orgId = null;
     var shortName=null;
     var originalName=null;
     var name=null;
     var web=null;
-    var country=null;
+    var country=null; 
     // console.log(req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, req.body.person.student_org_id, req.body.person.student_short_name, req.body.person.student_institution_original_name, req.body.person.student_institution_name, req.body.person.student_institution_web_site, req.body.person.student_institution_country_code, req.headers.usersystemid, req.body.person.person_id)
     if(req.body.person.student_org_id){
       orgId=req.body.person.student_org_id;
 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, srt64, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
 
     }else{
       shortName=req.body.person.student_short_name;
       originalName=req.body.person.student_institution_original_name;
       name=req.body.person.student_institution_name;
       web=req.body.person.student_institution_web_site;
-      country=req.body.person.student_institution_country_code;
+      country=req.body.person.student_institution_country_code; 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, srt64, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
 
     }
 
@@ -2570,7 +2566,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
 // console.log("headers")
 //   console.log(req.headers);
-
+    
     if(!req.headers.usersystemid){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -2595,7 +2591,8 @@ server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
             done();
             return res.send(500,err);
         }
-
+        //ERRORUSID
+        //arreglado
         var queryResult=false;
         async.each(req.body.person.emails,
           function(mail, callback){
@@ -2665,7 +2662,7 @@ server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
   });
 
 server.put({path:'/student/phones', version:'0.0.1'}, function(req, res, next){
-
+    
     if(!req.headers.usersystemid){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -2690,7 +2687,7 @@ server.put({path:'/student/phones', version:'0.0.1'}, function(req, res, next){
             done();
             return res.send(500,err);
         }
-
+        //ERRORUSID
         var queryResult=false;
         async.each(req.body.person.phones,
           function(phone, callback){
@@ -2787,7 +2784,7 @@ server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, ne
             done();
             return res.send(500,err);
         }
-
+        //ERRORUSID
         var queryResult=false;
         async.each(req.body.person.nationalities,
           function(iden, callback){
@@ -2875,6 +2872,7 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
             done();
             return res.send(500,err);
         }
+        //ERRORUSID
         // console.log(req.body.person.identities)
         var queryResult=false;
         async.each(req.body.person.identities,
@@ -2966,6 +2964,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
             done();
             return res.send(500,err);
         }
+        //ERRORUSID
         // console.log(req.body.person.identities)
         var queryResult=false;
         async.each(req.body.person.addresses,
@@ -3017,7 +3016,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               rollback(client, done);
               res.send(500,err);
             }else{
-
+              
               client.query('COMMIT', done);
               res.send(200,queryResult);
             }
@@ -3038,11 +3037,11 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
         res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
         return next();
       }
-
+      //ERRORUSID
       var sql = {};
-      sql.text = "SELECT  * FROM kuntur.f_enrrollment_status($1, $2)";
+      sql.text = "SELECT  * FROM kuntur.f_enrrollment_status($1, $2)";//NO HACE FALTA PASARLE PAREMETROS
       sql.values = [req.headers.usersystemid, req.params.enrrollmentId];
-
+    
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -3081,10 +3080,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
         return next();
       }
 
+      //ERRORUSID
+      //arreglado
       var sql = {};
       sql.text = "SELECT  * FROM kuntur.f_get_org_academic_performance($1)";
       sql.values = [req.headers.usersystemid];
-
+    
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -3113,8 +3114,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
       });
     });
-
-
+  
+  
 
 
     server.get({path : '/state', version : '0.0.1'}, function(req, res, next){
@@ -3129,6 +3130,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           return next();
         }
 
+        //ERRORUSID
+        //arreglado
         var sql = {};
         sql.text = "select kuntur.f_change_state($1, $2, $3) as respuesta"
         sql.values = [req.params.enrrollmentId, req.headers.usersystemid, req.params.statusCode];
@@ -3164,6 +3167,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
           // });
 
+
           sendMail(req.params.enrrollmentId, req.headers.usersystemid);
 
           queryResult=JSON.parse(result.rows[0].respuesta);
@@ -3179,7 +3183,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-
+        
     });
 
   });
@@ -3199,6 +3203,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         var sql = {};
         //sql.text = "select kuntur.f_info_mails($1) as respuesta"
+ 
         sql.text = "select kuntur.f_send_mail_new_university($1, $2) as respuesta"
         sql.values = [inenrrollmentId, usersystemid];
 
@@ -3240,8 +3245,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   'en la postulación número: '+queryResult.numberenrrollment// plaintext body
                 };
 
-
-
+  
+                
 
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Info de mail de nueva  universidad:", info);
@@ -3253,7 +3258,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
-                });
+                });                
 
               // }
 
@@ -3275,7 +3280,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
    var generateAnalitico = function(req, cb){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -3294,7 +3299,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                       /*armado de las filas*/
-    var filas = "";
+    var filas = "";                  
     // console.log("estoy en generarAnalitico", req)
 
     for (var i = 0; i < req.uncInAcademicPerformanceList.length; i++) {
@@ -3307,7 +3312,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                     "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
-
+      
 
     };
 
@@ -3333,7 +3338,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
     }else{
-
+      
       var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
                              .replace("$diaCreacion2",dia)
                              .replace("$apellidoPostulante",req.familyName)
@@ -3350,7 +3355,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                              .replace('$image', image)
                              .replace('$fila', filas);
     };
-
+    
 
 
     // console.log("html")
@@ -3359,14 +3364,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
     pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
+      
 
-
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error leyendo pdf", err)
+              console.log("Error leyendo pdf", err)  
               throw err;
 
           }
@@ -3376,7 +3381,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           pdfAle = new Buffer(data).toString('base64');
 
           cb(pdfAle, "analitico");
-
+              
       });
       // fs.readFile(resPdf.filename,cb);
 
@@ -3386,12 +3391,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
   var generateAdmissionAct = function(req, cb){
-
+    
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -3436,14 +3441,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
     pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
+      
 
-
-
+      
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error leyendo pdf", err)
+              console.log("Error leyendo pdf", err)  
               throw err;
 
           }
@@ -3452,7 +3457,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           pdfAle =  new Buffer(data).toString('base64');
 
           cb(pdfAle, "carta");
-
+              
       });
       // fs.readFile(resPdf.filename,cb);
 
@@ -3515,7 +3520,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
               // console.log(queryResult.mailconfig[x].group_id)
               // console.log(queryResult.stakeholders[y].group_system_id)
-
+              
 
                 var transporter = nodemailer.createTransport({//smtpTransport(
                   host: config.mailServer,
@@ -3524,7 +3529,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   }
                 });//)
 
-
+ 
 
                 var mailOptions = {
                   from: queryResult.mailconfig[x].from, // sender address
@@ -3580,18 +3585,18 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                               contentType: 'application/pdf'
                             });
                           }
-
+                          
                           callback2();
                           transporter.sendMail(mailOptions, function(error, info){
                             console.log("Mail cambio de estado info: ", info)
-
+                            
                             if(error){
                               console.log("Mail cambio de estado error");
                               return console.log(error);
                             }
 
-                          });
-
+                          });    
+                                  
                         }
 
 
@@ -3610,14 +3615,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
-
+                              
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error");
                               return console.log(error);
                             }
 
-                          });
+                          });  
                             callback2();
                         }
 
@@ -3637,21 +3642,21 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
-
+                              
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error");
                               return console.log(error);
                             }
 
-                          });
+                          });  
                             callback2();
                         }
 
 
                       }
 
-
+ 
 
                     });
 
@@ -3661,9 +3666,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       res.send(500,error);
 
                     });
+                
 
-
-
+           
 
               }else{
 
@@ -3677,7 +3682,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
-                });
+                });     
                 }
 
             }else{//if
@@ -3702,7 +3707,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-
+        
     });
 
 
@@ -3747,7 +3752,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           return next();
         }
 
-
+        //ERRORUSID
+        //arreglado
         var sql = {};
         sql.text = "select kuntur.nextstep($1, $2) as respuesta"
         sql.values = [req.headers.usersystemid, req.params.enrrollmentId];
@@ -3775,7 +3781,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-
+        
     });
 
   });
@@ -3794,7 +3800,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
         var sql = {};
-        sql.text = "select kuntur.f_get_admission_period_by_org($1, (select id from kuntur.user_system where name = $2)) as respuesta"
+        sql.text = "select kuntur.f_get_admission_period_by_org($1, $2) as respuesta"
         sql.values = [req.params.orgId, req.headers.usersystemid];
 
         var query = client.query(sql);
@@ -3820,7 +3826,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-
+        
     });
 
   });
@@ -3835,10 +3841,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
           return next();
         }
-
-
+        console.log("req.headers.usersystemid")
+        console.log(req.headers.usersystemid)
         var sql = {};
-        sql.text = "select kuntur.f_insert_enrrollment($1, (select id from kuntur.user_system where name = $2)) as respuesta"
+        sql.text = "select kuntur.f_insert_enrrollment($1, $2) as respuesta"
         sql.values = [req.body.admissionPeriodId, req.headers.usersystemid];
 
         var query = client.query(sql);
@@ -3864,7 +3870,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-
+        
     });
 
   });
@@ -3908,7 +3914,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-
+        
     });
 
   });
@@ -3950,7 +3956,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-
+        
     });
 
   });
@@ -3991,7 +3997,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-
+        
     });
 
   });
@@ -4033,7 +4039,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-
+        
     });
 
   });
@@ -4075,7 +4081,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-
+        
     });
 
   });
@@ -4095,7 +4101,7 @@ server.get({path : '/coordinators', version : '0.0.1'} , function(req, res , nex
       sql.text = "SELECT  * FROM kuntur.f_get_directivos($1)";
       sql.values = [req.params.orgId];
 
-
+    
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -4107,7 +4113,7 @@ server.get({path : '/coordinators', version : '0.0.1'} , function(req, res , nex
 
         query.on("row", function(row, result){
           result.addRow(row);
-
+          
         });
   //JSON.parse(result.rows[0].perfilArray)
         query.on("end",function(result){
@@ -4138,7 +4144,7 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
       sql.text = "SELECT  * FROM kuntur.f_get_all_directivos()";
       //sql.values = [req.params.orgId];
 
-
+    
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -4150,7 +4156,7 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
 
         query.on("row", function(row, result){
           result.addRow(row);
-
+          
         });
   //JSON.parse(result.rows[0].perfilArray)
         query.on("end",function(result){
@@ -4184,8 +4190,8 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-
-
+   
+   
 
     pg.connect(conString, function(err, client, done){
       if(err){
@@ -4205,11 +4211,11 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
         var queryResult=false;
         async.series([
           function(callback){
-            var sql = "DELETE FROM kuntur.unc_in_academic_coordinator WHERE org_id=$1";
+            var sql = "DELETE FROM kuntur.unc_in_academic_coordinator WHERE org_id=$1"; 
             var params =[
                   req.params.auId
             ]
-
+            
 
             var query = client.query(sql,params, function(error){
 
@@ -4221,11 +4227,11 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
             });
           }, function(callback){
-            var sql = "DELETE FROM kuntur.unc_in_academic_office WHERE org_id=$1";
+            var sql = "DELETE FROM kuntur.unc_in_academic_office WHERE org_id=$1"; 
             var params =[
                   req.params.auId
             ]
-
+            
 
             var query = client.query(sql,params, function(error){
 
@@ -4266,9 +4272,9 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
             })
 
+           
 
-
-
+           
           }, function(callback){
 
             async.forEach(req.body.despachoNuevo, function(person,callbackInterno){
@@ -4299,9 +4305,9 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
             })
 
+           
 
-
-
+           
           }
         ],function(error){
           done();
@@ -4330,3 +4336,7 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
 
 }
+
+
+
+

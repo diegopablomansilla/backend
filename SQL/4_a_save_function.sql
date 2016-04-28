@@ -2100,6 +2100,10 @@ BEGIN
 	
 		END IF;
 
+	ELSE
+
+		RETURN false;
+
 	END IF;
 
 	RETURN true;
@@ -3397,7 +3401,6 @@ $$ language plpgsql;
 ------------------------------------para ver las postulaciones disponibles-------------------------------------------------------------------------------------------------------------------------
 
 
-
 -- Function: kuntur.f_get_admission_period_by_org(character varying, character varying)
 
 -- DROP FUNCTION kuntur.f_get_admission_period_by_org(character varying, character varying);
@@ -3416,32 +3419,46 @@ BEGIN
 
 	select org_id into v_orgId from kuntur.student where id = $2;
 
-	SELECT count(*) INTO v_coun_agreement FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id
-	WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true AND api.org_id = org_id;
+	--SELECT count(*) INTO v_coun_agreement FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id
+	--WHERE ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true AND api.org_id = org_id;
 
-	IF v_coun_agreement > 0 THEN --CONTROLO SI EL ESTUDIANTE TIENE ACCESO A AGREEMENTS
+	--IF v_coun_agreement > 0 THEN --CONTROLO SI EL ESTUDIANTE TIENE ACCESO A AGREEMENTS
 
 
 		WITH t AS(
-			SELECT DISTINCT ap.* FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = org_id
+			--SELECT DISTINCT ap.* FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = org_id
 			--SELECT * FROM kuntur.admission_period ap 
 			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
-			AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true
+			--AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true
+			select distinct ap.* 
+			from kuntur.admission_period ap 
+				left join kuntur.admission_period_agreement apa 
+				on apa.admission_period_id = ap.id
+				left join kuntur.agreement a 
+				on a.id = apa.agreement_id
+				left join kuntur.agreement_item ai
+				on ai.agreement_id = a.id
+			WHERE ap.from_date <= current_date AND current_date <= ap.to_date
+				AND ai.org_id = v_orgId
+				OR ap.is_agreement = false
+	
+
+			--SELECT * FROM kuntur.admission_period WHERE from_date < current_date AND current_date < to_date
 		)
 		SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
 
 
-	ELSE--muestro tambien los q no son agreement
+	--ELSE--muestro tambien los q no son agreement
 
-		WITH t AS(
-			SELECT * FROM kuntur.admission_period ap 
+	--	WITH t AS(
+	--		SELECT * FROM kuntur.admission_period ap 
 			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
-			WHERE ap.is_agreement = false AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2)
-		)
-		SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
+	--		WHERE ap.is_agreement = false AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2)
+	--	)
+	--	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
-	END IF;
+	--END IF;
 
 	RETURN result;
 	
@@ -3450,9 +3467,6 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION kuntur.f_get_admission_period_by_org(character varying, character varying)
-  OWNER TO us_kuntur_dev;
-
 
 
 --------------------------------------funcion q inserta un nuevo enrrollment---------------------------------------------------------------------------------------------------------------
@@ -4116,3 +4130,31 @@ $BODY$
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-- Function: kuntur.f_u_enrrollment_languageCertificate(character varying, character varying, boolean)
+
+-- DROP FUNCTION kuntur.f_u_enrrollment_languageCertificate(character varying, character varying, boolean);
+
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_languageCertificate(inenrrollment_id character varying, user_system_id character varying, lng boolean)
+  RETURNS boolean AS
+$BODY$
+DECLARE    	
+
+	update_ok BOOLEAN = false;
+	sql VARCHAR = null;
+    
+BEGIN
+
+	sql = 'UPDATE kuntur.unc_in_enrrollment SET language_certificate = ' || coalesce(lng, false) || ' WHERE id = ''' || $1 || ''' ';
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	RETURN update_ok;
+    
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION kuntur.f_u_enrrollment_languageCertificate(character varying, character varying, boolean)
+  OWNER TO us_kuntur_dev;
