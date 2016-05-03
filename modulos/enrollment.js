@@ -1191,11 +1191,18 @@ var options = { format: 'Letter',
         }
 
         var queryResult=false;
+
         async.each(req.body.enrrollmentIdentityList,
           function(iden, callback){
             var sql = {};
+              iden.name = iden.documentTypes.filter(function(el){
+                if(el.code == iden.code)
+                  return el;
+              })[0].name;
+            //console.log("nameeeeeeeeeeeee: ",iden.name);  
             if(iden.erased){
               //delete
+
           
               sql.text = "select kuntur.f_u_enrrollment_Deletecitizenship($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
@@ -1857,8 +1864,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
   server.get({path : '/academicUnits', version : '0.0.1'} , function(req, res , next){
 
-    var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
-
+    //var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
+    var sql = "select * from kuntur.org where org_id is not null and erased = false";
   
     pg.connect(conString, function(err, client, done){
       if(err) {
