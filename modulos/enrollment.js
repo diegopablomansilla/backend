@@ -2886,6 +2886,10 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
           function(iden, callback){
             var sql = {};
             // console.log(req.headers.usersystemid);
+            iden.name = iden.documentTypes.filter(function(el){
+              if(el.code == iden.code)
+                return el;
+            })[0].name;            
             if(iden.erased){
               //delete
               // console.log(iden);
