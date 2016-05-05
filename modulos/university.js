@@ -196,7 +196,7 @@ module.exports = function(server, conString) {
                   res.send(503, {code: 503, message: 'Database error', description: err});
                   return next();
                 }
-  			  res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + result.rows[0].id);
+  			  // res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + result.rows[0].id);
                 res.send(201);
               }); // end of insert query
             }); // end of u code query
@@ -543,7 +543,7 @@ module.exports = function(server, conString) {
   						res.send(503, {code: 503, message: 'Database error', description: err});
   						return next();
   					}
-  					res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/mails/' + result.rows[0].id);
+  					// res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/mails/' + result.rows[0].id);
   					res.send(201);
   				});
 
@@ -722,7 +722,7 @@ module.exports = function(server, conString) {
   						res.send(503, {code: 503, message: 'Database error', description: err});
   						return next();
   					}
-  					res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/phones/' + result.rows[0].id);
+  					// res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/phones/' + result.rows[0].id);
   					res.send(201);
   				});
 
@@ -1019,7 +1019,7 @@ module.exports = function(server, conString) {
   						res.send(503, {code: 503, message: 'Database error', description: err});
   						return next();
   					}
-  					res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/addresses/' + result.rows[0].id);
+  					// res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + req.params.unversityId + '/addresses/' + result.rows[0].id);
   					res.send(201);
   				});
 
