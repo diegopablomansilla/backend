@@ -2201,7 +2201,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
     }
 
     pg.connect(conString, function(err, client, done){
-      console.log(((new Date.getTime()-start.getTime())/1000)+" coneccion");
+      console.log(((new Date().getTime()-start.getTime())/1000)+" coneccion");
       if(err){
         done();
         console.error('error fetching client from pool', err);
@@ -2220,7 +2220,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       });
 
       query.on("end", function(result){
-        console.log(((new Date.getTime()-start.getTime())/1000)+" query");
+        console.log(((new Date().getTime()-start.getTime())/1000)+" query");
         done();
         // console.log(result.rows[0].respuesta);
         if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el balor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
