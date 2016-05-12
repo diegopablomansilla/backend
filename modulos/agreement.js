@@ -1086,22 +1086,24 @@ module.exports = function(server, conString) {
                         });
 
                         queryAgItOu.on("error",function(error){
-                          callbackInterno();
+                          callbackInterno(error);
                           console.log(error);
-                          rollback(client, done);
-                          res.send(500,error.message);
-                          return ;
+                          // rollback(client, done);
+                          // res.send(500,error.message);
+                          // return ;
                         });
 
                       }else{
                         callbackInterno(null);//Para que termine el elemento UNC
                       }
-                    },function(err){
+                    },function(err){// callback del each agreement item
                       if(err){
                         console.log(err);
-                        res.send(500,err);
+                        //res.send(500,err);
+                        callback(err);
+                      }else{
+                        callback(null);
                       }
-                      callback(null, true);
                     });
                   },
                   function(callback){
@@ -1142,33 +1144,38 @@ module.exports = function(server, conString) {
 
                       queryAgrCon.on("error",function(error){
                         console.log(error);
-                        callbackInterno();
-                        rollback(client, done);
-                        res.send(500,error);
-                        return ;
+                        callbackInterno(error);
+                        // rollback(client, done);
+                        // res.send(500,error);
+                        // return ;
                       });
 
 
-                    },function(err){
+                    },function(err){//callback del each de contact
                       if(err){
                         console.log(err);
-                        rollback(client, done);
-                        res.send(500,err.message);
-
+                        // rollback(client, done);
+                        // res.send(500,err.message);
+                        callback(err);
+                      }else{
+                        callback(null);
                       }
-
-                      callback(null, true);
                     });
-                  }], function(err){
+                  }], function(err){//callback del parallel
                     // done();
-                     callbackItem(err);
+                     // callbackItem(err);
+                     if(err){
+                      callbackItem(err);
+                     }else{
+                      callbackItem(null);
+                     }
                   });
 
-                });
+                });// fin del callback de row de agreement item
 
 
 
-                query2.on("end",function(result){
+                query2.on("end",function(result){// no se hace nada porque esta todo dentro del on row
 
                 });
 
@@ -1182,7 +1189,7 @@ module.exports = function(server, conString) {
                 });
 
 
-              }, function(err){
+              }, function(err){//callback del primer each (el de agreement item)
 
                 if(err){
                       console.log(err);
@@ -1207,7 +1214,7 @@ module.exports = function(server, conString) {
 
               }
 
-            });
+            });//fin de la query que actualiza los datos basicos del agreement
 
             // queryAgreement.on("row", function(row, result){
             //   result.addRow(row);
@@ -1238,22 +1245,21 @@ module.exports = function(server, conString) {
             //     }
 
 
-              }
+          }//fin del else que valida que el agreement pueda usarse
 
 
-  			});
+  			});//fin del count para ver si se puede editar el acuerdo
 
   			queryCount.on("error",function(error){
           rollback(client, done);
   				console.log(error);
   				res.send(500,error.message);
-
   			});
 
 
   			if(err) {//error del count
-  	          	done();
-  	        }
+  	     	done();
+  	    }
 
   		});//begin
 

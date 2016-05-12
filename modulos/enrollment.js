@@ -18,6 +18,49 @@ var rollback = function(client, done) {
   });
 };
 
+var executeSQL = function(sql){
+	var pro = new node.Promise(function(resolve, reject){
+		pg.connect(conString, function(err, client, done){
+			if(err) {
+	        	done();
+	        	console.log(err);
+	        	return ;
+	      	}
+
+	      	var query = client.query(sql);
+
+			query.on("row", function(row, result){
+	        	result.addRow(row);
+	      	});
+
+			query.on("error",function(error){
+			    console.log(error);
+			    done();
+			    reject(error);
+			});
+
+		    query.on("end", function(result){
+		        done();
+		        resolve(result);
+		    });
+		});
+
+	});//fin promesa
+
+
+	return(pro);
+};
+
+// var promise = new Promise(function(resolve, reject) {
+//            wrapper(doc, resolve, reject)
+//          });
+//          promise.then(function (result) {
+//            roots.push(result);
+//            callback();
+//          }, function (err) {
+//            callback(err);
+//          })
+
 module.exports = function(server, conString, activeMail) {
 
   server.get({path : '/postulacionData', version : '0.0.1'}, function(req,res,next){
@@ -2221,7 +2264,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       query.on("end", function(result){
         done();
         // console.log(result.rows[0].respuesta);
-        if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el balor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
+        if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el valor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
           res.send(200,result.rows[0].respuesta);
         }else{
           res.send(200,null);
