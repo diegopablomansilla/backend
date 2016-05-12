@@ -326,7 +326,7 @@ var options = { format: 'A4',
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
-      filas += "<tr><td>"+(i+1)+"</td>"+
+      filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
@@ -439,7 +439,7 @@ var options = { format: 'A4',
       if(req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber<0){
         req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber="-";
       }
-      filas += "<tr><td>"+(i+1)+"</td>"+
+      filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
