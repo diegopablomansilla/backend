@@ -330,7 +330,7 @@ var options = { format: 'A4',
                     "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
+                    "<td align=center>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
