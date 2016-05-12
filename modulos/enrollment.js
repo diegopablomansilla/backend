@@ -115,17 +115,17 @@ var fs = require('fs');
 var path = require('path');
 var pdf = require('html-pdf');
 var htmlCartaDeAdmisionTemplate = fs.readFileSync(path.join(__dirname, '../cartadeadmisiontemplate.html'), 'utf8');
-console.log("Html path nuevo:",htmlCartaDeAdmisionTemplate)
+//console.log("Html path nuevo:",htmlCartaDeAdmisionTemplate)
 var htmlCartaDeAdmision = fs.readFileSync(path.join(__dirname, '../cartadeadmision.html'),'utf8');
 var htmlCertificadoAnaliticoTemplate = fs.readFileSync(path.join(__dirname, '../certificadoanaliticotemplate.html'), 'utf8');
 var htmlCertificadoAnalitico = fs.readFileSync(path.join(__dirname, '../certificadoanalitico.html'), 'utf8');
 var htmlReporteEstudiante = fs.readFileSync(path.join(__dirname, '../reporteestudiante.html'), 'utf8');
 
 var image = path.join('file://', __dirname, '../logoUncPri.png')
-var options = { format: 'Letter',
+var options = { format: 'A4',
                 footer: {
                     "height": "20mm",
-                    "contents": '<span style="color: #444;">{{page}}</span><span>{{pages}}</span>'
+                    "contents": '<span style="color: #444;"></span><span></span>'
                 },
               };
  
@@ -326,7 +326,7 @@ var options = { format: 'Letter',
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
-      filas += "<tr><td>"+i+"</td>"+
+      filas += "<tr><td>"+(i+1)+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
@@ -439,7 +439,7 @@ var options = { format: 'Letter',
       if(req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber<0){
         req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber="-";
       }
-      filas += "<tr><td>"+i+"</td>"+
+      filas += "<tr><td>"+(i+1)+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
@@ -3359,7 +3359,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
     for (var i = 0; i < req.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
-      filas += "<tr><td>"+i+"</td>"+
+      filas += "<tr><td>"+(i+1)+"</td>"+
                     "<td>"+req.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
