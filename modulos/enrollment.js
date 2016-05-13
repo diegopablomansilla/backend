@@ -887,10 +887,10 @@ var options = { format: 'A4',
   		client.query('BEGIN', function(err) {
 
   			if(err) {
-          done();
+          		done();
   				res.send(500,err);
   				console.log(err);
-          return;
+          		return;
   	        }
 
   			var query = client.query(sql);
@@ -924,7 +924,7 @@ var options = { format: 'A4',
 
   							queryContact.on("error",function(error){
   								console.log(error);
-                  rollback(client, done);
+                  				rollback(client, done);
   								res.send(500,error.message);
   								callbackInterno();
   							});
@@ -1060,14 +1060,16 @@ var options = { format: 'A4',
           done();
           if(JSON.parse(result.rows[0].f_u_enrrollment_names)){
             res.send(200,"OK");
+            client.query('COMMIT', done);
           }else{
             res.send(500,"Error in function f_u_enrrollment_names");
+            rollback(client, done)
           }
         });//FIN CB END GUIVEN_NAME
 
         query.on("error",function(error){
           console.log(error);
-          done();
+          rollback(client, done)
           res.send(500,error.message);
         });
 
@@ -1123,15 +1125,17 @@ var options = { format: 'A4',
         query.on("end", function(result){
           done();
           if(JSON.parse(result.rows[0].f_u_enrrollment_male)){
+          	client.query('COMMIT', done);
             res.send(200,"OK");
           }else{
+            rollback(client, done)
             res.send(500,"Error in function f_u_enrrollment_male");
           }
         });//FIN CB END GUIVEN_NAME
 
         query.on("error",function(error){
           console.log(error);
-          done();
+          rollback(client, done);
           res.send(500,error.message);
         });
 
@@ -2419,12 +2423,13 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
     transporter.sendMail(mailOptions, function(error, info){
       if(error){
         console.log("mail de confirmacion error:");
-        return console.log(error);
-      }
+        //return console.log(error);
+        console.log(error); //saque el return, capaz q por eso no cerraba la conexion
+      }else{
                     // console.log('Message sent: ' + info.response);
-      console.log("mail de confirmacion");
-      console.log(info);
-
+      	console.log("mail de confirmacion");
+     	console.log(info);
+	  }
      // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
     });
@@ -2565,7 +2570,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
 
     }else{
       shortName=req.body.person.student_short_name;
@@ -2575,7 +2580,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       country=req.body.person.student_institution_country_code; 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
 
     }
 
@@ -2594,7 +2599,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 //JSON.parse(result.rows[0].perfilArray)
     query.on("end",function(result){
       // console.log(result);
-      console.log(result);
+      //console.log(result);
       done();
       res.send(200,result.rows[0].f_u_studentProfile);//JSON.parse(
     });
