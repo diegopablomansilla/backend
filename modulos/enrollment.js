@@ -326,11 +326,11 @@ var options = { format: 'A4',
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
-      filas += "<tr><td>"+(i+1)+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+      filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
@@ -439,11 +439,11 @@ var options = { format: 'A4',
       if(req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber<0){
         req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber="-";
       }
-      filas += "<tr><td>"+(i+1)+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+      filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
