@@ -174,7 +174,7 @@ module.exports = function(server, conString) {
             res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
             return next();
           }
-          var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
+          var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
             if(!!req.body.short_name){ //column short_name
               sql += "'" + req.body.short_name + "', ";
             }
@@ -182,11 +182,14 @@ module.exports = function(server, conString) {
               sql += "' ', "
             }
               sql += "'" + req.body.original_name + "', ";  // column original_name
+              sql += "'" + req.body.original_name + "', ";  // column original_name
               sql += "'" + req.body.web_site + "', ";       // column web_site
               sql += "'" + req.body.country_code + "', ";   // column country_code
               sql += 'false, ';                             // column primary_org
               sql += "'" + req.body.comment + "', ";        // column comment
               sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
+
+              console.log(sql);
 
               client.query(sql, function(err, result) {
                 done();
