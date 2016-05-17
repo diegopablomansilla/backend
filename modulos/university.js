@@ -174,7 +174,7 @@ module.exports = function(server, conString) {
             res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
             return next();
           }
-          var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
+          var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
             if(!!req.body.short_name){ //column short_name
               sql += "'" + req.body.short_name + "', ";
             }
@@ -182,11 +182,14 @@ module.exports = function(server, conString) {
               sql += "' ', "
             }
               sql += "'" + req.body.original_name + "', ";  // column original_name
+              sql += "'" + req.body.original_name + "', ";  // column original_name
               sql += "'" + req.body.web_site + "', ";       // column web_site
               sql += "'" + req.body.country_code + "', ";   // column country_code
               sql += 'false, ';                             // column primary_org
               sql += "'" + req.body.comment + "', ";        // column comment
               sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
+
+              console.log(sql);
 
               client.query(sql, function(err, result) {
                 done();
@@ -1416,21 +1419,23 @@ module.exports = function(server, conString) {
   						});
 
   						queryContact.on("end",function(result){
-  							callback();
+  							callback(false);
   						});
 
   						queryContact.on("error",function(error){
   							console.log(error);
-                rollback(client, done)
-  							res.send(500,error);
+                // rollback(client, done)
+  							// res.send(500,error);
+                callback(error);
   							return ;
   						});
 
-  						if(err) {
-  							console.log(err);
-  	          				rollback(client, done);
-  	          				return res.send(500,err);
-  	        			}
+  						// if(err) {
+  						// 	console.log(err);
+  	     //      				// rollback(client, done);
+        //           callback(error);
+  	     //      				// return res.send(500,err);
+  	     //    			}
   					},
 
   					function(callback){//insert emails
@@ -1441,36 +1446,39 @@ module.exports = function(server, conString) {
               								"id, erased, email, comment, person_id) "+
       										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
 
-      						var queryMail = client.query(sqlMail);
+      					var queryMail = client.query(sqlMail);
 
-      						queryMail.on("row", function(row, result){
+      					queryMail.on("row", function(row, result){
 
   							});
 
   							queryMail.on("end",function(result){
-  								callbackInterno();
+  								callbackInterno(false);
   							});
 
   							queryMail.on("error",function(error){
   								console.log(err);
-                  rollback(client, done)
-  								res.send(500,error);
+                  callbackInterno(err);
+                  // rollback(client, done)
+  								// res.send(500,error);
   								return ;
   							});
 
-  							if(err) {
-  								console.log(err);
-  		          				rollback(client, done);
-  		          				return res.send(500,err);
-  		        			}
+  							// if(err) {
+  							// 	console.log(err);
+  		     //      				rollback(client, done);
+  		     //      				return res.send(500,err);
+  		     //    			}
 
   						},function(err){
   							if(err){
   								console.log(err);
-  								rollback(client, done);
-  		          				return res.send(500,err);
-  							}
-  							callback();
+                  callback(err);
+  								// rollback(client, done);
+  		          	// return res.send(500,err);
+  							}else{
+  							 callback(false);
+                }
   						});
   					},
 
@@ -1493,29 +1501,32 @@ module.exports = function(server, conString) {
 
   							queryTel.on("error",function(error){
   								console.log(error);
-                  rollback(client, done)
-  								res.send(500,error);
+                  // rollback(client, done)
+  								// res.send(500,error);
+                  callbackInterno(error);
   								return ;
   							});
 
-  							if(err) {
-  								console.log(err);
-  		          				rollback(client, done);
-  		          				return res.send(500,err);
-  		        			}
+  							// if(err) {
+  							// 	console.log(err);
+  		     //      				rollback(client, done);
+  		     //      				return res.send(500,err);
+  		     //    			}
 
   						},function(err){
   							if(err){
   								console.log(err);
-  								rollback(client, done);
-  		          				return res.send(500,err);
-  							}
-  							callback();
+  								// rollback(client, done);
+  		      //     				return res.send(500,err);
+                  callback(err);
+  							}else{
+  							 callback(false);
+                }
   						});
   					}
 
   					],function(err){
-  					done();
+  					// done();
   					if(err){
   						console.log(err);
   						rollback(client, done);

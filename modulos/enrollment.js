@@ -18,6 +18,49 @@ var rollback = function(client, done) {
   });
 };
 
+var executeSQL = function(sql){
+	var pro = new node.Promise(function(resolve, reject){
+		pg.connect(conString, function(err, client, done){
+			if(err) {
+	        	done();
+	        	console.log(err);
+	        	return ;
+	      	}
+
+	      	var query = client.query(sql);
+
+			query.on("row", function(row, result){
+	        	result.addRow(row);
+	      	});
+
+			query.on("error",function(error){
+			    console.log(error);
+			    done();
+			    reject(error);
+			});
+
+		    query.on("end", function(result){
+		        done();
+		        resolve(result);
+		    });
+		});
+
+	});//fin promesa
+
+
+	return(pro);
+};
+
+// var promise = new Promise(function(resolve, reject) {
+//            wrapper(doc, resolve, reject)
+//          });
+//          promise.then(function (result) {
+//            roots.push(result);
+//            callback();
+//          }, function (err) {
+//            callback(err);
+//          })
+
 module.exports = function(server, conString, activeMail) {
 
   server.get({path : '/postulacionData', version : '0.0.1'}, function(req,res,next){
@@ -72,17 +115,17 @@ var fs = require('fs');
 var path = require('path');
 var pdf = require('html-pdf');
 var htmlCartaDeAdmisionTemplate = fs.readFileSync(path.join(__dirname, '../cartadeadmisiontemplate.html'), 'utf8');
-console.log("Html path nuevo:",htmlCartaDeAdmisionTemplate)
+//console.log("Html path nuevo:",htmlCartaDeAdmisionTemplate)
 var htmlCartaDeAdmision = fs.readFileSync(path.join(__dirname, '../cartadeadmision.html'),'utf8');
 var htmlCertificadoAnaliticoTemplate = fs.readFileSync(path.join(__dirname, '../certificadoanaliticotemplate.html'), 'utf8');
 var htmlCertificadoAnalitico = fs.readFileSync(path.join(__dirname, '../certificadoanalitico.html'), 'utf8');
 var htmlReporteEstudiante = fs.readFileSync(path.join(__dirname, '../reporteestudiante.html'), 'utf8');
 
 var image = path.join('file://', __dirname, '../logoUncPri.png')
-var options = { format: 'Letter',
+var options = { format: 'A4',
                 footer: {
                     "height": "20mm",
-                    "contents": '<span style="color: #444;">{{page}}</span><span>{{pages}}</span>'
+                    "contents": '<span style="color: #444;"></span><span></span>'
                 },
               };
 
@@ -283,11 +326,11 @@ var options = { format: 'Letter',
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
-      filas += "<tr><td>"+i+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+      filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
@@ -396,11 +439,11 @@ var options = { format: 'Letter',
       if(req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber<0){
         req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber="-";
       }
-      filas += "<tr><td>"+i+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+      filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"</td>"+
+                    "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
@@ -844,10 +887,10 @@ var options = { format: 'Letter',
   		client.query('BEGIN', function(err) {
 
   			if(err) {
-          done();
+          		done();
   				res.send(500,err);
   				console.log(err);
-          return;
+          		return;
   	        }
 
   			var query = client.query(sql);
@@ -881,7 +924,7 @@ var options = { format: 'Letter',
 
   							queryContact.on("error",function(error){
   								console.log(error);
-                  rollback(client, done);
+                  				rollback(client, done);
   								res.send(500,error.message);
   								callbackInterno();
   							});
@@ -1017,14 +1060,16 @@ var options = { format: 'Letter',
           done();
           if(JSON.parse(result.rows[0].f_u_enrrollment_names)){
             res.send(200,"OK");
+            client.query('COMMIT', done);
           }else{
             res.send(500,"Error in function f_u_enrrollment_names");
+            rollback(client, done)
           }
         });//FIN CB END GUIVEN_NAME
 
         query.on("error",function(error){
           console.log(error);
-          done();
+          rollback(client, done)
           res.send(500,error.message);
         });
 
@@ -1080,15 +1125,17 @@ var options = { format: 'Letter',
         query.on("end", function(result){
           done();
           if(JSON.parse(result.rows[0].f_u_enrrollment_male)){
+          	client.query('COMMIT', done);
             res.send(200,"OK");
           }else{
+            rollback(client, done)
             res.send(500,"Error in function f_u_enrrollment_male");
           }
         });//FIN CB END GUIVEN_NAME
 
         query.on("error",function(error){
           console.log(error);
-          done();
+          rollback(client, done);
           res.send(500,error.message);
         });
 
@@ -2223,7 +2270,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
         console.log(((new Date().getTime()-start.getTime())/1000)+" query");
         done();
         // console.log(result.rows[0].respuesta);
-        if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el balor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
+        if(result.rows[0].respuesta){// es una negrada pero cuando agarrabamos el valor en el buffer del otro backend volvia siempre con comillas (este servicio solo lo utilizan los alumnos, los otros usuarios van por /rol)
           res.send(200,result.rows[0].respuesta);
         }else{
           res.send(200,null);
@@ -2378,12 +2425,13 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
     transporter.sendMail(mailOptions, function(error, info){
       if(error){
         console.log("mail de confirmacion error:");
-        return console.log(error);
-      }
+        //return console.log(error);
+        console.log(error); //saque el return, capaz q por eso no cerraba la conexion
+      }else{
                     // console.log('Message sent: ' + info.response);
-      console.log("mail de confirmacion");
-      console.log(info);
-
+      	console.log("mail de confirmacion");
+     	console.log(info);
+	  }
      // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
     });
@@ -2524,7 +2572,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
 
     }else{
       shortName=req.body.person.student_short_name;
@@ -2534,7 +2582,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       country=req.body.person.student_institution_country_code;
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.body.person.person_id, req.body.person.person_url_photo];
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
 
     }
 
@@ -2553,7 +2601,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 //JSON.parse(result.rows[0].perfilArray)
     query.on("end",function(result){
       // console.log(result);
-      console.log(result);
+      //console.log(result);
       done();
       res.send(200,result.rows[0].f_u_studentProfile);//JSON.parse(
     });
@@ -3318,7 +3366,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
     for (var i = 0; i < req.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
-      filas += "<tr><td>"+i+"</td>"+
+      filas += "<tr><td>"+(i+1)+"</td>"+
                     "<td>"+req.uncInAcademicPerformanceList[i].subject+"</td>"+
                     "<td>"+req.uncInAcademicPerformanceList[i].org.name+"</td>"+
                     "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
