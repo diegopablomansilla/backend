@@ -1416,21 +1416,23 @@ module.exports = function(server, conString) {
   						});
 
   						queryContact.on("end",function(result){
-  							callback();
+  							callback(false);
   						});
 
   						queryContact.on("error",function(error){
   							console.log(error);
-                rollback(client, done)
-  							res.send(500,error);
+                // rollback(client, done)
+  							// res.send(500,error);
+                callback(error);
   							return ;
   						});
 
-  						if(err) {
-  							console.log(err);
-  	          				rollback(client, done);
-  	          				return res.send(500,err);
-  	        			}
+  						// if(err) {
+  						// 	console.log(err);
+  	     //      				// rollback(client, done);
+        //           callback(error);
+  	     //      				// return res.send(500,err);
+  	     //    			}
   					},
 
   					function(callback){//insert emails
@@ -1441,36 +1443,39 @@ module.exports = function(server, conString) {
               								"id, erased, email, comment, person_id) "+
       										"VALUES (uuid_generate_v4()::varchar, false, '"+mail.email+"', '"+mail.comment+"', '"+personId+"');";
 
-      						var queryMail = client.query(sqlMail);
+      					var queryMail = client.query(sqlMail);
 
-      						queryMail.on("row", function(row, result){
+      					queryMail.on("row", function(row, result){
 
   							});
 
   							queryMail.on("end",function(result){
-  								callbackInterno();
+  								callbackInterno(false);
   							});
 
   							queryMail.on("error",function(error){
   								console.log(err);
-                  rollback(client, done)
-  								res.send(500,error);
+                  callbackInterno(err);
+                  // rollback(client, done)
+  								// res.send(500,error);
   								return ;
   							});
 
-  							if(err) {
-  								console.log(err);
-  		          				rollback(client, done);
-  		          				return res.send(500,err);
-  		        			}
+  							// if(err) {
+  							// 	console.log(err);
+  		     //      				rollback(client, done);
+  		     //      				return res.send(500,err);
+  		     //    			}
 
   						},function(err){
   							if(err){
   								console.log(err);
-  								rollback(client, done);
-  		          				return res.send(500,err);
-  							}
-  							callback();
+                  callback(err);
+  								// rollback(client, done);
+  		          	// return res.send(500,err);
+  							}else{
+  							 callback(false);
+                }
   						});
   					},
 
@@ -1493,29 +1498,32 @@ module.exports = function(server, conString) {
 
   							queryTel.on("error",function(error){
   								console.log(error);
-                  rollback(client, done)
-  								res.send(500,error);
+                  // rollback(client, done)
+  								// res.send(500,error);
+                  callbackInterno(error);
   								return ;
   							});
 
-  							if(err) {
-  								console.log(err);
-  		          				rollback(client, done);
-  		          				return res.send(500,err);
-  		        			}
+  							// if(err) {
+  							// 	console.log(err);
+  		     //      				rollback(client, done);
+  		     //      				return res.send(500,err);
+  		     //    			}
 
   						},function(err){
   							if(err){
   								console.log(err);
-  								rollback(client, done);
-  		          				return res.send(500,err);
-  							}
-  							callback();
+  								// rollback(client, done);
+  		      //     				return res.send(500,err);
+                  callback(err);
+  							}else{
+  							 callback(false);
+                }
   						});
   					}
 
   					],function(err){
-  					done();
+  					// done();
   					if(err){
   						console.log(err);
   						rollback(client, done);
