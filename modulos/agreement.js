@@ -1,6 +1,7 @@
 var pg = require("pg")
 var fs      = require('fs');
 var async = require('async');
+var uuid = require('node-uuid');
 
 var findFirstOccurrence = function(array, property, value){
   for(var i = 0 ; i < array.length; i++){
@@ -22,7 +23,40 @@ var rollback = function(client, done) {
   });
 };
 
+// var log = console.log;
 
+// console.log = function () {
+//     var first_parameter = arguments[0];
+//     var other_parameters = Array.prototype.slice.call(arguments, 1);
+
+//     function formatConsoleDate (date) {
+//         var hour = date.getHours();
+//         var minutes = date.getMinutes();
+//         var seconds = date.getSeconds();
+//         var milliseconds = date.getMilliseconds();
+//         var day = date.getDay();
+//         var month = date.getMonth();
+//         var year = date.getFullYear();
+
+//         return '[' +
+//             day+
+//             '/'+
+//             month+
+//             '/'+
+//             year+
+//             ' '+
+//                ((hour < 10) ? '0' + hour: hour) +
+//                ':' +
+//                ((minutes < 10) ? '0' + minutes: minutes) +
+//                ':' +
+//                ((seconds < 10) ? '0' + seconds: seconds) +
+//                //'.' +
+//                //('00' + milliseconds).slice(-3) +
+//                '] ';
+//     }
+
+//     log.apply(console, [formatConsoleDate(new Date()) + first_parameter].concat(other_parameters));
+// };
 
 
 module.exports = function(server, conString) {
@@ -168,6 +202,8 @@ module.exports = function(server, conString) {
   	    }
 
   		client.query('BEGIN', function(err) {
+        var logToken = uuid.v4();
+        console.log("BEGIN /getAgreements " + logToken);
   			if(err) {
   				console.log(err);
   				done();
@@ -182,12 +218,14 @@ module.exports = function(server, conString) {
 
   			query.on("end",function(result){
   				client.query('COMMIT', done);
+          console.log("COMMIT /getAgreements " + logToken);
   				res.send(200,result.rows);
   			});
 
   			query.on("error",function(error){
   				console.log(error);
           rollback(client, done);
+          console.log("ROLLBACK /getAgreements " + logToken);
   				res.send(500,error);
   				return ;
   			});
@@ -210,7 +248,8 @@ module.exports = function(server, conString) {
   	        }
 
   			client.query('BEGIN', function(err) {
-
+        var logToken = uuid.v4();
+        console.log("BEGIN /findAgreementById " + logToken);
   			if(err) {
   			  console.log(err);
           done();
@@ -227,12 +266,14 @@ module.exports = function(server, conString) {
   			query.on("end",function(result){
 
   				client.query('COMMIT', done);
+          console.log("COMMIT /findAgreementById " + logToken);
   				res.send(200,result.rows);
   			});
 
   			query.on("error",function(error){
   				console.log(error)
           rollback(client, done);
+          console.log("ROLLBACK /findAgreementById " + logToken);
   				res.send(500,err);
   				return ;
   			});
@@ -426,6 +467,8 @@ module.exports = function(server, conString) {
           }
 
       	client.query('BEGIN', function(err) {
+          var logToken = uuid.v4();
+          console.log("BEGIN /insertarAgreement " + logToken);
       		if(err) {
   				console.log(err)
   				done();
@@ -500,8 +543,9 @@ module.exports = function(server, conString) {
 
   									queryAgItOu.on("error",function(error){
   										console.log(error);
-                      rollback(client, done);
-  										res.send(500,error.message);
+                      // rollback(client, done);
+  										// res.send(500,error.message);
+                      callbackInterno(error);
   										return ;
   									});
 
@@ -546,8 +590,9 @@ module.exports = function(server, conString) {
 
   								queryAgrCon.on("error",function(error){
   									console.log(error);
-                    rollback(client, done)
-  									res.send(500,error);
+                    // rollback(client, done)
+  									// res.send(500,error);
+                    callbackInterno(error);
   									return ;
   								});
 
@@ -555,9 +600,10 @@ module.exports = function(server, conString) {
   							},function(err){
   								if(err){
   									console.log(err);
-                    rollback(client, done);
-  									res.send(500,err.message);
-  									return ;
+                    //rollback(client, done);
+  									//res.send(500,err.message);
+                    callback(err);
+  									//return ;
   								}
 
   								callback();
@@ -567,10 +613,12 @@ module.exports = function(server, conString) {
   							if(err){
   								console.log(err);
   								rollback(client, done);
+                  console.log("ROLLBACK /insertarAgreement " + logToken);
   								return res.send(500,err.message);
 
   							}else{
   								client.query('COMMIT', done);
+                  console.log("COMMIT /insertarAgreement " + logToken);
   								res.send(200,agreementId);
   							}
   						});
@@ -585,6 +633,7 @@ module.exports = function(server, conString) {
   					query2.on("error",function(error){
   						console.log(error);
               rollback(client, done);
+              console.log("ROLLBACK /insertarAgreement " + logToken);
   						res.send(500,error.message);
   						return ;
   					});
@@ -925,6 +974,8 @@ module.exports = function(server, conString) {
 
    	pg.connect(conString, function(err, client, done){
    		client.query('BEGIN', function(err) {
+        var logToken = uuid.v4();
+        console.log("BEGIN /updateAgreement " + logToken);
   	 		if(err) {
   			    console.log(err);
             done();
@@ -941,12 +992,14 @@ module.exports = function(server, conString) {
 
   			query.on("end",function(result){
   				client.query('COMMIT', done);
+          console.log("COMMIT /updateAgreement " + logToken);
   				res.send(200,"OK");
   			});
 
   			query.on("error",function(error){
   				console.log(error);
           rollback(client, done);
+          console.log("ROLLBACK /updateAgreement " + logToken);
   				res.send(500,error.message);
   				return ;
   			});
@@ -966,6 +1019,8 @@ module.exports = function(server, conString) {
   		}
 
   		client.query('BEGIN', function(err) {
+        var logToken = uuid.v4();
+        console.log("BEGIN /updateAgreementData " + logToken);
   			if(err) {
   				console.log(err);
           done();
@@ -989,6 +1044,7 @@ module.exports = function(server, conString) {
 
           if(cantidad.count>0){//El acuerdo no se puede borrar porque tiene convocatorias
             rollback(client, done);
+            console.log("ROLLBACK /updateAgreementData " + logToken);
             res.send(403,"El acuerdo no puede editarse debido a que tiene convocatorias");
 
           }else{//El acuerdo no tiene convocatorias, se puede borrar
@@ -998,7 +1054,7 @@ module.exports = function(server, conString) {
               "', agreement_status_id='"+req.body.agreement.agreement_status_id+"'"+
             " WHERE id='"+req.body.agreement.id+"';"
 
-            console.log(sqlAgreement);
+            // console.log(sqlAgreement);
 
             //var queryAgreement = client.query(sqlAgreement);
 
@@ -1007,6 +1063,7 @@ module.exports = function(server, conString) {
               if(err){
                 console.log(error);
                 rollback(client, done);
+                console.log("ROLLBACK /updateAgreementData " + logToken);
                 res.send(500,error.message);
                 return ;
               }else{
@@ -1194,10 +1251,12 @@ module.exports = function(server, conString) {
                 if(err){
                       console.log(err);
                       rollback(client, done);
+                      console.log("ROLLBACK /updateAgreementData " + logToken);
                       return res.send(500,err.message);
 
                 }else{
                       client.query('COMMIT', function(err, result) {
+                        console.log("COMMIT /updateAgreementData " + logToken);
                         if(err){
                           console.log(err);
                         }
@@ -1285,7 +1344,8 @@ module.exports = function(server, conString) {
   	    }
 
    		client.query('BEGIN', function(err) {
-
+        var logToken = uuid.v4();
+        console.log("BEGIN /getSelectedOrgs " + logToken);
   			if(err) {
           done();
   				res.send(500,err);
@@ -1301,11 +1361,13 @@ module.exports = function(server, conString) {
 
   			query.on("end",function(result){
   				client.query('COMMIT', done);
+          console.log("COMMIT /getSelectedOrgs " + logToken);
   				res.send(200,result.rows);
   			});
 
   			query.on("error",function(error){
           rollback(client, done);
+          console.log("ROLLBACK /getSelectedOrgs " + logToken);
   				console.log(error);
   				res.send(500,error.message);
   				return ;
@@ -1334,6 +1396,8 @@ module.exports = function(server, conString) {
   	        return ;
   	    }
   		client.query('BEGIN', function(err) {
+        var logToken = uuid.v4();
+        console.log("BEGIN /deleteAgreement " + logToken);
   			if(err) {
           done();
   				res.send(500,err);
@@ -1362,11 +1426,13 @@ module.exports = function(server, conString) {
 
   					query.on("end",function(result){
   						client.query('COMMIT', done);
+              console.log("COMMIT /deleteAgreement " + logToken);
   						res.send(200,result);
   					});
 
   					query.on("error",function(error){
               rollback(client, done);
+              console.log("ROLLBACK /deleteAgreement " + logToken);
   						console.log(error);
   						res.send(500,error.message);
 
@@ -1409,6 +1475,8 @@ module.exports = function(server, conString) {
   	      return ;
   	    }
   		client.query('BEGIN', function(err) {
+        var logToken = uuid.v4();
+        console.log("BEGIN /reinsertAgreement " + logToken);
   			if(err) {
            done();
   				res.send(500,err);
@@ -1424,12 +1492,14 @@ module.exports = function(server, conString) {
 
   			query.on("end",function(result){
   				client.query('COMMIT', done);
+          console.log("COMMIT /reinsertAgreement " + logToken);
   				res.send(200,result);
   			});
 
   			query.on("error",function(error){
   				console.log(error)
           rollback(client, done);
+          console.log("ROLLBACK /reinsertAgreement " + logToken);
   				res.send(500,error.message);
 
   			});
@@ -1465,7 +1535,8 @@ module.exports = function(server, conString) {
         }
 
       client.query('BEGIN', function(err) {
-
+        var logToken = uuid.v4();
+        console.log("BEGIN /getHistory " + logToken);
         if(err) {
           done();
           res.send(500,err);
@@ -1481,11 +1552,13 @@ module.exports = function(server, conString) {
 
         query.on("end",function(result){
           client.query('COMMIT', done);
+          console.log("COMMIT /getHistory " + logToken);
           res.send(200,result.rows);
         });
 
         query.on("error",function(error){
           rollback(client, done);
+          console.log("ROLLBACK /getHistory " + logToken);
           console.log(error);
           res.send(500,error.message);
           return ;

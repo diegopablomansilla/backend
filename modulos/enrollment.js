@@ -18,6 +18,41 @@ var rollback = function(client, done) {
   });
 };
 
+var log = console.log;
+
+console.log = function () {
+    var first_parameter = arguments[0];
+    var other_parameters = Array.prototype.slice.call(arguments, 1);
+
+    function formatConsoleDate (date) {
+        var hour = date.getHours();
+        var minutes = date.getMinutes();
+        var seconds = date.getSeconds();
+        var milliseconds = date.getMilliseconds();
+        var day = date.getDay();
+        var month = date.getMonth();
+        var year = date.getFullYear();
+
+        return '[' +
+        		day+
+        		'/'+
+        		month+
+        		'/'+
+        		year+
+        		' '+
+               ((hour < 10) ? '0' + hour: hour) +
+               ':' +
+               ((minutes < 10) ? '0' + minutes: minutes) +
+               ':' +
+               ((seconds < 10) ? '0' + seconds: seconds) +
+               //'.' +
+               //('00' + milliseconds).slice(-3) +
+               '] ';
+    }
+
+    log.apply(console, [formatConsoleDate(new Date()) + first_parameter].concat(other_parameters));
+};
+
 var executeSQL = function(sql){
 	var pro = new node.Promise(function(resolve, reject){
 		pg.connect(conString, function(err, client, done){
@@ -885,6 +920,8 @@ var options = { format: 'A4',
   	    }
 
   		client.query('BEGIN', function(err) {
+  			var logToken = uuid.v4();
+  			console.log("BEGIN /agreementData " + logToken);
 
   			if(err) {
           		done();
@@ -924,9 +961,9 @@ var options = { format: 'A4',
 
   							queryContact.on("error",function(error){
   								console.log(error);
-                  				rollback(client, done);
-  								res.send(500,error.message);
-  								callbackInterno();
+          //         				rollback(client, done);
+  								// res.send(500,error.message);
+  								callbackInterno(error);
   							});
 
   						},
@@ -946,27 +983,29 @@ var options = { format: 'A4',
   								console.log(error);
                   rollback(client, done);
   								res.send(500,error.message);
-  								callbackInterno();
+  								callbackInterno(error);
   							});
   						}
   					], function(err, results){
 
   						if(err){
   							console.log(err);
-                rollback(client, done);
-  							res.send(500,err);
-                return;
-  						}
-  						agreementItem.contacts=results[0];
-  						agreementItem.agreementItemOu=results[1];
+			      //           rollback(client, done);
+			  				// res.send(500,err);
+			  				callbackForEach(err);
+			                return;
+  						}else{
+	  						agreementItem.contacts=results[0];
+	  						agreementItem.agreementItemOu=results[1];
 
-  						agreement.agreementItem.push(agreementItem);
-  						callbackForEach(null);
+	  						agreement.agreementItem.push(agreementItem);
+	  						callbackForEach(null);
+  						}
   					});
   				}, function(err){
   					if(err){
   						console.log(err);
-              rollback(client, done)
+              			rollback(client, done)
   						res.send(500,err);
   						return ;
   					}
@@ -990,7 +1029,8 @@ var options = { format: 'A4',
   						agreement.agreement_status_id=result.rows[0].agreement_status_id;
   						agreement.type_name=result.rows[0].type_name;
   						agreement.status_name=result.rows[0].status_name;
-              client.query('COMMIT', done);
+              			client.query('COMMIT', done);
+              			console.log("COMMIT /agreementData " + logToken);
   						res.send(200, agreement);
 
   						// done();
@@ -998,7 +1038,8 @@ var options = { format: 'A4',
 
   					queryA.on("error",function(error){
   						console.log(error);
-              rollback(client, done)
+              			rollback(client, done);
+              			console.log("ROLLBACK /agreementData " + logToken);
   						res.send(500,error.message);
   						return ;
   					});
@@ -1009,204 +1050,205 @@ var options = { format: 'A4',
   });
 
 
-  server.put({path:'/userName/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
-    if(!req.body){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
-      return next();
-    }
+  // server.put({path:'/userName/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
+  //   if(!req.body){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+  //     return next();
+  //   }
 
-    if(!req.headers.usersystemid){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      return next();
-    }
+  //   if(!req.headers.usersystemid){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+  //     return next();
+  //   }
 
-    if(!req.body.guivenName){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
-      return next();
-    }
+  //   if(!req.body.guivenName){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
+  //     return next();
+  //   }
 
-    if(!req.body.familyName){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No familyName found in request.'});
-      return next();
-    }
+  //   if(!req.body.familyName){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No familyName found in request.'});
+  //     return next();
+  //   }
 
-    pg.connect(conString, function(err, client, done){
-      if(err){
-        done();
-        console.error('error fetching client from pool', err);
-        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
-        return next();
-      }
+  //   pg.connect(conString, function(err, client, done){
+  //     if(err){
+  //       done();
+  //       console.error('error fetching client from pool', err);
+  //       res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+  //       return next();
+  //     }
 
-      client.query('BEGIN', function(err) {
-        if(err) {
-          console.log(err);
-            done();
-            return res.send(500,err);
-        }
+  //     client.query('BEGIN', function(err) {
 
-        var sql = {};
-        sql.text = "select kuntur.f_u_enrrollment_names($1, $2, $3, $4, $5)"
-        sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.guivenName, req.body.middleName, req.body.familyName];
+  //       if(err) {
+  //         console.log(err);
+  //           done();
+  //           return res.send(500,err);
+  //       }
 
-
-        var query = client.query(sql);
-
-        query.on("row", function(row, result){
-          result.addRow(row);
-        });
-
-        query.on("end", function(result){
-          done();
-          if(JSON.parse(result.rows[0].f_u_enrrollment_names)){
-            res.send(200,"OK");
-            client.query('COMMIT', done);
-          }else{
-            res.send(500,"Error in function f_u_enrrollment_names");
-            rollback(client, done)
-          }
-        });//FIN CB END GUIVEN_NAME
-
-        query.on("error",function(error){
-          console.log(error);
-          rollback(client, done)
-          res.send(500,error.message);
-        });
-
-      });//BEGIN
-
-    }); //CONNECT
-
-  });//FUNCION
+  //       var sql = {};
+  //       sql.text = "select kuntur.f_u_enrrollment_names($1, $2, $3, $4, $5)"
+  //       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.guivenName, req.body.middleName, req.body.familyName];
 
 
-  server.put({path:'/userMale/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
-    if(!req.body){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
-      return next();
-    }
+  //       var query = client.query(sql);
 
-    if(!req.body.userSystemId){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      return next();
-    }
+  //       query.on("row", function(row, result){
+  //         result.addRow(row);
+  //       });
 
-    if(!req.body.male){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
-      return next();
-    }
+  //       query.on("end", function(result){
+  //         done();
+  //         if(JSON.parse(result.rows[0].f_u_enrrollment_names)){
+  //           res.send(200,"OK");
+  //           client.query('COMMIT', done);
+  //         }else{
+  //           res.send(500,"Error in function f_u_enrrollment_names");
+  //           rollback(client, done)
+  //         }
+  //       });//FIN CB END GUIVEN_NAME
 
-    pg.connect(conString, function(err, client, done){
-      if(err){
-        done();
-        console.error('error fetching client from pool', err);
-        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
-        return next();
-      }
+  //       query.on("error",function(error){
+  //         console.log(error);
+  //         rollback(client, done)
+  //         res.send(500,error.message);
+  //       });
 
-      client.query('BEGIN', function(err) {
-        if(err) {
-          console.log(err);
-            done();
-            return res.send(500,err);
-        }
+  //     });//BEGIN
 
-        var sql = {};
-        sql.text = "select kuntur.f_u_enrrollment_male($1, $2, $3)"
-        sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
+  //   }); //CONNECT
+
+  // });//FUNCION
 
 
-        var query = client.query(sql);
+  // server.put({path:'/userMale/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
+  //   if(!req.body){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+  //     return next();
+  //   }
 
-        query.on("row", function(row, result){
-          result.addRow(row);
-        });
+  //   if(!req.body.userSystemId){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+  //     return next();
+  //   }
 
-        query.on("end", function(result){
-          done();
-          if(JSON.parse(result.rows[0].f_u_enrrollment_male)){
-          	client.query('COMMIT', done);
-            res.send(200,"OK");
-          }else{
-            rollback(client, done)
-            res.send(500,"Error in function f_u_enrrollment_male");
-          }
-        });//FIN CB END GUIVEN_NAME
+  //   if(!req.body.male){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
+  //     return next();
+  //   }
 
-        query.on("error",function(error){
-          console.log(error);
-          rollback(client, done);
-          res.send(500,error.message);
-        });
+  //   pg.connect(conString, function(err, client, done){
+  //     if(err){
+  //       done();
+  //       console.error('error fetching client from pool', err);
+  //       res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+  //       return next();
+  //     }
 
-      });//BEGIN
+  //     client.query('BEGIN', function(err) {
+  //       if(err) {
+  //         console.log(err);
+  //           done();
+  //           return res.send(500,err);
+  //       }
 
-    }); //CONNECT
-
-  });//FUNCION
-
-  server.put({path:'/userPhoto/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
-    if(!req.body){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
-      return next();
-    }
-
-    if(!req.body.userSystemId){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
-      return next();
-    }
-
-    if(!req.body.urlPhoto){
-      res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
-      return next();
-    }
-
-    pg.connect(conString, function(err, client, done){
-      if(err){
-        done();
-        console.error('error fetching client from pool', err);
-        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
-        return next();
-      }
-
-      // client.query('BEGIN', function(err) {
-      //   if(err) {
-      //     console.log(err);
-      //       done();
-      //       return res.send(500,err);
-      //   }
-
-        var sql = {};
-        sql.text = "select kuntur.f_u_enrrollment_url_photo($1, $2, $3)"
-        sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
+  //       var sql = {};
+  //       sql.text = "select kuntur.f_u_enrrollment_male($1, $2, $3)"
+  //       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.male];
 
 
-        var query = client.query(sql);
+  //       var query = client.query(sql);
 
-        query.on("row", function(row, result){
-          result.addRow(row);
-        });
+  //       query.on("row", function(row, result){
+  //         result.addRow(row);
+  //       });
 
-        query.on("end", function(result){
-          done();
-          if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
-            res.send(200,"OK");
-          }else{
-            res.send(500,"Error in function f_u_enrrollment_url_photo");
-          }
-        });//FIN CB END GUIVEN_NAME
+  //       query.on("end", function(result){
+  //         done();
+  //         if(JSON.parse(result.rows[0].f_u_enrrollment_male)){
+  //         	client.query('COMMIT', done);
+  //           res.send(200,"OK");
+  //         }else{
+  //           rollback(client, done)
+  //           res.send(500,"Error in function f_u_enrrollment_male");
+  //         }
+  //       });//FIN CB END GUIVEN_NAME
 
-        query.on("error",function(error){
-          console.log(error);
-          done();
-          res.send(500,error.message);
-        });
+  //       query.on("error",function(error){
+  //         console.log(error);
+  //         rollback(client, done);
+  //         res.send(500,error.message);
+  //       });
 
-      // });//BEGIN
+  //     });//BEGIN
 
-    }); //CONNECT
+  //   }); //CONNECT
 
-  });//FUNCION
+  // });//FUNCION
+
+  // server.put({path:'/userPhoto/:inenrrollmentId', version:'0.0.1'}, function(req, res, next){
+  //   if(!req.body){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+  //     return next();
+  //   }
+
+  //   if(!req.body.userSystemId){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
+  //     return next();
+  //   }
+
+  //   if(!req.body.urlPhoto){
+  //     res.send(409, {code: 409, message: 'Conflict', description: 'No guivenName found in request.'});
+  //     return next();
+  //   }
+
+  //   pg.connect(conString, function(err, client, done){
+  //     if(err){
+  //       done();
+  //       console.error('error fetching client from pool', err);
+  //       res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+  //       return next();
+  //     }
+
+  //     // client.query('BEGIN', function(err) {
+  //     //   if(err) {
+  //     //     console.log(err);
+  //     //       done();
+  //     //       return res.send(500,err);
+  //     //   }
+
+  //       var sql = {};
+  //       sql.text = "select kuntur.f_u_enrrollment_url_photo($1, $2, $3)"
+  //       sql.values = [req.params.inenrrollmentId, req.body.userSystemId, req.body.urlPhoto];
+
+
+  //       var query = client.query(sql);
+
+  //       query.on("row", function(row, result){
+  //         result.addRow(row);
+  //       });
+
+  //       query.on("end", function(result){
+  //         done();
+  //         if(JSON.parse(result.rows[0].f_u_enrrollment_url_photo)){
+  //           res.send(200,"OK");
+  //         }else{
+  //           res.send(500,"Error in function f_u_enrrollment_url_photo");
+  //         }
+  //       });//FIN CB END GUIVEN_NAME
+
+  //       query.on("error",function(error){
+  //         console.log(error);
+  //         done();
+  //         res.send(500,error.message);
+  //       });
+
+  //     // });//BEGIN
+
+  //   }); //CONNECT
+
+  // });//FUNCION
 
 
 
@@ -1231,6 +1273,8 @@ var options = { format: 'A4',
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/citizenship " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -1298,9 +1342,11 @@ var options = { format: 'A4',
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/citizenship " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/citizenship " + logToken);
               res.send(200,queryResult);
             }
 
@@ -1336,6 +1382,8 @@ var options = { format: 'A4',
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/nationality " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -1389,9 +1437,11 @@ var options = { format: 'A4',
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/nationality " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/nationality " + logToken);
               res.send(200,queryResult);
             }
 
@@ -1428,6 +1478,7 @@ var options = { format: 'A4',
     }
 
     pg.connect(conString, function(err, client, done){
+
       if(err){
         done();
         console.error('error fetching client from pool', err);
@@ -1436,6 +1487,8 @@ var options = { format: 'A4',
       }
 
       client.query('BEGIN', function(err) {
+      	    	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/mails " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -1495,9 +1548,11 @@ var options = { format: 'A4',
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/mails " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/mails " + logToken);
               res.send(200,queryResult);
             }
 
@@ -1550,6 +1605,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/phones " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -1610,9 +1667,11 @@ server.put({path:'/enrrollment/:inenrrollmentId/phones', version:'0.0.1'}, funct
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/phones " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/phones " + logToken);
               res.send(200,queryResult);
             }
 
@@ -1661,6 +1720,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       }
 
       client.query('BEGIN', function(err) {
+       	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/addresses " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -1716,9 +1777,11 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/addresses " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/addresses " + logToken);
               res.send(200,queryResult);
             }
 
@@ -2075,6 +2138,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       }
 
       client.query('BEGIN', function(err) {
+       	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/studyPlan " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -2128,9 +2193,11 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/studyPlan " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/studyPlan " + logToken);
               res.send(200,queryResult);
             }
 
@@ -2163,6 +2230,8 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       }
 
       client.query('BEGIN', function(err) {
+       	var logToken = uuid.v4();
+  		console.log("BEGIN /enrrollment/academicPerformance " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -2217,9 +2286,11 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /enrrollment/academicPerformance " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+              console.log("COMMIT /enrrollment/academicPerformance " + logToken);
               res.send(200,queryResult);
             }
 
@@ -2642,6 +2713,8 @@ server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
       }
 
       client.query('BEGIN', function(err) {
+       	var logToken = uuid.v4();
+  		console.log("BEGIN /student/mails " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -2702,9 +2775,12 @@ server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
             if(err){
               console.log(err);
               rollback(client, done);
+
+  			  console.log("ROLLBACK /student/mails " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+  			  console.log("COMMIT /student/mails " + logToken);
               res.send(200,queryResult);
             }
 
@@ -2738,6 +2814,8 @@ server.put({path:'/student/phones', version:'0.0.1'}, function(req, res, next){
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /student/phones " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -2797,9 +2875,11 @@ server.put({path:'/student/phones', version:'0.0.1'}, function(req, res, next){
             if(err){
               console.log(err);
               rollback(client, done);
+  			  console.log("ROLLBACK /student/phones " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+  			  console.log("COMMIT /student/phones " + logToken);
               res.send(200,queryResult);
             }
 
@@ -2835,6 +2915,8 @@ server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, ne
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /student/nationality " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -2887,9 +2969,11 @@ server.put({path:'/student/nationality', version:'0.0.1'}, function(req, res, ne
             if(err){
               console.log(err);
               rollback(client, done);
+  			  console.log("ROLLBACK /student/nationality " + logToken);
               res.send(500,err);
             }else{
               client.query('COMMIT', done);
+  			  console.log("COMMIT /student/nationality " + logToken);
               res.send(200,queryResult);
             }
 
@@ -2923,6 +3007,8 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /student/identity " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -2981,11 +3067,14 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
             //termine!
             if(err){
               console.log(err);
+              // console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /student/identity " + logToken);
               res.send(500,err);
             }else{
 
               client.query('COMMIT', done);
+              console.log("COMMIT /student/identity " + logToken);
               res.send(200,queryResult);
             }
 
@@ -3019,6 +3108,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /student/addresses " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -3074,10 +3165,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
             if(err){
               console.log(err);
               rollback(client, done);
+              console.log("ROLLBACK /student/addresses " + logToken);
               res.send(500,err);
             }else{
               
               client.query('COMMIT', done);
+              console.log("COMMIT /student/addresses " + logToken);
               res.send(200,queryResult);
             }
 
@@ -4262,6 +4355,8 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       }
 
       client.query('BEGIN', function(err) {
+      	var logToken = uuid.v4();
+  		console.log("BEGIN /unidadesAcademicas/directivos " + logToken);
         if(err) {
           console.log(err);
             done();
@@ -4374,9 +4469,11 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
            if(error){
                 console.log(error);
                 rollback(client, done);
+                console.log("ROLLBACK /unidadesAcademicas/directivos " + logToken);
                 res.send(500,err);
               }else{
                 client.query('COMMIT', done);
+                console.log("COMMIT /unidadesAcademicas/directivos " + logToken);
                 res.send(200,queryResult);
             }
         });//end async

@@ -2,6 +2,7 @@ var pg = require("pg")
 var fs      = require('fs');
 var async = require('async');
 var url = require('url');
+var uuid = require('node-uuid');
 
 var rollback = function(client, done) {
   client.query('ROLLBACK', function(err) {
@@ -13,6 +14,41 @@ var rollback = function(client, done) {
     return done(err);
   });
 };
+
+// var log = console.log;
+
+// console.log = function () {
+//     var first_parameter = arguments[0];
+//     var other_parameters = Array.prototype.slice.call(arguments, 1);
+
+//     function formatConsoleDate (date) {
+//         var hour = date.getHours();
+//         var minutes = date.getMinutes();
+//         var seconds = date.getSeconds();
+//         var milliseconds = date.getMilliseconds();
+//         var day = date.getDay();
+//         var month = date.getMonth();
+//         var year = date.getFullYear();
+
+//         return '[' +
+//             day+
+//             '/'+
+//             month+
+//             '/'+
+//             year+
+//             ' '+
+//                ((hour < 10) ? '0' + hour: hour) +
+//                ':' +
+//                ((minutes < 10) ? '0' + minutes: minutes) +
+//                ':' +
+//                ((seconds < 10) ? '0' + seconds: seconds) +
+//                //'.' +
+//                //('00' + milliseconds).slice(-3) +
+//                '] ';
+//     }
+
+//     log.apply(console, [formatConsoleDate(new Date()) + first_parameter].concat(other_parameters));
+// };
 
 module.exports = function(server, conString) {
   /**
@@ -1392,6 +1428,8 @@ module.exports = function(server, conString) {
   	    	return res.send(500,err);
   	    }
       	client.query('BEGIN', function(err) {
+          var logToken = uuid.v4();
+          console.log("BEGIN /universities/contacts " + logToken);
       		if(err) {
   				console.log(err);
   		    	done();
@@ -1530,9 +1568,11 @@ module.exports = function(server, conString) {
   					if(err){
   						console.log(err);
   						rollback(client, done);
+              console.log("ROLLBACK /universities/contacts " + logToken);
   						return res.send(500,err.message);
   					}else{
   						client.query('COMMIT', done);
+              console.log("COMMIT /universities/contacts " + logToken);
   						res.send(201,contactId);
   					}
   				});
