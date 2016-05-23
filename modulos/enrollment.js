@@ -161,7 +161,7 @@ var options = { format: 'A4',
                 footer: {
                     "height": "20mm",
                     "contents": '<span style="color: #444;"></span><span></span>'
-                },
+                }//,
               };
  
 
@@ -3515,7 +3515,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
         // console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile('certificadoanalitico.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(__dirname, '../certificadoanalitico.pdf', function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
       
 
@@ -3591,11 +3591,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     };
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
-
-    pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
+   // console.log(html);
+    // pdf.create(html, options).toFile('cartadeadmision.pdf', function(err, resPdf) {
+      //var prueba = path.join(__dirname, '../cartadeadmision.pdf');
+      pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
+      // path.join(__dirname, '../cartadeadmision.pdf'
       if (err) return console.log("error creando pdf", err);
       
-
+      var postulacionId = req.params.postulacionId
       
       var content;
 // First I want to read the file
@@ -3615,6 +3618,13 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       // fs.readFile(resPdf.filename,cb);
 
     });
+
+
+    // pdf.create(html, options).toBuffer(function(err, buff){
+    //   if (err) return console.log("error creando pdf", err);
+    //   pruebaPdf = buff.toString('base64');
+    //   cb(pruebaPdf, "carta");
+    // });
 
   }
 
@@ -3699,7 +3709,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   // console.log("se mansda mail adjunto")
 
                   var sql2 = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
-                    "(SELECT id FROM kuntur.user_system WHERE name = '" + us + "'));";
+                    "(SELECT id FROM kuntur.user_system WHERE id = '" + us + "'));";
 
                     var query2 = client.query(sql2);
 
