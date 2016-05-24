@@ -3021,6 +3021,9 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
           function(iden, callback){
             var sql = {};
             // console.log(req.headers.usersystemid);
+            if(!iden.code || !iden.identity_number || !iden.country_code){
+              return callback("No se introdujeron todos los campos");
+            }
             iden.name = iden.documentTypes.filter(function(el){
               if(el.code == iden.code)
                 return el;
