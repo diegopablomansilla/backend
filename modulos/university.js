@@ -210,22 +210,27 @@ module.exports = function(server, conString) {
             res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
             return next();
           }
-          var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
-            if(!!req.body.short_name){ //column short_name
-              sql += "'" + req.body.short_name + "', ";
-            }
-            else {
-              sql += "' ', "
-            }
-              sql += "'" + req.body.original_name + "', ";  // column original_name
-              sql += "'" + req.body.original_name + "', ";  // column original_name
-              sql += "'" + req.body.web_site + "', ";       // column web_site
-              sql += "'" + req.body.country_code + "', ";   // column country_code
-              sql += 'false, ';                             // column primary_org
-              sql += "'" + req.body.comment + "', ";        // column comment
-              sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
+          // var sql = 'INSERT INTO kuntur.org (id, erased, short_name, original_name, name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, '; //column id, erased
 
-              console.log(sql);
+          //   if(!!req.body.short_name){ //column short_name
+          //     sql += "'" + req.body.short_name + "', ";
+          //   }
+          //   else {
+          //     sql += "' ', "
+          //   }
+          //     sql += "'" + req.body.original_name + "', ";  // column original_name
+          //     sql += "'" + req.body.original_name + "', ";  // column original_name
+          //     sql += "'" + req.body.web_site + "', ";       // column web_site
+          //     sql += "'" + req.body.country_code + "', ";   // column country_code
+          //     sql += 'false, ';                             // column primary_org
+          //     sql += "'" + req.body.comment + "', ";        // column comment
+          //     sql += "'" + result.rows[0].id + "') RETURNING id";       // column org_type_id
+
+             // console.log(sql);
+
+            var sql = {};
+            sql.text = "INSERT INTO kuntur.org (id, erased, short_name, original_name, name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, $1, $2, $3, $4, $5, false, $6, $7) RETURNING id";
+            sql.values = [req.body.short_name, req.body.original_name, req.body.original_name, req.body.web_site, req.body.country_code, req.body.comment, result.rows[0].id];
 
               client.query(sql, function(err, result) {
                 done();
@@ -235,7 +240,7 @@ module.exports = function(server, conString) {
                   res.send(503, {code: 503, message: 'Database error', description: err});
                   return next();
                 }
-  			  // res.header('Location', 'http://'+ip_addr+':' + port + '/universities/' + result.rows[0].id);
+  			        res.header('Location', result.rows[0].id);
                 res.send(201);
               }); // end of insert query
             }); // end of u code query
