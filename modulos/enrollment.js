@@ -29,8 +29,8 @@ console.log = function () {
         var minutes = date.getMinutes();
         var seconds = date.getSeconds();
         var milliseconds = date.getMilliseconds();
-        var day = date.getDay();
-        var month = date.getMonth();
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
         var year = date.getFullYear();
 
         return '[' +
@@ -3601,7 +3601,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       // path.join(__dirname, '../cartadeadmision.pdf'
       if (err) return console.log("error creando pdf", err);
       
-      var postulacionId = req.params.postulacionId
+      //var postulacionId = req.params.postulacionId
       
       var content;
 // First I want to read the file
