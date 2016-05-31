@@ -3,7 +3,7 @@ var fs      = require('fs');
 var async = require('async');
 var nodemailer = require('nodemailer');
 var uuid = require('node-uuid');
-// var smtpTransport = require('nodemailer-smtp-transport');
+var smtpTransport = require('nodemailer-smtp-transport');
 
 var config = JSON.parse(fs.readFileSync('/etc/nodejs-config/kuntur.json'));
 
@@ -715,6 +715,48 @@ var options = { format: 'A4',
 });
 
 /*################################*/
+
+  server.get({path : '/pruebaMail', version : '0.0.1'}, function(req, res, next){
+
+    // var smtpTransport = nodemailer.createTransport("SMTP",{
+    //     service: "Gmail",
+    //     auth: {
+    //         user: "anbiagetti@gmail.com",
+    //         pass: "google1564159"
+    //     }
+    // });
+
+    var options = {
+        service: "Gmail",
+        auth: {
+            user: "",
+            pass: ""
+        }
+    };
+
+    var mailOptions = {
+      from: "Fred Foo ✔ <anbiagetti@gmail.com>", // sender address
+      to: "anbiagetti@gmail.com, abiagetti@unc.edu.ar", // list of receivers
+      subject: "Hello ✔", // Subject line
+      text: "Hello world ✔", // plaintext body
+      html: "<b>Hello world ✔</b>" // html body
+    }
+
+    var transporter = nodemailer.createTransport(smtpTransport(options))
+
+    transporter.sendMail(mailOptions, function(error, response){
+        if(error){
+            console.log(error);
+        }else{
+            console.log("Message sent: " + response.message);
+        }
+
+        // if you don't want to use this transport object anymore, uncomment following line
+        //smtpTransport.close(); // shut down the connection pool, no more messages
+    });
+
+
+  });
 
 
 
@@ -3632,12 +3674,13 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
   }
 
 
-
+  var send
 
 
   var sendMail = function(enrrollmentId, us){
 
     if(activeMail){// se activa/desactiva el mail desde el archivo config
+
 
 
       pg.connect(conString, function(err, client, done){
@@ -3687,20 +3730,29 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               // console.log(queryResult.mailconfig[x].group_id)
               // console.log(queryResult.stakeholders[y].group_system_id)
               
-
-                var transporter = nodemailer.createTransport({//smtpTransport(
-                  host: config.mailServer,
+                var options = {
+                  // service: 'gmail',
                   tls: {
                   "rejectUnauthorized": false
                   }
-                });//)
+                };
+
+                var transporter = nodemailer.createTransport(smtpTransport(options
+                  // host: config.mailServer,
+                  // tls: {
+                  // "rejectUnauthorized": false
+                  // }
+
+                ));
 
  
 
                 var mailOptions = {
                   from: queryResult.mailconfig[x].from, // sender address
+                  // from: 'anbiagetti@gmail.com',
                   //to: queryResult.stakeholders[y].email, // list of receivers
                   to: item.email,
+                  // to: 'anbiagetti@gmail.com',
                   subject: queryResult.mailconfig[x].subject, // Subject line
                   html: queryResult.mailconfig[x].body, // plaintext body
                   attachments: []
@@ -3754,10 +3806,11 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           
                           callback2();
                           transporter.sendMail(mailOptions, function(error, info){
+
                             console.log("Mail cambio de estado info: ", info)
-                            
+                            console.log(mailOptions);
                             if(error){
-                              console.log("Mail cambio de estado error");
+                              console.log("Mail cambio de estado error ambos");
                               return console.log(error);
                             }
 
@@ -3771,26 +3824,26 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           // console.log(admissionAct)
                         }
 
-                        if(queryResult.mailconfig[x].sendadmissionact && acta){
-                          console.log("enviado sin generar")
-                            mailOptions.attachments.push({
-                              filename: 'Carta de admision',//configurar nombre del adjuno
-                              content: acta,//contenido
-                              encoding: 'base64',//codificancion
-                              contentType: 'application/pdf'
-                            });
+                        // if(queryResult.mailconfig[x].sendadmissionact && acta){
+                        //   console.log("enviado sin generar")
+                        //     mailOptions.attachments.push({
+                        //       filename: 'Carta de admision',//configurar nombre del adjuno
+                        //       content: acta,//contenido
+                        //       encoding: 'base64',//codificancion
+                        //       contentType: 'application/pdf'
+                        //     });
 
-                            transporter.sendMail(mailOptions, function(error, info){
+                        //     transporter.sendMail(mailOptions, function(error, info){
                               
-                            console.log("Mail cambio de estado info: ", info)
-                            if(error){
-                              console.log("Mail cambio de estado error");
-                              return console.log(error);
-                            }
+                        //     console.log("Mail cambio de estado info: ", info)
+                        //     if(error){
+                        //       console.log("Mail cambio de estado error carta");
+                        //       return console.log(error);
+                        //     }
 
-                          });  
-                            callback2();
-                        }
+                        //   });  
+                        //     callback2();
+                        // }
 
                         // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
                         if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
@@ -3798,26 +3851,26 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           // console.log(academicPerformance)
                         }
 
-                        if(queryResult.mailconfig[x].sendacademicperformance && analitico){
-                          console.log("enviado sin generar")
-                            mailOptions.attachments.push({
-                              filename: 'Certificado Analitico',//configurar nombre del adjuno
-                              content: analitico,//contenido
-                              encoding: 'base64',//codificancion
-                              contentType: 'application/pdf'
-                            });
+                        // if(queryResult.mailconfig[x].sendacademicperformance && analitico){
+                        //   console.log("enviado sin generar")
+                        //     mailOptions.attachments.push({
+                        //       filename: 'Certificado Analitico',//configurar nombre del adjuno
+                        //       content: analitico,//contenido
+                        //       encoding: 'base64',//codificancion
+                        //       contentType: 'application/pdf'
+                        //     });
 
-                            transporter.sendMail(mailOptions, function(error, info){
+                        //     transporter.sendMail(mailOptions, function(error, info){
                               
-                            console.log("Mail cambio de estado info: ", info)
-                            if(error){
-                              console.log("Mail cambio de estado error");
-                              return console.log(error);
-                            }
+                        //     console.log("Mail cambio de estado info: ", info)
+                        //     if(error){
+                        //       console.log("Mail cambio de estado error certificado");
+                        //       return console.log(error);
+                        //     }
 
-                          });  
-                            callback2();
-                        }
+                        //   });  
+                        //     callback2();
+                        // }
 
 
                       }
