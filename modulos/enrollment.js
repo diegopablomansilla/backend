@@ -3674,8 +3674,6 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
   }
 
 
-  var send
-
 
   var sendMail = function(enrrollmentId, us){
 
@@ -3708,24 +3706,31 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
 
+
+          var mailReceivers = queryResult.stakeholders.concat(queryResult.contacts);
+
           var admissionAct;
           var academicPerformance;
 
           // console.log(queryResult)
 
-          for(var i in queryResult.mailconfig){
-            (function(x){
+          // for(var i in queryResult.mailconfig){
+          //   (function(x){
+          async.eachSeries(queryResult.mailconfig, function(x, callbackPrimero){
 
               var analitico = null;
               var acta = null;
 
-              async.eachSeries(queryResult.stakeholders, function (item, callback2) {
+              //async.eachSeries(queryResult.stakeholders, function (item, callback2) {
+              async.eachSeries(mailReceivers, function (item, callback2) {
+                
             //for(var j in ){
               //(function(y){
 
 
              // if(queryResult.mailconfig[x].group_id == queryResult.stakeholders[y].group_system_id){
-              if(queryResult.mailconfig[x].group_id == item.group_system_id){
+              //if(queryResult.mailconfig[x].group_id == item.group_system_id){
+              if(x.group_id == item.group_system_id){
 
               // console.log(queryResult.mailconfig[x].group_id)
               // console.log(queryResult.stakeholders[y].group_system_id)
@@ -3735,6 +3740,11 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   tls: {
                   "rejectUnauthorized": false
                   }
+                  // service: "Gmail",
+                  // auth: {
+                  //   user: "",
+                  //   pass: ""
+                  // }
                 };
 
                 var transporter = nodemailer.createTransport(smtpTransport(options
@@ -3746,24 +3756,28 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                 ));
 
  
-
+                console.log("enviado a ", item);
                 var mailOptions = {
-                  from: queryResult.mailconfig[x].from, // sender address
+                  //from: queryResult.mailconfig[x].from, // sender address
+                  from: x.from,
                   // from: 'anbiagetti@gmail.com',
                   //to: queryResult.stakeholders[y].email, // list of receivers
                   to: item.email,
                   // to: 'anbiagetti@gmail.com',
-                  subject: queryResult.mailconfig[x].subject, // Subject line
-                  html: queryResult.mailconfig[x].body, // plaintext body
+                  //subject: queryResult.mailconfig[x].subject, // Subject line
+                  subject: x.subject,
+                  //html: queryResult.mailconfig[x].body, // plaintext body
+                  html: x.body, // plaintext body
                   attachments: []
                   /*html: '<b>Hello world</b>'*/ // html body
                 };
                 // console.log("mailconfig", queryResult.mailconfig[x]);
-                if(queryResult.mailconfig[x].sendacademicperformance || queryResult.mailconfig[x].sendadmissionact){
+                //if(queryResult.mailconfig[x].sendacademicperformance || queryResult.mailconfig[x].sendadmissionact){
+                if(x.sendacademicperformance || x.sendadmissionact){
 
                   // console.log("se mansda mail adjunto")
 
-                  var sql2 = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+enrrollmentId+"', "+
+                  var sql2 = "SELECT  * FROM kuntur.f_find_enrrollment_by_id_email ('"+enrrollmentId+"', "+
                     "(SELECT id FROM kuntur.user_system WHERE id = '" + us + "'));";
 
                     var query2 = client.query(sql2);
@@ -3775,7 +3789,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                     query2.on("end", function(result){
                       // console.log(result.rows[0].f_find_enrrollment_by_id);
 
-                      done();
+                      //done();
                       // console.log("rows: ", result.rows.length)
                       if(result.rows.length > 0){
 
@@ -3819,58 +3833,62 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         }
 
 
-                        if(queryResult.mailconfig[x].sendadmissionact && !acta){
-                          generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback);
+                        //if(queryResult.mailconfig[x].sendadmissionact && !acta){
+                        if(x.sendadmissionact && !acta){  
+                          generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id_email).data, pdfCallback);
                           // console.log(admissionAct)
                         }
 
-                        // if(queryResult.mailconfig[x].sendadmissionact && acta){
-                        //   console.log("enviado sin generar")
-                        //     mailOptions.attachments.push({
-                        //       filename: 'Carta de admision',//configurar nombre del adjuno
-                        //       content: acta,//contenido
-                        //       encoding: 'base64',//codificancion
-                        //       contentType: 'application/pdf'
-                        //     });
+                        //if(queryResult.mailconfig[x].sendadmissionact && acta){
+                          if(x.sendadmissionact && acta){
+                          console.log("enviado sin generar")
+                            mailOptions.attachments.push({
+                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              content: acta,//contenido
+                              encoding: 'base64',//codificancion
+                              contentType: 'application/pdf'
+                            });
 
-                        //     transporter.sendMail(mailOptions, function(error, info){
+                            transporter.sendMail(mailOptions, function(error, info){
                               
-                        //     console.log("Mail cambio de estado info: ", info)
-                        //     if(error){
-                        //       console.log("Mail cambio de estado error carta");
-                        //       return console.log(error);
-                        //     }
+                            console.log("Mail cambio de estado info: ", info)
+                            if(error){
+                              console.log("Mail cambio de estado error carta");
+                              return console.log(error);
+                            }
 
-                        //   });  
-                        //     callback2();
-                        // }
+                          });  
+                            callback2();
+                        }
 
                         // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
-                        if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
-                          generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id).data, pdfCallback)
+                        //if(queryResult.mailconfig[x].sendacademicperformance && !analitico){
+                        if(x.sendacademicperformance && !analitico){
+                          generateAnalitico(JSON.parse(result.rows[0].f_find_enrrollment_by_id_email).data, pdfCallback)
                           // console.log(academicPerformance)
                         }
 
-                        // if(queryResult.mailconfig[x].sendacademicperformance && analitico){
-                        //   console.log("enviado sin generar")
-                        //     mailOptions.attachments.push({
-                        //       filename: 'Certificado Analitico',//configurar nombre del adjuno
-                        //       content: analitico,//contenido
-                        //       encoding: 'base64',//codificancion
-                        //       contentType: 'application/pdf'
-                        //     });
+                        //if(queryResult.mailconfig[x].sendacademicperformance && analitico){
+                        if(x.sendacademicperformance && analitico){  
+                          console.log("enviado sin generar")
+                            mailOptions.attachments.push({
+                              filename: 'Certificado Analitico',//configurar nombre del adjuno
+                              content: analitico,//contenido
+                              encoding: 'base64',//codificancion
+                              contentType: 'application/pdf'
+                            });
 
-                        //     transporter.sendMail(mailOptions, function(error, info){
+                            transporter.sendMail(mailOptions, function(error, info){
                               
-                        //     console.log("Mail cambio de estado info: ", info)
-                        //     if(error){
-                        //       console.log("Mail cambio de estado error certificado");
-                        //       return console.log(error);
-                        //     }
+                            console.log("Mail cambio de estado info: ", info)
+                            if(error){
+                              console.log("Mail cambio de estado error certificado");
+                              return console.log(error);
+                            }
 
-                        //   });  
-                        //     callback2();
-                        // }
+                          });  
+                            callback2();
+                        }
 
 
                       }
@@ -3881,16 +3899,16 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                     query2.on("error",function(error){
                       console.log(error);
-                      done();
-                      res.send(500,error);
-
+                      // done();
+                      // res.send(500,error);
+                      callback2();
                     });
                 
 
            
 
               }else{
-
+                callback2();
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Mail cambio de estado info: ", info)
                   if(error){
@@ -3910,11 +3928,21 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           //})(j);
            //}//segund for
          }, function(err){
-          console.log("termine")
+          // console.log("termine")
+          // done();
+          // res.send(500,error);
+          console.log("termino");
+          // console.log(x);
+          callbackPrimero();
          });//async
 
-          })(i);
-          }//primer
+        }, function(error){
+          console.log("termine")
+          done();
+          res.send(200,"ok");
+        })
+          // })(i);
+          // }//primer
 
 
         });
