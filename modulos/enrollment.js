@@ -2610,6 +2610,162 @@ server.get({path: '/validateMail/:token', version: '0.0.1'}, function(req, res, 
 
 });
 
+server.post({path: '/recover', version: '0.0.1'}, function(req, res, next){
+
+  var sql = {};
+  sql.text = "SELECT us.name, us.pass FROM kuntur.user_system us JOIN kuntur.user_group ug ON ug.user_system_id = us.id JOIN kuntur.group_system gs ON gs.id = ug.group_system_id WHERE email = $1 AND checked_mail = true AND gs.code = 'student'";
+  sql.values = [req.body.email];
+
+
+  pg.connect(conString, function(err, client, done){
+    if(err) {
+      done();
+      res.send(500,err);
+      console.log(err);
+    }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      if(result.rows.length>0){//mandar mail
+        // res.send(200,result);
+
+        var mailOptions = {
+          from: 'admin-kuntur@psi.unc.edu.ar', // sender address
+          to: req.body.email, // list of receivers
+          subject: 'Recuperacion de contraseña - Estudiantes Internacionales - UNC', // Subject line
+          html: 'Ha solicitado la recuperacion de la cuenta asociada a este email en el sistema kuntur.unc.edu.ar.<br><br>Sus datos son los siguientes:<br>Usuario: '+result.rows[0].name+'<br>Contraseña: '+result.rows[0].pass+'<br><br>Si usted no ha hecho esto, porfavor ignore este mail.<br><br>Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba'
+        };
+
+        var options = {
+          // tls: {
+          //   "rejectUnauthorized": false
+          // }
+          service: "Gmail",
+          auth: {
+            user: "anbiagetti@gmail.com",
+            pass: "google1564159"
+          }
+        };
+
+        var transporter = nodemailer.createTransport(smtpTransport(options));
+
+        transporter.sendMail(mailOptions, function(error, info){
+
+        
+          if(error){
+            console.log("Mail recuperacion de datos error ambos");
+            return console.log(error);
+          }else{
+            console.log("Mail recuperacion de datos: ", info)
+            res.send(200,true);
+          }
+        });  
+
+      }
+      else{
+        res.send(200,false);
+      }
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+    
+  });
+
+
+});
+
+// server.post({path: '/recover', version: '0.0.1'}, function(req, res, next){
+
+//   var n = 0;
+
+//   var saveToken = function(){
+
+//     if(n===40){
+//       return res.send(500,'No se pudo generar token');
+//     }
+
+//     var token = uuid.v4();
+
+//     var sql = {};
+//     sql.text = "INSERT INTO kuntur.token VALUES ($1, (select id from kuntur.user_system where email = $2), 'recover', false, null);";
+//     sql.values = [token, req.body.email];
+
+//     pg.connect(conString, function(err, client, done) {
+//       if(err) {
+//         return console.error('error fetching client from pool', err);
+//       }
+//       client.query(sql, function(err, result) {
+//         // console.log("res: ", result);
+//         // console.log("err: ", err);
+//         // console.log("res: ", res);
+//         // console.log("n: ", n);
+//         //call `done()` to release the client back to the pool
+//         done();
+//         n++;
+//         if(err) {
+//           return saveToken();
+//         }else{
+//           var url = config.frontend.protocol+'://'+config.frontend.hostname+'/recover/'+token;
+//           return res.send(200,url);
+//         }
+//       });
+//     });
+
+//   }
+
+//   saveToken();
+
+// });
+
+// server.get({path: 'recover/:token', version: '0.0.1'}, function(req, res, next){
+
+//   var sql = {};
+//   sql.text = "update kuntur.token set used = true where id = $1 AND type = 'recover' AND used = false RETURNING id";
+//   sql.values = [req.params.token];
+
+//   pg.connect(conString, function(err, client, done){
+//     if(err) {
+//       done();
+//       res.send(500,err);
+//       console.log(err);
+//     }
+
+//     var query = client.query(sql);
+
+//     query.on("row", function(row, result){
+//       result.addRow(row);
+//     });
+
+//     query.on("end",function(result){
+//       done();
+//       if(result.rows.length>0){
+//         res.send(200,true);
+//       }
+//       else{
+//         res.send(200,false);
+//       }
+//     });
+
+//     query.on("error",function(error){
+//       console.log(error);
+//       done();
+//       res.send(500,error);
+//     });
+    
+//   });
+
+// });
+
 
 server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
@@ -3559,8 +3715,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     // console.log("html")
         // console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
-
-    pdf.create(html, options).toFile(__dirname, '../certificadoanalitico.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
       
 
