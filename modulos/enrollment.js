@@ -3982,7 +3982,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             console.log(mailOptions);
                             if(error){
                               console.log("Mail cambio de estado error adjunto");
-                              return console.log(error);
+                              console.log(error);
                             }
 
                           });    
@@ -4011,7 +4011,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             console.log("Mail cambio de estado carta info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error carta");
-                              return console.log(error);
+                              console.log(error);
                             }
 
                           });  
@@ -4040,7 +4040,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             console.log("Mail cambio de estado certificado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error certificado");
-                              return console.log(error);
+                              console.log(error);
                             }
 
                           });  
@@ -4070,7 +4070,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   console.log("Mail cambio de estado info: ", info)
                   if(error){
                     console.log("Mail cambio de estado error");
-                    return console.log(error);
+                    console.log(error);
                   }
                   // console.log('Message sent: ' + info.response);
 
