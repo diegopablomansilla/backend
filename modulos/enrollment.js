@@ -3706,8 +3706,11 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
 
-
-          var mailReceivers = queryResult.stakeholders.concat(queryResult.contacts);
+          if(queryResult.contacts){
+            var mailReceivers = queryResult.stakeholders.concat(queryResult.contacts);
+          }else{
+            var mailReceivers = queryResult.stakeholders;
+          }
 
           var admissionAct;
           var academicPerformance;
@@ -3822,10 +3825,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           callback2();
                           transporter.sendMail(mailOptions, function(error, info){
 
-                            console.log("Mail cambio de estado info: ", info)
+                            console.log("Mail cambio de estado adjunto info: ", info)
                             console.log(mailOptions);
                             if(error){
-                              console.log("Mail cambio de estado error ambos");
+                              console.log("Mail cambio de estado error adjunto");
                               return console.log(error);
                             }
 
@@ -3852,7 +3855,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                             transporter.sendMail(mailOptions, function(error, info){
                               
-                            console.log("Mail cambio de estado info: ", info)
+                            console.log("Mail cambio de estado carta info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error carta");
                               return console.log(error);
@@ -3881,7 +3884,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                             transporter.sendMail(mailOptions, function(error, info){
                               
-                            console.log("Mail cambio de estado info: ", info)
+                            console.log("Mail cambio de estado certificado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error certificado");
                               return console.log(error);
