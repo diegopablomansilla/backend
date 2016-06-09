@@ -3559,8 +3559,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     // console.log("html")
         // console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
-
-    pdf.create(html, options).toFile(__dirname, '../certificadoanalitico.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
       
 
