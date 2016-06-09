@@ -2643,14 +2643,12 @@ server.post({path: '/recover', version: '0.0.1'}, function(req, res, next){
         };
 
         var options = {
-          // tls: {
-          //   "rejectUnauthorized": false
-          // }
-          service: "Gmail",
-          auth: {
-            user: "anbiagetti@gmail.com",
-            pass: "google1564159"
-          }
+          host: config.mailServer,
+          // logger: true,
+          // debug: true,
+          tls: {
+           "rejectUnauthorized": false
+           }
         };
 
         var transporter = nodemailer.createTransport(smtpTransport(options));
