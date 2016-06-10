@@ -3865,8 +3865,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
             var mailReceivers = queryResult.stakeholders;
           }
 
-          var admissionAct;
-          var academicPerformance;
+          // var admissionAct;
+          // var academicPerformance;
 
           // console.log(queryResult)
 
@@ -3975,7 +3975,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
                           }
                           
-                          callback2();
+                          
                           transporter.sendMail(mailOptions, function(error, info){
 
                             console.log("Mail cambio de estado adjunto info: ", info)
@@ -3986,7 +3986,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             }
 
                           });    
-                                  
+                          callback2(); 
                         }
 
 
@@ -4005,7 +4005,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
                             });
-
+                            
                             transporter.sendMail(mailOptions, function(error, info){
                               
                             console.log("Mail cambio de estado carta info: ", info)
@@ -4015,7 +4015,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             }
 
                           });  
-                            callback2();
+                          callback2();
+                            
                         }
 
                         // console.log("queryResult.mailconfig[i].sendacademicperformance", queryResult.mailconfig[i].sendacademicperformance)
@@ -4034,7 +4035,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
                             });
-
+                            
                             transporter.sendMail(mailOptions, function(error, info){
                               
                             console.log("Mail cambio de estado certificado info: ", info)
@@ -4044,7 +4045,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             }
 
                           });  
-                            callback2();
+                          callback2();
                         }
 
 
@@ -4065,7 +4066,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
            
 
               }else{
-                callback2();
+                
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Mail cambio de estado info: ", info)
                   if(error){
@@ -4077,7 +4078,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
                 });     
-                }
+                callback2();
+              }
 
             }else{//if
             callback2();
