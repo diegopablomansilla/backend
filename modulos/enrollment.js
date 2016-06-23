@@ -4581,6 +4581,46 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
       });
     });
 
+server.post({path:'/newUNCUser', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    } 
+
+    var sql={};
+
+    sql.text = "SELECT  * FROM kuntur.f_new_unc_user($1, $2, $3, $4)";
+    sql.values = [req.body.guiven_name, req.body.last_name, req.body.us, req.body.mail];
+    
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+  //JSON.parse(result.rows[0].perfilArray)
+    query.on("end",function(result){
+      done();
+      res.send(200,JSON.parse(result.rows[0].f_new_unc_user));
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+    });
+
+});
+
 server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, function(req, res, next){
 
 
@@ -4665,8 +4705,20 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
               if(error){
                 callbackInterno(error);
-              }else{
-                callbackInterno(null);
+              }else{//AGREGO LAS PERSONAS A STAKEHOLders
+                var sql = "SELECT kuntur.f_add_user_stakeholder($1, $2 )";
+                var params = [
+                  person.id,
+                  req.params.auId
+                ]
+                var query = client.query(sql,params, function(error){
+                  if(error){
+                    callbackInterno(error);
+                  }else{
+                    callbackInterno(null);
+                  }
+                  
+                });
               }
 
             });
@@ -4698,8 +4750,20 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
               if(error){
                 callbackInterno(error);
-              }else{
-                callbackInterno(null);
+              }else{//AGREGO LAS PERSONAS A STAKEHOLDERS
+                var sql = "SELECT kuntur.f_add_user_stakeholder($1, $2 )";
+                var params = [
+                  person.id,
+                  req.params.auId
+                ]
+                var query = client.query(sql,params, function(error){
+                  if(error){
+                    callbackInterno(error);
+                  }else{
+                    callbackInterno(null);
+                  }
+                  
+                });
               }
 
             });
