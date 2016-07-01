@@ -2807,6 +2807,126 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     });
   });
 
+  server.put({path: '/studentPassword', version: '0.0.1'}, function(req, res, next){
+
+    var sql = {};
+    sql.text = 'UPDATE kuntur.user_system SET pass = $1 WHERE id = $2 AND pass = $3 RETURNING id';
+    sql.values = [req.body.person.newPass, req.body.person.student_id, req.body.person.oldPass];
+    
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+
+         // console.log(result.rows.length);
+        // console.log(result);
+        done();
+        if(result.rows.length>0){
+          res.send(200,true);
+        }
+        else{
+          res.send(200,false);
+        }
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });     
+
+    });
+
+  });
+
+  server.put({path: '/studentPricipalMail', version: '0.0.1'}, function(req, res, next){
+
+    var token = uuid.v4();
+
+    var sql = {};
+    sql.text = 'UPDATE kuntur.user_system set email = $1, checked_mail = false, token_validation = $2 WHERE id = $3';
+    sql.values = [req.body.person.principalMail, token, req.body.person.student_id];
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+
+
+      var url = config.frontend.protocol+'://'+config.frontend.hostname+'/token/'+token;
+
+      var mailOptions = {
+        from: 'admin-kuntur@psi.unc.edu.ar', // sender address
+        to: req.body.person.principalMail, // list of receivers
+        subject: 'Verificación de Correo - Estudiantes Internacionales - UNC', // Subject line
+        html: '<br><br> Este mensaje se ha enviado porque ingresaste un nuevo email de usuario. Para confirmar el mismo, por favor hacé click <a href="'+ url + '"> aquí ('+ url + ')</a>.<br><br>El sistema te guiará en los próximos pasos a seguir.<br><br>Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba'
+      };
+
+      var options = {
+        host: config.mailServer,
+          // logger: true,
+          // debug: true,
+        tls: {
+          "rejectUnauthorized": false
+        }
+
+        // service: "Gmail",
+        // auth: {
+        //     user: "",
+        //     pass: ""
+        // }
+      };
+
+      var transporter = nodemailer.createTransport(smtpTransport(options));
+
+      transporter.sendMail(mailOptions, function(error, info){
+
+        
+        if(error){
+          console.log("Mail recuperacion de datos error ambos");
+          return console.log(error);
+        }else{
+          console.log("Mail recuperacion de datos: ", info)
+          res.send(200,true);
+        }
+      });  
+
+
+
+      res.send(200,result.rows);//JSON.parse(
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+
+    });
+
+  });
+
   server.put({path : '/student', version : '0.0.1'}, function(req, res, next){
 
     if(!req.headers.usersystemid){
@@ -2836,8 +2956,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       orgId=req.body.person.student_org_id;
 
       var sql = {};
-      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo, req.body.person.username];
 
     }else{
       shortName=req.body.person.student_short_name;
@@ -2846,8 +2966,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       web=req.body.person.student_institution_web_site;
       country=req.body.person.student_institution_country_code; 
       var sql = {};
-      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo, req.body.person.username];
 
     }
 
@@ -4568,6 +4688,92 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
         query.on("end",function(result){
           done();
           res.send(200,JSON.parse(result.rows[0].f_get_all_directivos));
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+server.get({path : '/checkUser', version : '0.0.1'} , function(req, res , next){
+
+ 
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.user_system WHERE name = $1";
+      sql.values = [req.params.user];
+
+    
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+          
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          if(result.rows.length  < 1){
+            res.send(200,true);
+          }
+          else{
+            res.send(200,false);
+          }
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+server.get({path : '/checkEmail', version : '0.0.1'} , function(req, res , next){
+
+ 
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.user_system WHERE email = $1";
+      sql.values = [req.params.email];
+
+    
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+          
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          if(result.rows.length  < 1){
+            res.send(200,true);
+          }
+          else{
+            res.send(200,false);
+          }
         });
 
         query.on("error",function(error){
