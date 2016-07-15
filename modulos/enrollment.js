@@ -163,14 +163,14 @@ var options = { format: 'A4',
                     "contents": '<span style="color: #444;"></span><span></span>'
                 }//,
               };
- 
+
 
 
 /* ######## CARTA DE ADMISION TEMPLATE ########### */
  server.post({path : '/docs/:postulacionId/cartaDeAdmisionTemplate', version : '0.0.1'}, function(req,res,next){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -224,22 +224,22 @@ var options = { format: 'A4',
 
     pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmisiontemplate.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-      
+
       var postulacionId = req.params.postulacionId
-      
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error", err)
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf') 
+          res.setHeader('Content-Type','application/pdf')
           res.send(200,new Buffer(data).toString('base64'));
-              
+
       });
 
     });
@@ -250,12 +250,12 @@ var options = { format: 'A4',
 
 /* ###### CARTA DE ADMISION ############# */
  server.post({path : '/docs/:postulacionId/cartaDeAdmision', version : '0.0.1'}, function(req,res,next){
-    
+
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -309,22 +309,22 @@ var options = { format: 'A4',
 
     pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-      
+
       var postulacionId = req.params.postulacionId
-      
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error", err)
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf') 
+          res.setHeader('Content-Type','application/pdf')
           res.send(200,new Buffer(data).toString('base64'));
-              
+
       });
 
     });
@@ -337,7 +337,7 @@ var options = { format: 'A4',
  server.post({path : '/docs/:postulacionId/certificadoAnaliticoTemplate', version : '0.0.1'}, function(req,res,next){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -356,7 +356,7 @@ var options = { format: 'A4',
 
 
                       /*armado de las filas*/
-    var filas = "";                  
+    var filas = "";
 
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
@@ -369,7 +369,7 @@ var options = { format: 'A4',
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
-      
+
 
     };
 
@@ -395,7 +395,7 @@ var options = { format: 'A4',
 
 
     }else{
-      
+
       var html = htmlCertificadoAnaliticoTemplate.replace("$rotulosDias","a los")
                              .replace("$diaCreacion2",dia)
                              .replace("$apellidoPostulante",req.body.familyName)
@@ -412,29 +412,29 @@ var options = { format: 'A4',
                              .replace('$image', image)
                              .replace('$fila', filas);
     };
-    
+
     // console.log(html)
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanaliticotemplate.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-      
+
       var postulacionId = req.params.postulacionId
-      
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error", err)
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf') 
+          res.setHeader('Content-Type','application/pdf')
           res.send(200,new Buffer(data).toString('base64'));
-              
+
       });
 
     });
@@ -447,7 +447,7 @@ var options = { format: 'A4',
  server.post({path : '/docs/:postulacionId/certificadoAnalitico', version : '0.0.1'}, function(req,res,next){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -466,7 +466,7 @@ var options = { format: 'A4',
 
 
                       /*armado de las filas*/
-    var filas = "";                  
+    var filas = "";
 
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
@@ -482,7 +482,7 @@ var options = { format: 'A4',
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
-      
+
 
     };
 
@@ -508,7 +508,7 @@ var options = { format: 'A4',
 
 
     }else{
-      
+
       var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
                              .replace("$diaCreacion2",dia)
                              .replace("$apellidoPostulante",req.body.familyName)
@@ -525,29 +525,29 @@ var options = { format: 'A4',
                              .replace('$image', image)
                              .replace('$fila', filas);
     };
-    
+
     // console.log(html)
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-      
+
       var postulacionId = req.params.postulacionId
-      
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error", err)
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf') 
+          res.setHeader('Content-Type','application/pdf')
           res.send(200,new Buffer(data).toString('base64'));
-              
+
       });
 
     });
@@ -558,10 +558,10 @@ var options = { format: 'A4',
 
 /* ###### REPORTE DEL ESTUDIANTE ############# */
  server.post({path : '/docs/:postulacionId/reporteEstudiante', version : '0.0.1'}, function(req,res,next){
-    
+
    var imagePerfil = path.join('file://', __dirname, '../files/'+req.body.urlPhoto.substr(0,2)+'/'+req.body.urlPhoto)
 
- 
+
 
 
     //var imagePerfil = path.join(__dirname, 'files', req.body.urlPhoto.substr(0,2), req.body.urlPhoto);
@@ -598,7 +598,7 @@ var options = { format: 'A4',
         }
 
         if(req.body.enrrollmentAddressList[i].buildingFloor==null){
-          req.body.enrrollmentAddressList[i].buildingFloor="";  
+          req.body.enrrollmentAddressList[i].buildingFloor="";
           req.body.enrrollmentAddressList[i].building="";
           req.body.enrrollmentAddressList[i].buildingRoom="";
         domicilio+= "[·] "+req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+"-"+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"-"+req.body.enrrollmentAddressList[i].provinceName+"-"+req.body.enrrollmentAddressList[i].countryName+"("+req.body.enrrollmentAddressList[i].countryCode+").<br>"
@@ -607,13 +607,13 @@ var options = { format: 'A4',
         domicilio+= "[·] "+ req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street +" Nº "+ req.body.enrrollmentAddressList[i].streetNumber + " - "+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" - " +req.body.enrrollmentAddressList[i].provinceName+" - "+req.body.enrrollmentAddressList[i].countryName+" ("+req.body.enrrollmentAddressList[i].countryCode+") <br>"
         }
       };
-    
+
 
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -687,27 +687,27 @@ var options = { format: 'A4',
 
     };
 
-    
+
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
     pdf.create(html, options).toFile(path.join(__dirname, '../reporteestudiante.pdf'), function(err, resPdf) {
       if (err) return console.log(err);
-      
+
       var postulacionId = req.params.postulacionId
-      
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error", err)  
+              console.log("Error", err)
               throw err;
 
           }
           content = data;
 
-          res.setHeader('Content-Type','application/pdf') 
+          res.setHeader('Content-Type','application/pdf')
           res.send(200,new Buffer(data).toString('base64'));
-              
+
       });
 
     });
@@ -942,7 +942,7 @@ var options = { format: 'A4',
   });
 
 
-  
+
 
   server.get({path : '/agreementData', version : '0.0.1'} , function(req, res , next){
 
@@ -1332,11 +1332,11 @@ var options = { format: 'A4',
                 if(el.code == iden.code)
                   return el;
               })[0].name;
-            //console.log("nameeeeeeeeeeeee: ",iden.name);  
+            //console.log("nameeeeeeeeeeeee: ",iden.name);
             if(iden.erased){
               //delete
 
-          
+
               sql.text = "select kuntur.f_u_enrrollment_Deletecitizenship($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
@@ -1438,7 +1438,7 @@ var options = { format: 'A4',
             var sql = {};
             if(iden.erased){
               //delete
-          
+
               sql.text = "select kuntur.f_u_deleteenrrollment_nationality($1, $2, $3) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, iden.id];
             }
@@ -2019,7 +2019,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
     //var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
     //var sql = "select * from kuntur.org where org_id is not null and erased = false";
     var sql = "select * from kuntur.org where org_id is not null and erased = false AND (code_guarani ilike '%www.efn.unc.edu.ar/escuelas/biolog/%' OR short_name = 'EIG' OR code_guarani = '12' OR code_guarani = '95' OR short_name = 'ECI' OR short_name = 'ETS' OR code_guarani = '11' OR code_guarani = '06' OR code_guarani = '06031' OR code_guarani = '06027' OR code_guarani = '75' OR code_guarani = '14' OR code_guarani = '13' OR code_guarani = '16' OR code_guarani = 'P16' OR code_guarani = '05' OR code_guarani = '19' OR code_guarani = '15' OR code_guarani = '03' OR code_guarani = '69');"
-  
+
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2053,7 +2053,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     var sql="select * from kuntur.unc_in_grading_scale ";
 
-  
+
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2088,7 +2088,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     var sql="select * from kuntur.unc_in_studied_type";
 
-  
+
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2131,7 +2131,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
     var sql = {};
     sql.text = "SELECT  * FROM kuntur.f_find_study_program_by_id ($1, $2)";
     sql.values = [req.params.inenrrollmentId, req.headers.usersystemid];
-  
+
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2170,7 +2170,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
     }
-  
+
     pg.connect(conString, function(err, client, done){
       if(err){
         done();
@@ -2262,7 +2262,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
     }
-  
+
     pg.connect(conString, function(err, client, done){
       if(err){
         done();
@@ -2292,7 +2292,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
             }
             else if(academicPerformance.id){
               //update
- 
+
               sql.text = "select kuntur.f_u_enrrollment_academicPerformance($1, $2, $3, $4, $5, $6, $7, $8) as respuesta"
               sql.values = [req.params.inenrrollmentId, req.headers.usersystemid, academicPerformance.org.id, academicPerformance.subject, academicPerformance.uncInGradingScale.id, academicPerformance.hs, academicPerformance.uncInStudiedType.id, academicPerformance.id];
             }
@@ -2504,7 +2504,7 @@ server.post({path:'/student', version:'0.0.1'}, function(req, res, next){
 
   //console.log(queryResult.mailconfig)
 
-  
+
 
   pg.connect(conString, function(err, client, done){
     if(err){
@@ -2623,7 +2623,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     var sql = {};
     sql.text = "SELECT  * FROM kuntur.perfilArray($1)";
     sql.values = [req.headers.usersystemid];
-  
+
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -2676,7 +2676,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     var originalName=null;
     var name=null;
     var web=null;
-    var country=null; 
+    var country=null;
     // console.log(req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, req.body.person.student_org_id, req.body.person.student_short_name, req.body.person.student_institution_original_name, req.body.person.student_institution_name, req.body.person.student_institution_web_site, req.body.person.student_institution_country_code, req.headers.usersystemid, req.body.person.person_id)
     if(req.body.person.student_org_id){
       orgId=req.body.person.student_org_id;
@@ -2690,7 +2690,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       originalName=req.body.person.student_institution_original_name;
       name=req.body.person.student_institution_name;
       web=req.body.person.student_institution_web_site;
-      country=req.body.person.student_institution_country_code; 
+      country=req.body.person.student_institution_country_code;
       var sql = {};
       sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
       sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
@@ -2735,7 +2735,7 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
 // console.log("headers")
 //   console.log(req.headers);
-    
+
     if(!req.headers.usersystemid){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -2836,7 +2836,7 @@ server.put({path:'/student/mails', version:'0.0.1'}, function(req, res, next){
   });
 
 server.put({path:'/student/phones', version:'0.0.1'}, function(req, res, next){
-    
+
     if(!req.headers.usersystemid){
       res.send(409, {code: 409, message: 'Conflict', description: 'No userSystemId found in request.'});
       return next();
@@ -3069,7 +3069,7 @@ server.put({path:'/student/identity', version:'0.0.1'}, function(req, res, next)
             iden.name = iden.documentTypes.filter(function(el){
               if(el.code == iden.code)
                 return el;
-            })[0].name;            
+            })[0].name;
             if(iden.erased){
               //delete
               // console.log(iden);
@@ -3213,7 +3213,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               console.log("ROLLBACK /student/addresses " + logToken);
               res.send(500,err);
             }else{
-              
+
               client.query('COMMIT', done);
               console.log("COMMIT /student/addresses " + logToken);
               res.send(200,queryResult);
@@ -3239,7 +3239,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       var sql = {};
       sql.text = "SELECT  * FROM kuntur.f_enrrollment_status($1, $2)";//NO HACE FALTA PASARLE PAREMETROS
       sql.values = [req.headers.usersystemid, req.params.enrrollmentId];
-    
+
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -3283,7 +3283,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       var sql = {};
       sql.text = "SELECT  * FROM kuntur.f_get_org_academic_performance($1)";
       sql.values = [req.headers.usersystemid];
-    
+
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -3312,8 +3312,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
       });
     });
-  
-  
+
+
 
 
     server.get({path : '/state', version : '0.0.1'}, function(req, res, next){
@@ -3381,7 +3381,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-        
+
     });
 
   });
@@ -3401,7 +3401,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
         var sql = {};
         //sql.text = "select kuntur.f_info_mails($1) as respuesta"
- 
+
         sql.text = "select kuntur.f_send_mail_new_university($1, $2) as respuesta"
         sql.values = [inenrrollmentId, usersystemid];
 
@@ -3443,8 +3443,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   'en la postulación número: '+queryResult.numberenrrollment// plaintext body
                 };
 
-  
-                
+
+
 
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Info de mail de nueva  universidad:", info);
@@ -3456,7 +3456,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
-                });                
+                });
 
               // }
 
@@ -3478,7 +3478,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
    var generateAnalitico = function(req, cb){
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -3497,7 +3497,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
                       /*armado de las filas*/
-    var filas = "";                  
+    var filas = "";
     // console.log("estoy en generarAnalitico", req)
 
     for (var i = 0; i < req.uncInAcademicPerformanceList.length; i++) {
@@ -3510,7 +3510,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                     "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].hs+"</td>"+
                     "<td style='text-align: center'>"+req.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
                 "</tr>"
-      
+
 
     };
 
@@ -3536,7 +3536,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
     }else{
-      
+
       var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
                              .replace("$diaCreacion2",dia)
                              .replace("$apellidoPostulante",req.familyName)
@@ -3553,7 +3553,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                              .replace('$image', image)
                              .replace('$fila', filas);
     };
-    
+
 
 
     // console.log("html")
@@ -3562,14 +3562,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
     pdf.create(html, options).toFile(__dirname, '../certificadoanalitico.pdf', function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
-      
 
-      
+
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error leyendo pdf", err)  
+              console.log("Error leyendo pdf", err)
               throw err;
 
           }
@@ -3579,7 +3579,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           pdfAle = new Buffer(data).toString('base64');
 
           cb(pdfAle, "analitico");
-              
+
       });
       // fs.readFile(resPdf.filename,cb);
 
@@ -3589,12 +3589,12 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
   var generateAdmissionAct = function(req, cb){
-    
+
 
 
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];     
+    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
     var d = new Date()
     var dia = d.getDate();
     var mes = meses[d.getMonth()]
@@ -3642,14 +3642,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
       pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
       // path.join(__dirname, '../cartadeadmision.pdf'
       if (err) return console.log("error creando pdf", err);
-      
+
       //var postulacionId = req.params.postulacionId
-      
+
       var content;
 // First I want to read the file
       fs.readFile(resPdf.filename, function read(err, data) {
           if (err) {
-              console.log("Error leyendo pdf", err)  
+              console.log("Error leyendo pdf", err)
               throw err;
 
           }
@@ -3658,7 +3658,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           pdfAle =  new Buffer(data).toString('base64');
 
           cb(pdfAle, "carta");
-              
+
       });
       // fs.readFile(resPdf.filename,cb);
 
@@ -3723,7 +3723,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
               //async.eachSeries(queryResult.stakeholders, function (item, callback2) {
               async.eachSeries(mailReceivers, function (item, callback2) {
-                
+
             //for(var j in ){
               //(function(y){
 
@@ -3734,7 +3734,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
               // console.log(queryResult.mailconfig[x].group_id)
               // console.log(queryResult.stakeholders[y].group_system_id)
-              
+
                 var options = {
                   // service: 'gmail',
                   tls: {
@@ -3755,7 +3755,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                 ));
 
- 
+
                 console.log("enviado a ", item);
                 var mailOptions = {
                   //from: queryResult.mailconfig[x].from, // sender address
@@ -3817,7 +3817,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                               contentType: 'application/pdf'
                             });
                           }
-                          
+
                           callback2();
                           transporter.sendMail(mailOptions, function(error, info){
 
@@ -3828,13 +3828,13 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                               return console.log(error);
                             }
 
-                          });    
-                                  
+                          });
+
                         }
 
 
                         //if(queryResult.mailconfig[x].sendadmissionact && !acta){
-                        if(x.sendadmissionact && !acta){  
+                        if(x.sendadmissionact && !acta){
                           generateAdmissionAct(JSON.parse(result.rows[0].f_find_enrrollment_by_id_email).data, pdfCallback);
                           // console.log(admissionAct)
                         }
@@ -3850,14 +3850,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
-                              
+
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error carta");
                               return console.log(error);
                             }
 
-                          });  
+                          });
                             callback2();
                         }
 
@@ -3869,7 +3869,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         }
 
                         //if(queryResult.mailconfig[x].sendacademicperformance && analitico){
-                        if(x.sendacademicperformance && analitico){  
+                        if(x.sendacademicperformance && analitico){
                           console.log("enviado sin generar")
                             mailOptions.attachments.push({
                               filename: 'Certificado Analitico',//configurar nombre del adjuno
@@ -3879,21 +3879,21 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
 
                             transporter.sendMail(mailOptions, function(error, info){
-                              
+
                             console.log("Mail cambio de estado info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error certificado");
                               return console.log(error);
                             }
 
-                          });  
+                          });
                             callback2();
                         }
 
 
                       }
 
- 
+
 
                     });
 
@@ -3903,9 +3903,9 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                       // res.send(500,error);
                       callback2();
                     });
-                
 
-           
+
+
 
               }else{
                 callback2();
@@ -3919,7 +3919,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
-                });     
+                });
                 }
 
             }else{//if
@@ -3954,7 +3954,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-        
+
     });
 
 
@@ -4028,7 +4028,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-        
+
     });
 
   });
@@ -4073,7 +4073,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-        
+
     });
 
   });
@@ -4117,7 +4117,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
 
-        
+
     });
 
   });
@@ -4161,7 +4161,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-        
+
     });
 
   });
@@ -4203,7 +4203,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-        
+
     });
 
   });
@@ -4244,7 +4244,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-        
+
     });
 
   });
@@ -4286,7 +4286,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-        
+
     });
 
   });
@@ -4328,11 +4328,346 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
-        
+
     });
 
   });
 
+
+// ##### CONVOCATORIAS   ######  //
+
+server.get({path : '/convocatorias', version : '0.0.1'} , function(req, res , next){
+
+
+
+      var sql = {};
+      var pageSize = req.params.pageSize;
+    	var offset = req.params.offset;
+      //sql.text = "SELECT * FROM kuntur.admission_period ";
+      sql.text = "SELECT * FROM kuntur.admission_period ap2 LEFT JOIN (SELECT ap.id as tid, count (*) as Cantidad FROM kuntur.admission_period ap JOIN kuntur.admission_period_agreement apa ON apa.admission_period_id = ap.id JOIN kuntur.agreement a ON a.id = apa.agreement_id JOIN  kuntur.agreement_item ai ON ai.agreement_id = a.id GROUP BY ap.id) AS t ON ap2.id = t.tid OFFSET '"+offset+"' LIMIT '"+pageSize+"'"
+
+
+
+
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          console.log("HOLA",result.rows)
+          res.send(200,result.rows);
+
+
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+    server.post({path: "/editConvocatoria", version: '0.0.1'}, function(req, res, next){
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        client.query('BEGIN', function(err) {
+          var logToken = uuid.v4();
+          console.log("BEGIN /editConvocatoria " + logToken);
+          if(err) {
+              console.log(err)
+              done();
+              return res.send(500,err);
+          }
+          var sql={};
+          sql.text="UPDATE kuntur.admission_period SET year = $1, semester = $9, title = $2, from_date= $3, to_date= $4, admission_period_status_id= $5, is_agreement= $6,in_type= $7 WHERE id = $8 ;"
+          sql.values=[req.body.admissionPeriod.year, req.body.admissionPeriod.title, req.body.admissionPeriod.from_date, req.body.admissionPeriod.to_date,null,req.body.admissionPeriod.status, req.body.admissionPeriod.type, req.body.admissionPeriod.id, req.body.admissionPeriod.semester ];
+
+          var query = client.query(sql);
+
+          query.on("row", function(row, result){
+            result.addRow(row);
+          });//fin row query admission_period
+
+          query.on("end",function(result){
+
+            async.series([
+              function(cbSeries){//asin serie insertar
+                if(req.body.admissionPeriod.acuerdosInsert.length>0){//hay q insertart admission_period_agreement
+
+                    async.forEach(req.body.admissionPeriod.acuerdosInsert,function(acuerdoInsert, cbInsert){
+
+                      var sqlInsert = {};
+                      sqlInsert.text = "INSERT INTO kuntur.admission_period_agreement VALUES (uuid_generate_v4()::varchar, false, $1, $2)";
+                      sqlInsert.values = [acuerdoInsert.id, req.body.admissionPeriod.id];
+
+                      var queryInsert = client.query(sqlInsert);
+
+                      queryInsert.on("row", function(row, result){
+                        result.addRow(row);
+                      });//fin row queryInsert insert agreement
+
+                      queryInsert.on("end",function(result){
+                        cbSeries(null);
+                      });//fin end queryInsert insert agreement
+
+                      queryInsert.on("error",function(error){
+                        console.log(error);
+                        cbSeries(error);
+                      });//fin error queryInsert insert agreement
+
+                    });// fin  foreach insert
+
+                }else{//no hay q insertart admission_period_agreement
+                  cbSeries(null);
+                }
+              },
+              function(cbSeries){//asyn serie eliminar
+                if(req.body.admissionPeriod.acuerdosDelete.length>0){//hay acuerdos para eliminar
+                  async.forEach(req.body.admissionPeriod.acuerdosDelete,function(acuerdoDelete, cbDelete){
+
+                    var sqlDelete = {};
+                    sqlDelete.text = "DELETE FROM kuntur.admission_period_agreement WHERE agreement_id = $1 AND admission_period_id = $2";
+                    sqlDelete.values = [acuerdoDelete.id, req.body.admissionPeriod.id];
+
+                    var queryDelete = client.query(sqlDelete);
+
+                    queryDelete.on("row", function(row, result){
+                      result.addRow(row);
+                    });//fin row queryDelete delete agreement
+
+                    queryDelete.on("end",function(result){
+                      cbSeries(null);
+                    });//fin end queryDelete delete agreement
+
+                    queryDelete.on("error",function(error){
+                      console.log(error);
+                      cbSeries(error);
+                    });//fin error queryDelete delete agreement
+
+                  });//fin for each delete
+                }else{//no hay que eliminar acuerdos
+                  cbSeries(null);
+                }
+              }//fin async series eliminar
+            ], function(error){//callback del series
+              if(error){
+                console.log(error);
+                rollback(client, done);
+                console.log("ROLLBACK /editConvocatoria " + logToken);
+                res.send(500,err);
+              }else{
+                client.query('COMMIT', done);
+                console.log("COMMIT /editConvocatoria" + logToken);
+                res.send(200,true);
+              }
+            });//fin async series
+
+          });//fin end query admission_period
+
+          query.on("error",function(error){
+            console.log(error);
+            rollback(client, done);
+            console.log("ROLLBACK /convocatorias " + logToken);
+            res.send(500,err);
+          });//fin error query admission_period
+
+
+        });//fin begin
+
+      });//fin connect
+    });
+
+
+    server.post({path: "/insertarConvocatoria",version: '0.0.1'}, function(req,res){
+
+      console.log("PRIMERO", req.body.convocatoriaFinal)
+      var convocatoriaTo = req.body.convocatoriaFinal.to;
+
+      pg.connect(conString, function(err, client, done){
+        console.log("----------DENTRO DEL PG.CONNECT-----");
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+
+
+        client.query('BEGIN', function(err) {
+          console.log("DENTRO DE BEGIN");
+          var logToken = uuid.v4();
+          console.log("BEGIN /insertarConvocatoria " + logToken);
+            if(err) {
+                console.log(err)
+                  done();
+                  return res.send(500,err);
+          }
+
+          var sql="INSERT INTO kuntur.admission_period(id, erased, in_type, year, semester,title, from_date, to_date,admission_period_status_id, is_agreement)"+
+          "VALUES (uuid_generate_v4()::varchar, false,"+req.body.convocatoriaFinal.type+","+req.body.convocatoriaFinal.year+","+req.body.convocatoriaFinal.semestre+",'"+req.body.convocatoriaFinal.title+"','"+req.body.convocatoriaFinal.from_date+"','"+req.body.convocatoriaFinal.to_date+"','6f7d1de2-79bf-48d6-b4bd-926bb90bff24',"+req.body.convocatoriaFinal.status+") RETURNING id;"
+
+          console.log("--------PRIMER SQL:", sql);
+
+          var convocatoriaId;
+          var query = client.query(sql);
+
+          query.on("row", function(row, result){
+            console.log("--QUERY 1---");
+
+            convocatoriaId=row.id;
+
+          var queryResult2=false;
+
+          async.series([
+
+
+          function(callback){
+            console.log("ADENTRO DE ASYNC");
+            async.forEach(req.body.convocatoriaFinal.acuerdosInsert,function(acuerdosInsert, callbackInterno){
+              console.log("--------ADENTRO DEL ASYNC------");
+
+              var sql="INSERT INTO kuntur.admission_period_agreement("+
+                    "id, erased, agreement_id, admission_period_id)"+
+              "VALUES (uuid_generate_v4()::varchar, false, '"+acuerdosInsert.id+"','"+convocatoriaId+"')"+
+              "RETURNING id;"
+
+                var query = client.query(sql, function(error){
+                  if(error){
+                    callbackInterno(error);
+                  }else{
+                    callbackInterno(null);
+                  }
+                });
+                }, function(error){
+                if(error){
+                  callback(error);
+                }else{
+                  callback(null);
+                }
+            })
+          } //callback
+          ], function(error){
+          done();
+           if(error){
+                console.log(error);
+                rollback(client, done);
+                console.log("ROLLBACK /convocatorias " + logToken);
+                res.send(500,err);
+              }else{
+                client.query('COMMIT', done);
+                console.log("COMMIT /convocatorias" + logToken);
+                res.send(200,queryResult2);
+            }
+          }); //series
+
+        }); //query.on*/
+
+      }); //begin
+
+    }); //pg connect
+
+  });
+
+
+  server.get({path : '/deleteConvocatoria', version : '0.0.1'} , function(req, res , next){
+    var convId=req.params.convocatoriaId;
+
+/*
+    var sqlCount = "select count(*) from kuntur.admission_period_agreement where agreement_id = '"+req.params.agrId+"';";
+*/
+
+    var sql = {};
+    sql.text = "SELECT  * FROM kuntur.f_delete_admission_period($1)";
+    sql.values = [req.params.admissionPeriodId];
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+            return ;
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          res.send(200,JSON.parse(result.rows[0].f_delete_admission_period));
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+    });
+
+  });
+
+
+
+
+server.get({path : '/admissionPeriodAgreement', version : '0.0.1'}, function(req, res, next){
+  var sql = {};
+  sql.text = "SELECT a.* FROM kuntur.admission_period_agreement apa JOIN kuntur.agreement a ON a.id = apa.agreement_id WHERE apa.admission_period_id = $1";
+  sql.values = [req.params.admissionPeriodId];
+
+  pg.connect(conString, function(err, client, done){
+    if(err) {
+      done();
+      res.send(500,err);
+      console.log(err);
+    }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+
+    });
+//JSON.parse(result.rows[0].perfilArray)
+    query.on("end",function(result){
+      done();
+      res.send(200,result.rows);
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+
+
+  });
+
+});
 
 // ##### COORDINADORES Y DESPACHO ###### //
 
@@ -4348,7 +4683,7 @@ server.get({path : '/coordinators', version : '0.0.1'} , function(req, res , nex
       sql.text = "SELECT  * FROM kuntur.f_get_directivos($1)";
       sql.values = [req.params.orgId];
 
-    
+
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -4360,7 +4695,7 @@ server.get({path : '/coordinators', version : '0.0.1'} , function(req, res , nex
 
         query.on("row", function(row, result){
           result.addRow(row);
-          
+
         });
   //JSON.parse(result.rows[0].perfilArray)
         query.on("end",function(result){
@@ -4391,7 +4726,7 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
       sql.text = "SELECT  * FROM kuntur.f_get_all_directivos()";
       //sql.values = [req.params.orgId];
 
-    
+
       pg.connect(conString, function(err, client, done){
         if(err) {
           done();
@@ -4403,7 +4738,7 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
 
         query.on("row", function(row, result){
           result.addRow(row);
-          
+
         });
   //JSON.parse(result.rows[0].perfilArray)
         query.on("end",function(result){
@@ -4437,8 +4772,8 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
       return next();
     }
 
-   
-   
+
+
 
     pg.connect(conString, function(err, client, done){
       if(err){
@@ -4460,11 +4795,11 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
         var queryResult=false;
         async.series([
           function(callback){
-            var sql = "DELETE FROM kuntur.unc_in_academic_coordinator WHERE org_id=$1"; 
+            var sql = "DELETE FROM kuntur.unc_in_academic_coordinator WHERE org_id=$1";
             var params =[
                   req.params.auId
             ]
-            
+
 
             var query = client.query(sql,params, function(error){
 
@@ -4476,11 +4811,11 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
             });
           }, function(callback){
-            var sql = "DELETE FROM kuntur.unc_in_academic_office WHERE org_id=$1"; 
+            var sql = "DELETE FROM kuntur.unc_in_academic_office WHERE org_id=$1";
             var params =[
                   req.params.auId
             ]
-            
+
 
             var query = client.query(sql,params, function(error){
 
@@ -4501,7 +4836,6 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
                   req.params.auId
                ]
 
-
               var query = client.query(sql,params, function(error){
 
               if(error){
@@ -4521,9 +4855,6 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
             })
 
-           
-
-           
           }, function(callback){
 
             async.forEach(req.body.despachoNuevo, function(person,callbackInterno){
@@ -4554,9 +4885,9 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
             })
 
-           
 
-           
+
+
           }
         ],function(error){
           done();
@@ -4587,7 +4918,3 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
 
 }
-
-
-
-
