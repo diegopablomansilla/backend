@@ -2418,7 +2418,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
         res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
         return next();
       }
-
+      console.log(req.body.user)
       var sql = {};
       sql.text = "select kuntur.f_login_oid($1) as respuesta";
       sql.values = [req.body.user];
@@ -2431,6 +2431,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
       query.on("end", function(result){
         done();
+        console.log(result.rows[0].respuesta);
         res.send(200,result.rows[0].respuesta);
         // res.send(200,"ale");
 
@@ -2610,6 +2611,160 @@ server.get({path: '/validateMail/:token', version: '0.0.1'}, function(req, res, 
 
 });
 
+server.post({path: '/recover', version: '0.0.1'}, function(req, res, next){
+
+  var sql = {};
+  sql.text = "SELECT us.name, us.pass FROM kuntur.user_system us JOIN kuntur.user_group ug ON ug.user_system_id = us.id JOIN kuntur.group_system gs ON gs.id = ug.group_system_id WHERE email = $1 AND checked_mail = true AND gs.code = 'student'";
+  sql.values = [req.body.email];
+
+
+  pg.connect(conString, function(err, client, done){
+    if(err) {
+      done();
+      res.send(500,err);
+      console.log(err);
+    }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      if(result.rows.length>0){//mandar mail
+        // res.send(200,result);
+
+        var mailOptions = {
+          from: 'admin-kuntur@psi.unc.edu.ar', // sender address
+          to: req.body.email, // list of receivers
+          subject: 'Recuperacion de contraseña - Estudiantes Internacionales - UNC', // Subject line
+          html: 'Ha solicitado la recuperacion de la cuenta asociada a este email en el sistema kuntur.unc.edu.ar.<br><br>Sus datos son los siguientes:<br>Usuario: '+result.rows[0].name+'<br>Contraseña: '+result.rows[0].pass+'<br><br>Si usted no ha hecho esto, porfavor ignore este mail.<br><br>Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba'
+        };
+
+        var options = {
+          host: config.mailServer,
+          // logger: true,
+          // debug: true,
+          tls: {
+           "rejectUnauthorized": false
+           }
+        };
+
+        var transporter = nodemailer.createTransport(smtpTransport(options));
+
+        transporter.sendMail(mailOptions, function(error, info){
+
+
+          if(error){
+            console.log("Mail recuperacion de datos error ambos");
+            return console.log(error);
+          }else{
+            console.log("Mail recuperacion de datos: ", info)
+            res.send(200,true);
+          }
+        });
+
+      }
+      else{
+        res.send(200,false);
+      }
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+  });
+
+
+});
+
+// server.post({path: '/recover', version: '0.0.1'}, function(req, res, next){
+
+//   var n = 0;
+
+//   var saveToken = function(){
+
+//     if(n===40){
+//       return res.send(500,'No se pudo generar token');
+//     }
+
+//     var token = uuid.v4();
+
+//     var sql = {};
+//     sql.text = "INSERT INTO kuntur.token VALUES ($1, (select id from kuntur.user_system where email = $2), 'recover', false, null);";
+//     sql.values = [token, req.body.email];
+
+//     pg.connect(conString, function(err, client, done) {
+//       if(err) {
+//         return console.error('error fetching client from pool', err);
+//       }
+//       client.query(sql, function(err, result) {
+//         // console.log("res: ", result);
+//         // console.log("err: ", err);
+//         // console.log("res: ", res);
+//         // console.log("n: ", n);
+//         //call `done()` to release the client back to the pool
+//         done();
+//         n++;
+//         if(err) {
+//           return saveToken();
+//         }else{
+//           var url = config.frontend.protocol+'://'+config.frontend.hostname+'/recover/'+token;
+//           return res.send(200,url);
+//         }
+//       });
+//     });
+
+//   }
+
+//   saveToken();
+
+// });
+
+// server.get({path: 'recover/:token', version: '0.0.1'}, function(req, res, next){
+
+//   var sql = {};
+//   sql.text = "update kuntur.token set used = true where id = $1 AND type = 'recover' AND used = false RETURNING id";
+//   sql.values = [req.params.token];
+
+//   pg.connect(conString, function(err, client, done){
+//     if(err) {
+//       done();
+//       res.send(500,err);
+//       console.log(err);
+//     }
+
+//     var query = client.query(sql);
+
+//     query.on("row", function(row, result){
+//       result.addRow(row);
+//     });
+
+//     query.on("end",function(result){
+//       done();
+//       if(result.rows.length>0){
+//         res.send(200,true);
+//       }
+//       else{
+//         res.send(200,false);
+//       }
+//     });
+
+//     query.on("error",function(error){
+//       console.log(error);
+//       done();
+//       res.send(500,error);
+//     });
+
+//   });
+
+// });
+
 
 server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
@@ -2653,6 +2808,126 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
     });
   });
 
+  server.put({path: '/studentPassword', version: '0.0.1'}, function(req, res, next){
+
+    var sql = {};
+    sql.text = 'UPDATE kuntur.user_system SET pass = $1 WHERE id = $2 AND pass = $3 RETURNING id';
+    sql.values = [req.body.person.newPass, req.body.person.student_id, req.body.person.oldPass];
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+
+         // console.log(result.rows.length);
+        // console.log(result);
+        done();
+        if(result.rows.length>0){
+          res.send(200,true);
+        }
+        else{
+          res.send(200,false);
+        }
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+
+    });
+
+  });
+
+  server.put({path: '/studentPricipalMail', version: '0.0.1'}, function(req, res, next){
+
+    var token = uuid.v4();
+
+    var sql = {};
+    sql.text = 'UPDATE kuntur.user_system set email = $1, checked_mail = false, token_validation = $2 WHERE id = $3';
+    sql.values = [req.body.person.principalMail, token, req.body.person.student_id];
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+
+
+      var url = config.frontend.protocol+'://'+config.frontend.hostname+'/token/'+token;
+
+      var mailOptions = {
+        from: 'admin-kuntur@psi.unc.edu.ar', // sender address
+        to: req.body.person.principalMail, // list of receivers
+        subject: 'Verificación de Correo - Estudiantes Internacionales - UNC', // Subject line
+        html: '<br><br> Este mensaje se ha enviado porque ingresaste un nuevo email de usuario. Para confirmar el mismo, por favor hacé click <a href="'+ url + '"> aquí ('+ url + ')</a>.<br><br>El sistema te guiará en los próximos pasos a seguir.<br><br>Prosecretaría de Relaciones Internacionales - Universidad Nacional de Córdoba'
+      };
+
+      var options = {
+        host: config.mailServer,
+          // logger: true,
+          // debug: true,
+        tls: {
+          "rejectUnauthorized": false
+        }
+
+        // service: "Gmail",
+        // auth: {
+        //     user: "",
+        //     pass: ""
+        // }
+      };
+
+      var transporter = nodemailer.createTransport(smtpTransport(options));
+
+      transporter.sendMail(mailOptions, function(error, info){
+
+
+        if(error){
+          console.log("Mail recuperacion de datos error ambos");
+          return console.log(error);
+        }else{
+          console.log("Mail recuperacion de datos: ", info)
+          res.send(200,true);
+        }
+      });
+
+
+
+      res.send(200,result.rows);//JSON.parse(
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+
+    });
+
+  });
+
   server.put({path : '/student', version : '0.0.1'}, function(req, res, next){
 
     if(!req.headers.usersystemid){
@@ -2682,8 +2957,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       orgId=req.body.person.student_org_id;
 
       var sql = {};
-      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, orgId, null, null, null, null, null, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo, req.body.person.username];
 
     }else{
       shortName=req.body.person.student_short_name;
@@ -2692,8 +2967,8 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
       web=req.body.person.student_institution_web_site;
       country=req.body.person.student_institution_country_code;
       var sql = {};
-      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)";
-      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo];
+      sql.text = "SELECT kuntur.f_u_studentProfile($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)";
+      sql.values = [req.body.person.person_given_name, req.body.person.person_middle_name, req.body.person.person_family_name, req.body.person.person_male, req.body.person.person_birth_date, req.body.person.person_birth_country_code, null, shortName, name, originalName, web, country, req.headers.usersystemid, req.headers.usersystemid, req.body.person.person_url_photo, req.body.person.username];
 
     }
 
@@ -3559,8 +3834,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
     // console.log("html")
         // console.log(html)
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
-
-    pdf.create(html, options).toFile(__dirname, '../certificadoanalitico.pdf', function(err, resPdf) {
+    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
       if (err) return console.log("error creando pdf", err);
 
 
@@ -3706,11 +3980,14 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           queryResult=JSON.parse(result.rows[0].respuesta);
           done();
 
+          if(queryResult.contacts){
+            var mailReceivers = queryResult.stakeholders.concat(queryResult.contacts);
+          }else{
+            var mailReceivers = queryResult.stakeholders;
+          }
 
-          var mailReceivers = queryResult.stakeholders.concat(queryResult.contacts);
-
-          var admissionAct;
-          var academicPerformance;
+          // var admissionAct;
+          // var academicPerformance;
 
           // console.log(queryResult)
 
@@ -3737,6 +4014,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                 var options = {
                   // service: 'gmail',
+                  host: config.mailServer,
                   tls: {
                   "rejectUnauthorized": false
                   }
@@ -3761,7 +4039,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   //from: queryResult.mailconfig[x].from, // sender address
                   from: x.from,
                   // from: 'anbiagetti@gmail.com',
-                  //to: queryResult.stakeholders[y].email, // list of receivers
+                  //to: queryResult.consolestakeholders[y].email, // list of receivers
                   to: item.email,
                   // to: 'anbiagetti@gmail.com',
                   //subject: queryResult.mailconfig[x].subject, // Subject line
@@ -3818,18 +4096,25 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                             });
                           }
 
+
                           callback2();
+
+
+
                           transporter.sendMail(mailOptions, function(error, info){
 
-                            console.log("Mail cambio de estado info: ", info)
+                            console.log("Mail cambio de estado adjunto info: ", info)
                             console.log(mailOptions);
                             if(error){
-                              console.log("Mail cambio de estado error ambos");
-                              return console.log(error);
+                              console.log("Mail cambio de estado error adjunto");
+                              console.log(error);
                             }
 
                           });
 
+
+
+                          callback2();
                         }
 
 
@@ -3851,7 +4136,10 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
                             transporter.sendMail(mailOptions, function(error, info){
 
+
                             console.log("Mail cambio de estado info: ", info)
+
+                            console.log("Mail cambio de estado carta info: ", info)
                             if(error){
                               console.log("Mail cambio de estado error carta");
                               return console.log(error);
@@ -4123,6 +4411,84 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
   });
 
 
+  server.post({path : '/chat', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+        console.log("req.headers.usersystemid")
+        console.log(req.headers.usersystemid)
+
+
+        var sql = {};
+        sql.text = "INSERT INTO kuntur.enrrollment_chat VALUES(uuid_generate_v4()::varchar, false, now(), $1, $2, '1', $3) RETURNING id;"
+        sql.values = [req.params.message, req.headers.usersystemid, req.params.enrrollmentId];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+          done();
+          res.send(200, true);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+
+    });
+
+  });
+
+  server.get({path : '/chat', version : '0.0.1'}, function(req, res, next){
+
+    // console.log(req.body);
+      pg.connect(conString, function(err, client, done){
+        if(err){
+          done();
+          console.error('error fetching client from pool', err);
+          res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+          return next();
+        }
+
+
+        var sql = {};
+        sql.text = "select ec.chat_time, p.given_name, p.family_name, ec.chat, p.url_photo from kuntur.enrrollment_chat ec join kuntur.person p on p.id = ec.user_system_a_id where enrrollment_id = $1"
+        sql.values = [req.params.enrrollment_id];
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+        });
+
+        query.on("end", function(result){
+
+          queryResult=result.rows;
+          done();
+          res.send(200, queryResult);
+        });//FIN CB END GUIVEN_NAME
+
+        query.on("error",function(error){
+          done();
+          console.log(error);
+          res.send(500,error);
+        });
+    });
+
+  });
+
+
 
 
     server.get({path : '/groups', version : '0.0.1'}, function(req, res, next){
@@ -4328,6 +4694,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
           console.log(error);
           res.send(500,error);
         });
+
 
     });
 
@@ -4655,6 +5022,7 @@ server.get({path : '/admissionPeriodAgreement', version : '0.0.1'}, function(req
     query.on("end",function(result){
       done();
       res.send(200,result.rows);
+
     });
 
     query.on("error",function(error){
@@ -4757,6 +5125,132 @@ server.get({path : '/allCoordinators', version : '0.0.1'} , function(req, res , 
       });
     });
 
+server.get({path : '/checkUser', version : '0.0.1'} , function(req, res , next){
+
+
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.user_system WHERE name = $1";
+      sql.values = [req.params.user];
+
+
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          if(result.rows.length  < 1){
+            res.send(200,true);
+          }
+          else{
+            res.send(200,false);
+          }
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+server.get({path : '/checkEmail', version : '0.0.1'} , function(req, res , next){
+
+
+      var sql = {};
+      sql.text = "SELECT  * FROM kuntur.user_system WHERE email = $1";
+      sql.values = [req.params.email];
+
+
+      pg.connect(conString, function(err, client, done){
+        if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+        }
+
+        var query = client.query(sql);
+
+        query.on("row", function(row, result){
+          result.addRow(row);
+
+        });
+  //JSON.parse(result.rows[0].perfilArray)
+        query.on("end",function(result){
+          done();
+          if(result.rows.length  < 1){
+            res.send(200,true);
+          }
+          else{
+            res.send(200,false);
+          }
+        });
+
+        query.on("error",function(error){
+          console.log(error);
+          done();
+          res.send(500,error);
+        });
+
+
+
+      });
+    });
+
+server.post({path:'/newUNCUser', version:'0.0.1'}, function(req, res, next){
+    if(!req.body){
+      res.send(409, {code: 409, message: 'Conflict', description: 'No body found in request.'});
+      return next();
+    }
+
+    var sql={};
+
+    sql.text = "SELECT  * FROM kuntur.f_new_unc_user($1, $2, $3, $4)";
+    sql.values = [req.body.guiven_name, req.body.last_name, req.body.us, req.body.mail];
+
+    pg.connect(conString, function(err, client, done){
+      if(err){
+        done();
+        console.error('error fetching client from pool', err);
+        res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
+        return next();
+      }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+  //JSON.parse(result.rows[0].perfilArray)
+    query.on("end",function(result){
+      done();
+      res.send(200,JSON.parse(result.rows[0].f_new_unc_user));
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+    });
+
+});
+
 server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, function(req, res, next){
 
 
@@ -4840,8 +5334,20 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
               if(error){
                 callbackInterno(error);
-              }else{
-                callbackInterno(null);
+              }else{//AGREGO LAS PERSONAS A STAKEHOLders
+                var sql = "SELECT kuntur.f_add_user_stakeholder($1, $2 )";
+                var params = [
+                  person.id,
+                  req.params.auId
+                ]
+                var query = client.query(sql,params, function(error){
+                  if(error){
+                    callbackInterno(error);
+                  }else{
+                    callbackInterno(null);
+                  }
+
+                });
               }
 
             });
@@ -4854,6 +5360,10 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
               }
 
             })
+
+
+
+
 
           }, function(callback){
 
@@ -4870,8 +5380,20 @@ server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, funct
 
               if(error){
                 callbackInterno(error);
-              }else{
-                callbackInterno(null);
+              }else{//AGREGO LAS PERSONAS A STAKEHOLDERS
+                var sql = "SELECT kuntur.f_add_user_stakeholder($1, $2 )";
+                var params = [
+                  person.id,
+                  req.params.auId
+                ]
+                var query = client.query(sql,params, function(error){
+                  if(error){
+                    callbackInterno(error);
+                  }else{
+                    callbackInterno(null);
+                  }
+
+                });
               }
 
             });
