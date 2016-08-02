@@ -763,6 +763,7 @@ var options = { format: 'A4',
   server.get({path : '/postulaciones', version : '0.0.1'}, function(req,res,next){
 
 
+    console.log(req.params.filter);
     filter=JSON.parse(req.params.filter);
     if(filter.year){
       var year = filter.year;
@@ -799,6 +800,18 @@ var options = { format: 'A4',
     }else{
       var status = null;
     }
+    if(filter.namePeriod){
+      var namePeriod = "'"+filter.namePeriod+"'";
+    }else{
+      var namePeriod = null;
+    }
+
+    if(filter.aUnits){
+      var aUnits = "'"+filter.aUnits+"'";
+    }else{
+      var aUnits = null;
+    }
+
     if(filter.number){
       var number = filter.number;
     }else{
@@ -811,10 +824,10 @@ var options = { format: 'A4',
     }
 
     //console.log(req.headers.usersystemid);
-    var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
+    var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"),(SELECT ap.id FROM kuntur.admission_period ap WHERE ap.title = "+namePeriod+"), "+country+", "+
       ""+name+"," +
       //""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
-      ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+      ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+", "+aUnits+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
 
 
@@ -850,6 +863,38 @@ var options = { format: 'A4',
   server.get({path : '/enrrollmentStatus', version : '0.0.1'}, function(req,res,next){
 
   var sql = "select code, name from kuntur.enrrollment_status"
+
+
+  pg.connect(conString, function(err, client, done){
+       if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+          return;
+          }
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end", function(result){
+        done();
+        res.send(200, result.rows);
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error.message);
+      });
+  });
+
+  });
+
+  server.get({path : '/admissionPeriod', version : '0.0.1'}, function(req,res,next){
+
+  var sql = "select title from kuntur.admission_period"
 
 
   pg.connect(conString, function(err, client, done){
