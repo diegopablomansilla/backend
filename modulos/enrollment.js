@@ -4013,7 +4013,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
               // console.log(queryResult.stakeholders[y].group_system_id)
 
                 var options = {
-                  // service: 'gmail',
+                  //service: 'gmail',
                   host: config.mailServer,
                   tls: {
                   "rejectUnauthorized": false
@@ -4196,7 +4196,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
               }else{
-                callback2();
+                
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Mail cambio de estado info: ", info)
                   if(error){
@@ -4208,6 +4208,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                   // console.log("enviado a "+queryResult.stakeholders[j].email+" subj "+queryResult.mailconfig[i].subject)
 
                 });
+                callback2();
                 }
 
             }else{//if
