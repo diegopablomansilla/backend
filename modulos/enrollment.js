@@ -2418,7 +2418,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
         res.send(503, {code: 503, message: 'Service Unavailable', description: 'Error fetching client from pool. Try again later'});
         return next();
       }
-
+      console.log(req.body.user)
       var sql = {};
       sql.text = "select kuntur.f_login_oid($1) as respuesta";
       sql.values = [req.body.user];
@@ -2431,6 +2431,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
       query.on("end", function(result){
         done();
+        console.log(result.rows[0].respuesta);
         res.send(200,result.rows[0].respuesta);
         // res.send(200,"ale");
 
