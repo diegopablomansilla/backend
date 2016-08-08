@@ -4767,8 +4767,9 @@ server.get({path : '/convocatorias', version : '0.0.1'} , function(req, res , ne
               return res.send(500,err);
           }
           var sql={};
+          console.log("SEMESTRE", req.body.admissionPeriod)
           sql.text="UPDATE kuntur.admission_period SET year = $1, semester = $9, title = $2, from_date= $3, to_date= $4, admission_period_status_id= $5, is_agreement= $6,in_type= $7 WHERE id = $8 ;"
-          sql.values=[req.body.admissionPeriod.year, req.body.admissionPeriod.title, req.body.admissionPeriod.from_date, req.body.admissionPeriod.to_date,null,req.body.admissionPeriod.status, req.body.admissionPeriod.type, req.body.admissionPeriod.id, req.body.admissionPeriod.semester ];
+          sql.values=[req.body.admissionPeriod.year, req.body.admissionPeriod.title, req.body.admissionPeriod.from_date, req.body.admissionPeriod.to_date,null,req.body.admissionPeriod.status, req.body.admissionPeriod.type, req.body.admissionPeriod.id, req.body.admissionPeriod.semestre ];
 
           var query = client.query(sql);
 
