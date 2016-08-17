@@ -4196,7 +4196,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
               }else{
-                
+
                 transporter.sendMail(mailOptions, function(error, info){
                   console.log("Mail cambio de estado info: ", info)
                   if(error){
@@ -4464,7 +4464,8 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
 
 
         var sql = {};
-        sql.text = "select ec.chat_time, p.given_name, p.family_name, ec.chat, p.url_photo from kuntur.enrrollment_chat ec join kuntur.person p on p.id = ec.user_system_a_id where enrrollment_id = $1"
+        //sql.text = "select ec.chat_time, p.given_name, p.family_name, ec.chat, p.url_photo from kuntur.enrrollment_chat ec join kuntur.person p on p.id = ec.user_system_a_id where enrrollment_id = $1"
+        sql.text= "SELECT	ec.chat_time, p.given_name, p.family_name, ec.chat, p.url_photo, gs.code FROM kuntur.enrrollment_chat ec JOIN kuntur.person p ON p.id = ec.user_system_a_id JOIN kuntur.user_system us ON us.id = p.id JOIN kuntur.user_group ug ON ug.user_system_id = us.id JOIN kuntur.group_system gs ON gs.id = ug.group_system_id WHERE enrrollment_id = $1 ORDER BY ec.chat_time"
         sql.values = [req.params.enrrollment_id];
 
         var query = client.query(sql);

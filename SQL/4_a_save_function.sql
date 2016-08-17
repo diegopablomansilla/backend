@@ -3,7 +3,7 @@
 CREATE OR REPLACE FUNCTION kuntur.is_update_by_gui_type( gui_type VARCHAR, ukey VARCHAR ) RETURNS BOOLEAN AS
 $$
 DECLARE
-    
+
 BEGIN
 	IF $1 IS NULL OR CHAR_LENGTH(TRIM($1)) = 0 THEN
 
@@ -11,31 +11,31 @@ BEGIN
 
 	ELSEIF $1 = '0' THEN
 
-		RETURN true;	
-	
+		RETURN true;
+
 	ELSEIF $2 = 'enrrollment.given_name' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;		
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment.middle_name' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;		
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment.family_name' AND ($1 = '1A' OR $1 = '3C')  THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment.birth_date' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment.male' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;		
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment.url_photo' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;				
+		RETURN true;
 
 
 	ELSEIF $2 = 'enrrollment.birth_country_code' AND ($1 = '1A' OR $1 = '3C') THEN
@@ -85,52 +85,52 @@ BEGIN
 
 	ELSEIF $2 = 'unc_in_enrrollment.url_application_letter' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'unc_in_enrrollment.url_certificate_psychophysical' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'unc_in_enrrollment.url_exchange_form' AND ($1 = '1A' OR $1 = '3C') THEN
-	
-		RETURN true;		
+
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment_nationality' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment_address' AND ($1 = '1A' OR $1 = '3C' OR $1 = '7G') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment_phone' AND ($1 = '1A' OR $1 = '3C' OR $1 = '7G') THEN
 
-		RETURN true;																		
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment_email' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;																			
+		RETURN true;
 
 	ELSEIF $2 = 'enrrollment_identity' AND ($1 = '1A' OR $1 = '3C') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'unc_in_study_program' AND ($1 = '1A' OR $1 = '3C' OR $1 = '4D' OR $1 = '5E' OR $1 = '7G' OR $1 = '8H') THEN
 
-		RETURN true;	
+		RETURN true;
 
 	ELSEIF $2 = 'unc_in_academic_performance' AND $1 = '10J' THEN
 
-		RETURN true;					
+		RETURN true;
 
 	ELSE
 
-		RETURN false;																				
+		RETURN false;
 
 	END IF;
 
 
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -142,11 +142,11 @@ DROP FUNCTION IF EXISTS kuntur.is_update(inenrrollment_id VARCHAR, user_system_i
 CREATE OR REPLACE FUNCTION kuntur.is_update(inenrrollment_id VARCHAR, user_system_id VARCHAR, sql VARCHAR, ukey VARCHAR) RETURNS BOOLEAN AS
 $$
 DECLARE
-	
-    	gui_type VARCHAR = -1;	
-    	update_ok BOOLEAN = false;	
+
+    	gui_type VARCHAR = -1;
+    	update_ok BOOLEAN = false;
     	i int;
-    
+
 BEGIN
 
 	IF $1 IS NULL OR CHAR_LENGTH(TRIM($1)) = 0 THEN
@@ -159,48 +159,48 @@ BEGIN
 
 	ELSEIF $3 IS NULL OR CHAR_LENGTH(TRIM($3)) = 0 THEN
 
-		RAISE EXCEPTION 'El argumento (3) sql es requerido';	
+		RAISE EXCEPTION 'El argumento (3) sql es requerido';
 
 	ELSEIF $4 IS NULL OR CHAR_LENGTH(TRIM($4)) = 0 THEN
 
-		RAISE EXCEPTION 'El argumento (4) ukey es requerido';	
+		RAISE EXCEPTION 'El argumento (4) ukey es requerido';
 
 	ELSE
 
-		SELECT  kuntur.gui_type($1, $2) INTO gui_type; 
-		SELECT  kuntur.is_update_by_gui_type(gui_type, $4) INTO update_ok; 
+		SELECT  kuntur.gui_type($1, $2) INTO gui_type;
+		SELECT  kuntur.is_update_by_gui_type(gui_type, $4) INTO update_ok;
 
-		IF update_ok = true THEN	
+		IF update_ok = true THEN
 
-			-- RAISE EXCEPTION 'TIENE PERMISOS PARA EJECUTAR';	
-		
-			EXECUTE $3;			
+			-- RAISE EXCEPTION 'TIENE PERMISOS PARA EJECUTAR';
+
+			EXECUTE $3;
 
 			GET DIAGNOSTICS i = ROW_COUNT;
 
-			IF i > 0 THEN 
+			IF i > 0 THEN
 
 				RETURN true;
 
 			ELSE
 
-				RETURN false;	
+				RETURN false;
 
-			END IF;	
+			END IF;
 
-		
+
 
 		ELSE
 
-			RETURN false;	
-			
+			RETURN false;
+
 		END IF;
-		
+
 
 	END IF;
 
 	RETURN false;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -208,13 +208,13 @@ $$ LANGUAGE plpgsql;
 
 select kuntur.is_update(
 
-	(SELECT x.id FROM kuntur.enrrollment x OFFSET 66 LIMIT 1), 
-	(SELECT id FROM kuntur.user_system WHERE name = '46385'), 
+	(SELECT x.id FROM kuntur.enrrollment x OFFSET 66 LIMIT 1),
+	(SELECT id FROM kuntur.user_system WHERE name = '46385'),
 	'UPDATE kuntur.enrrollment SET given_name = ''ROGELIO'' WHERE id = ''' || (SELECT x.id FROM kuntur.enrrollment x OFFSET 66 LIMIT 1) || ''' ',
 	'enrrollment.given_name'
-	
+
 	);
-	
+
 */
 
 
@@ -226,42 +226,42 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_names(inenrrollment_id VARCHAR, u
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_names(inenrrollment_id VARCHAR, user_system_id VARCHAR, given_name VARCHAR, middle_name VARCHAR,family_name VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 
 	fn VARCHAR = 'null';
 	mn VARCHAR = 'null';
 	gn VARCHAR = 'null';
-	
+
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF family_name IS NOT NULL AND CHAR_LENGTH(TRIM(family_name)) > 0 THEN
 
 		fn = '''' || INITCAP(TRIM(family_name)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	IF middle_name IS NOT NULL AND CHAR_LENGTH(TRIM(middle_name)) > 0 THEN
 
 		mn = '''' || INITCAP(TRIM(middle_name)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	IF given_name IS NOT NULL AND CHAR_LENGTH(TRIM(given_name)) > 0 THEN
 
 		gn = '''' || INITCAP(TRIM(given_name)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET family_name = ' || fn || ', middle_name = ' || mn || ', given_name = ' || gn || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -271,16 +271,16 @@ SELECT * FROM kuntur.enrrollment WHERE family_name ilike '%mansilla%';
 
 select kuntur.f_u_enrrollment_names(
 
-	(SELECT x.id FROM kuntur.enrrollment x ORDER BY id OFFSET 66 LIMIT 1), 
-	(SELECT id FROM kuntur.user_system WHERE name = '46385'), 
+	(SELECT x.id FROM kuntur.enrrollment x ORDER BY id OFFSET 66 LIMIT 1),
+	(SELECT id FROM kuntur.user_system WHERE name = '46385'),
 	'diego',
 	null,
 	'mansilla'
-	
+
 	);
 
 SELECT * FROM kuntur.enrrollment WHERE family_name ilike '%mansilla%';
-	
+
 */
 
 
@@ -291,26 +291,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_birth_date(inenrrollment_id VARCH
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_birth_date(inenrrollment_id VARCHAR, user_system_id VARCHAR, birth_date DATE) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	bd VARCHAR = 'null';	
+	bd VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF birth_date IS NOT NULL THEN
 
 		bd = birth_date;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET birth_date = ' || bd || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_date') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_date') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -321,26 +321,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_male(inenrrollment_id VARCHAR, us
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_male(inenrrollment_id VARCHAR, user_system_id VARCHAR, male BOOLEAN) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF male IS NOT NULL THEN
 
 		m = male;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET male = ' || m || ' WHERE id = ''' || $1 || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.male') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.male') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -351,26 +351,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_url_photo(inenrrollment_id VARCHA
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_photo(inenrrollment_id VARCHAR, user_system_id VARCHAR, url_photo VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	up VARCHAR = 'null';	
+	up VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF url_photo IS NOT NULL AND CHAR_LENGTH(TRIM(url_photo)) > 0 THEN
 
 		up = '''' || TRIM(url_photo) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET url_photo = ' || up || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.url_photo') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.url_photo') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -380,26 +380,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_birth_country_code(inenrrollment_
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_birth_country_code(inenrrollment_id VARCHAR, user_system_id VARCHAR, birth_country_code VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	bcc VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF birth_country_code IS NOT NULL AND CHAR_LENGTH(TRIM(birth_country_code)) > 0 THEN
 
 		bcc = '''' || TRIM(birth_country_code) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET birth_country_code = ' || bcc || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_country_code') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_country_code') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -410,26 +410,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_org_id(inenrrollment_id VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_org_id(inenrrollment_id VARCHAR, user_system_id VARCHAR, org_id VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	oid VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF org_id IS NOT NULL AND CHAR_LENGTH(TRIM(org_id)) > 0 THEN
 
 		oid = '''' || TRIM(org_id) || '''';
-	
+
 	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET org_id = ' || oid || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.org_id') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.org_id') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -440,26 +440,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_institution_original_name(inenrro
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_institution_original_name(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_original_name VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	ion VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF institution_original_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_original_name)) > 0 THEN
 
 		ion = '''' || TRIM(institution_original_name) || '''';
-	
+
 	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET institution_original_name = ' || ion || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_original_name') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_original_name') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -470,26 +470,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_institution_web_site(inenrrollmen
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_institution_web_site(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_web_site VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	iws VARCHAR = 'null';	
+	iws VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF institution_web_site IS NOT NULL AND CHAR_LENGTH(TRIM(institution_web_site)) > 0 THEN
 
 		iws = '''' || TRIM(institution_web_site) || '''';
-	
+
 	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET institution_web_site = ' || iws || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_web_site') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_web_site') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -500,31 +500,31 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_institution_country_code(inenrrol
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_institution_country_code(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_country_code VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	icc VARCHAR = 'null';		
+	icc VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF institution_country_code IS NOT NULL AND CHAR_LENGTH(TRIM(institution_country_code)) > 0 THEN
 
 		icc = '''' || TRIM(institution_country_code) || '''';
-	
+
 	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET institution_country_code = ' || icc || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_country_code') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.institution_country_code') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
 
--------------------------------------------------------------------------------------------------------------------------------	
+-------------------------------------------------------------------------------------------------------------------------------
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -535,58 +535,58 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_orgs(inenrrollment_id VARCHAR, us
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_orgs(inenrrollment_id VARCHAR, user_system_id VARCHAR, institution_original_name VARCHAR, institution_web_site VARCHAR,institution_country_code VARCHAR
 ,institution_short_name VARCHAR, institution_name VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 
 	ic VARCHAR = 'null';
 	iw VARCHAR = 'null';
 	io VARCHAR = 'null';
 	inn VARCHAR = 'null';
 	iss VARCHAR = 'null';
-	
+
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	IF institution_country_code IS NOT NULL AND CHAR_LENGTH(TRIM(institution_country_code)) > 0 THEN
 
 		ic = '''' || UPPER(TRIM(institution_country_code)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	IF institution_web_site IS NOT NULL AND CHAR_LENGTH(TRIM(institution_web_site)) > 0 THEN
 
 		iw = '''' || LOWER(TRIM(institution_web_site)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	IF institution_original_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_original_name)) > 0 THEN
 
 		io = '''' || INITCAP(TRIM(institution_original_name)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	IF institution_short_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_original_name)) > 0 THEN
 
 		iss = '''' || INITCAP(TRIM(institution_short_name)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	IF institution_name IS NOT NULL AND CHAR_LENGTH(TRIM(institution_name)) > 0 THEN
 
 		inn = '''' || INITCAP(TRIM(institution_name)) || '''';
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET institution_name = ' || inn || ',institution_short_name = ' || iss || ', institution_original_name = ' || io || ', institution_web_site = ' || iw || ', institution_country_code = ' || ic || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.family_name') INTO update_ok;
 
 	UPDATE kuntur.enrrollment SET org_id = NULL WHERE id = '' || $1 || '';
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -597,26 +597,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_email(inenrrollment_id VARCHAR, u
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_email(inenrrollment_id VARCHAR, user_system_id VARCHAR, mail VARCHAR, mailId VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF mail IS NOT NULL THEN
 
 		m = mail;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment_email SET email = ''' || m || ''' WHERE id = ''' || mailId || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -627,25 +627,25 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Insertemail(inenrrollment_id VARC
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertemail(inenrrollment_id VARCHAR, user_system_id VARCHAR, mail VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF mail IS NOT NULL THEN
 
 		m = mail;
-	
+
 	END IF;
 
 	sql = 'INSERT INTO kuntur.enrrollment_email(id, erased, email, comment, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, ''' || m || ''', '''', ''' || $1 || ''') ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -656,25 +656,25 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deleteemail(inenrrollment_id VARC
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Deleteemail(inenrrollment_id VARCHAR, user_system_id VARCHAR, mailId VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF mailId IS NOT NULL THEN
 
 		m = mailId;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'DELETE FROM kuntur.enrrollment_email WHERE id = ''' || m || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_email') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -684,28 +684,28 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_phone(inenrrollment_id VARCHAR, u
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_phone(inenrrollment_id VARCHAR, user_system_id VARCHAR, phone VARCHAR, country_code VARCHAR, phoneId VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	p VARCHAR = 'null';
 	c VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF phone IS NOT NULL AND country_code IS NOT NULL THEN
 
 		p = phone;
 		C = country_code;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment_phone SET phone_number = ''' || p || ''',country_code = ''' || c || ''' WHERE id = ''' || phoneId || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -715,27 +715,27 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Insertphone(inenrrollment_id VARC
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertphone(inenrrollment_id VARCHAR, user_system_id VARCHAR, phone VARCHAR, country_code VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	p VARCHAR = 'null';
 	c VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF phone IS NOT NULL AND country_code IS NOT NULL THEN
 
 		p = phone;
 		c = country_code;
-	
+
 	END IF;
 
 	sql = 'INSERT INTO kuntur.enrrollment_phone(id, erased, country_code, phone_number, comment, enrrollment_id) VALUES (uuid_generate_v4()::varchar, false, ''' || c || ''', ''' || p || ''', '''', ''' || $1 || ''') ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -746,25 +746,25 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deletephone(inenrrollment_id VARC
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Deletephone(inenrrollment_id VARCHAR, user_system_id VARCHAR, phoneId VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	p VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF phoneId IS NOT NULL THEN
 
 		p = phoneId;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'DELETE FROM kuntur.enrrollment_phone WHERE id = ''' || p || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_phone') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -778,26 +778,26 @@ DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_male(character varying, characte
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_male(inenrrollment_id character varying, user_system_id character varying, male boolean)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 	IF male IS NOT NULL THEN
 
 		m = male;
-	
-	END IF;	
+
+	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET male = ''' || m || ''' WHERE id = ''' || $1 || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.male') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.male') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -813,32 +813,32 @@ DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_citizenship(inenrrollment_id cha
 
 
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_citizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying,
 name character varying, indentityId character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	inu VARCHAR = 'null';
 	cod VARCHAR = 'null';
 	na VARCHAR = 'null';
 	pit VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 
-	sql = 'UPDATE kuntur.enrrollment_identity SET country_code = ''' || coalesce(nac, 'null') || ''', 
-	identity_number = ''' || coalesce(identity_number, 'null') || ''', code = ''' || coalesce(code, 'null') ||''', 
+	sql = 'UPDATE kuntur.enrrollment_identity SET country_code = ''' || coalesce(nac, 'null') || ''',
+	identity_number = ''' || coalesce(identity_number, 'null') || ''', code = ''' || coalesce(code, 'null') ||''',
 	name = ''' || coalesce(name, 'null') || ''', person_identity_type_id = (SELECT id FROM kuntur.person_identity_type WHERE code = '''|| coalesce(code, 'null') || ''') WHERE id = ''' || indentityId || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_identity') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_identity') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -847,35 +847,35 @@ $BODY$
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
+DROP FUNCTION IF EXISTS  kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying,
 name character varying);
 
-CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying, 
+CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertcitizenship(inenrrollment_id character varying, user_system_id character varying, nac character varying, identity_number character varying, code character varying,
 name character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	inu VARCHAR = 'null';
 	cod VARCHAR = 'null';
 	na VARCHAR = 'null';
 	pit VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 
-	sql = 'INSERT INTO kuntur.enrrollment_identity(id, erased, identity_number, code, name, country_code, comment, enrrollment_id, person_identity_type_id) 
+	sql = 'INSERT INTO kuntur.enrrollment_identity(id, erased, identity_number, code, name, country_code, comment, enrrollment_id, person_identity_type_id)
 	VALUES (uuid_generate_v4()::varchar, false, '''||coalesce(identity_number, 'null')||''', '''|| coalesce(code, 'null')||''', '''||coalesce(name, 'null')||''', '''||coalesce(nac, 'null')||''', '''',
 	  '''||$1||''',(SELECT id FROM kuntur.person_identity_type WHERE code = '''|| coalesce(code, 'null') || '''  ) ) ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_identity') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_identity') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -890,26 +890,26 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deletecitizenship(inenrrollment_i
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Deletecitizenship(inenrrollment_id character varying, user_system_id character varying, indentityId character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	inu VARCHAR = 'null';
 	cod VARCHAR = 'null';
 	na VARCHAR = 'null';
 	pit VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 
 	sql = 'DELETE FROM kuntur.enrrollment_identity WHERE id = ''' || indentityId || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_identity') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_identity') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -923,24 +923,24 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Insertnationality(inenrrollment_i
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Insertnationality(inenrrollment_id character varying, user_system_id character varying, nac character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
-	
-    
+
+
 BEGIN
 
 
-	sql = 'INSERT INTO kuntur.enrrollment_nationality(id, erased, country_code, comment, enrrollment_id) 
+	sql = 'INSERT INTO kuntur.enrrollment_nationality(id, erased, country_code, comment, enrrollment_id)
 	VALUES (uuid_generate_v4()::varchar, false, '''||coalesce(nac, 'null')||''', null, '''||$1||''') ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_nationality') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_nationality') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -953,23 +953,23 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_nationality(inenrrollment_id char
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, nac character varying, enrrollment_nationality_id character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
-	
-    
+
+
 BEGIN
 
 
 	sql = 'UPDATE kuntur.enrrollment_nationality SET country_code = '''||coalesce(nac, 'null')||''' WHERE id = ''' || enrrollment_nationality_id || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_nationality') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_nationality') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -985,23 +985,23 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deletenationality(inenrrollment_i
 CREATE OR REPLACE FUNCTION kuntur.f_u_Deleteenrrollment_nationality(inenrrollment_id character varying, user_system_id character varying, enrrollment_nationality_id character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
-	
-    
+
+
 BEGIN
 
 
 	sql = 'DELETE FROM kuntur.enrrollment_nationality WHERE id = ''' || enrrollment_nationality_id || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_nationality') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_nationality') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1015,20 +1015,20 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_birth_date(inenrrollment_id VARCH
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_birth(inenrrollment_id VARCHAR, user_system_id VARCHAR, birth_date DATE, birth_country VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	bd VARCHAR = 'null';	
+	bd VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.enrrollment SET birth_date = ''' || coalesce(birth_date, NULL) || ''', birth_country_code = ''' || coalesce(birth_country, 'null') || ''' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_date') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.birth_date') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1041,19 +1041,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_emergency_contact(inenrrollment_i
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_emergency_contact(inenrrollment_id VARCHAR, user_system_id VARCHAR, emergency VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET emergency_contact = ''' || coalesce(emergency, 'null') || ''' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.emergency_contact') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.emergency_contact') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1067,7 +1067,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_insertaddress(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, comment character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
@@ -1082,7 +1082,7 @@ DECLARE
 	v_building varchar = 'null';
 	v_postal_code varchar = 'null';
 	v_comment varchar = 'null';
-    
+
 BEGIN
 
 	if country_code is not null then
@@ -1130,16 +1130,16 @@ BEGIN
 	end if;
 
 	sql = 'INSERT INTO kuntur.enrrollment_address(id, erased, country_code, admin_area_level1_code, admin_area_level2, locality, neighbourhood, street, street_number, building_floor, building_room,
-	building, postal_code, comment, lat, lng, enrrollment_id) 
+	building, postal_code, comment, lat, lng, enrrollment_id)
 	VALUES (uuid_generate_v4()::varchar, false, ' || v_country_code || ', ' || v_admin_area_lvl1_code || ', null, ' || v_locality || ', ' || v_neighbourhood || ', ' || v_street || ', ' || v_street_number || ', '
 	|| v_building_floor || ', ' || v_building_room || ', ' || v_building || ', ' || v_postal_code || ', ' || v_comment || ', null, null, '''||$1||''') ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok;
 
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1149,20 +1149,20 @@ $BODY$
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_address(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
-, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, 
+, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying,
 comment character varying, address_id character varying);
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_address(inenrrollment_id character varying, user_system_id character varying, country_code character varying, admin_area_lvl1_code character varying, locality character varying
-, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying, 
+, neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying,
 comment character varying, address_id character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
-	
-    
+
+
 BEGIN
 
 
@@ -1170,11 +1170,11 @@ BEGIN
 	, neighbourhood = '''||coalesce(neighbourhood, 'null')||''', street = '''||coalesce(street, 'null')||''', street_number = '''||coalesce(street_number, 'null')||''', building_floor = '''||coalesce(building_floor, 'null')||'''
 	, building_room = '''||coalesce(building_room, 'null')||''', building = '''||coalesce(building, 'null')||''', postal_code = '''||coalesce(postal_code, 'null')||''', comment = '''||coalesce(comment, 'null')||''' WHERE id = ''' || address_id || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1187,22 +1187,22 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_Deleteaddress(inenrrollment_id ch
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_Deleteaddress(inenrrollment_id character varying, user_system_id character varying, address_id character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
-	
-    
+
+
 BEGIN
 
 
 	sql = 'DELETE FROM kuntur.enrrollment_address WHERE id = ''' || address_id || ''' ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment_address') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1216,19 +1216,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_agreement(inenrrollment_id VARCHA
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_agreement(inenrrollment_id VARCHAR, user_system_id VARCHAR, agreement BOOLEAN, name VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET agreement = ' || coalesce(agreement, 'null') || ', agreement_name = ''' || coalesce(name, null) || ''' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1238,19 +1238,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_program(inenrrollment_id VARCHAR,
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_program(inenrrollment_id VARCHAR, user_system_id VARCHAR, program BOOLEAN) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET program = ' || coalesce(program, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1260,19 +1260,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_amountPaid(inenrrollment_id VARCH
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_amountPaid(inenrrollment_id VARCHAR, user_system_id VARCHAR, amount double precision) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET amount_paid = ' || coalesce(amount, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1282,19 +1282,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_originalDoc(inenrrollment_id VARC
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_originalDoc(inenrrollment_id VARCHAR, user_system_id VARCHAR, doc BOOLEAN) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET original_doc = ' || coalesce(doc, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1305,19 +1305,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_insurance(inenrrollment_id VARCHA
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_insurance(inenrrollment_id VARCHAR, user_system_id VARCHAR, ins BOOLEAN) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET insurance = ' || coalesce(ins, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1327,19 +1327,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_visa(inenrrollment_id VARCHAR, us
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_visa(inenrrollment_id VARCHAR, user_system_id VARCHAR, visa VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET visa= ' || coalesce(visa, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1349,20 +1349,20 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_comment(inenrrollment_id VARCHAR,
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_comment(inenrrollment_id VARCHAR, user_system_id VARCHAR, comment VARCHAR, observation VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET comment = ' || coalesce($3, 'null') || ', observation = ' || coalesce($4, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1376,15 +1376,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_insertinstudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, comentario VARCHAR)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
 	v_comment VARCHAR = 'NULL';
-	
-    
+
+
 BEGIN
 
 	select * into type_user from kuntur.f_role_stakeholder( $1, $2, 'unc_in_study_program' );
@@ -1398,15 +1398,15 @@ BEGIN
 
 	IF type_user = 'ALL' OR type_user = 'STUDENT' THEN
 
-		sql = 'INSERT INTO kuntur.unc_in_study_program(id, erased, subject, approved, approved_by, file_number, comment, unc_in_enrrollment_id, org_id) 
+		sql = 'INSERT INTO kuntur.unc_in_study_program(id, erased, subject, approved, approved_by, file_number, comment, unc_in_enrrollment_id, org_id)
 		VALUES (uuid_generate_v4()::varchar, false, ''' || $3 || ''', null , null , null ,  ' || v_comment || ', '''||$1||''', '''||$4||''') ';
 
-		
-		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		RETURN update_ok;
 
-	ELSE 
+	ELSE
 
 		RETURN false;
 
@@ -1427,9 +1427,9 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_instudyprogram(inenrrollment_id character varying, user_system_id character varying, subject character varying, orgid character varying, appr boolean, legajoguarani character varying, studyprogramid character varying, comentarios character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	n VARCHAR = 'null';
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
@@ -1446,8 +1446,8 @@ DECLARE
 	v_approved VARCHAR = 'null';
 	v_comment VARCHAR = 'null';
 
-	
-    
+
+
 BEGIN
 
 	select * into type_user from kuntur.f_role_stakeholder( $1, $2, 'unc_in_study_program' );
@@ -1479,17 +1479,17 @@ BEGIN
 			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || '''';
 
 		ELSE
-		
-			sql = 'UPDATE kuntur.unc_in_study_program SET subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || ''''; 		
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' WHERE id = ''' || $7 || '''';
 
 		END IF;
-		
-		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		RETURN update_ok;
 
 	ELSIF type_user = 'COORDINATOR' THEN
-		
+
 		SELECT approved INTO var_approved FROM kuntur.unc_in_study_program where id = $7;
 
 		IF $8 IS NOT NULL THEN
@@ -1520,10 +1520,10 @@ BEGIN
 			if(gn is null) then
 				gn = 'null';
 			end if;
-			
-			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
-		
-			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' ';
+
+			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		ELSE
 
@@ -1535,9 +1535,9 @@ BEGIN
 
 	ELSIF type_user = 'OFFICE' THEN
 
-		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || $6 || ''' WHERE id = ''' || $7 || ''''; 	
+		sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ''' || $6 || ''' WHERE id = ''' || $7 || '''';
 
-		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		RETURN update_ok;
 
@@ -1591,16 +1591,16 @@ BEGIN
 			if(gn is null) then
 				gn = 'null';
 			end if;
-			
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' '; 	
-		
-			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = '|| v_file_number || ', approved = ' || v_approved || ' , approved_by = '''|| fn || ', ' ||  gn || ' '', subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_comment || ' WHERE id = ''' || $7 || ''' ';
+
+			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		ELSE
 
-			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ' || v_file_number || ',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_approved || ' WHERE id = ''' || $7 || ''' '; 	
+			sql = 'UPDATE kuntur.unc_in_study_program SET file_number = ' || v_file_number || ',  subject = ''' || $3 || ''' , org_id = '''|| $4 ||''' , comment = ' || v_approved || ' WHERE id = ''' || $7 || ''' ';
 
-			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+			SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		END IF;
 
@@ -1631,22 +1631,22 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_DeleteInStudyProgram(inenrrollmen
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_DeleteInStudyProgram(inenrrollment_id character varying, user_system_id character varying, studyProgramId CHARACTER VARYING)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
 	type_user VARCHAR = 'null';
-	
-    
+
+
 BEGIN
 
 	select * into type_user from kuntur.f_role_stakeholder( $1, $2, 'unc_in_study_program' );
 
 	IF type_user = 'STUDENT' OR type_user = 'ALL' THEN
 
-		sql = 'DELETE FROM kuntur.unc_in_study_program WHERE id = ''' || $3 || ''''; 		
-		
-		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok; 
+		sql = 'DELETE FROM kuntur.unc_in_study_program WHERE id = ''' || $3 || '''';
+
+		SELECT  kuntur.is_update($1, $2, sql, 'unc_in_study_program') INTO update_ok;
 
 		RETURN update_ok;
 
@@ -1669,14 +1669,14 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_InsertAcademicPerformance(inenrro
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_InsertAcademicPerformance(inenrrollment_id character varying, user_system_id character varying, org character varying, subject character varying, grade character varying, hs double precision, type_course character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
 	grade_number INTEGER = -3;
 	approved boolean = false;
-	
-    
+
+
 BEGIN
 
 	select rate_number into grade_number from kuntur.unc_in_grading_scale;
@@ -1688,14 +1688,14 @@ BEGIN
 	END IF;
 
 
-	sql = 'INSERT INTO kuntur.unc_in_academic_performance(id, erased, subject, approved, approved_by, file_number, hs, unc_in_enrrollment_id, unc_in_grading_scale_id, unc_in_studied_type_id, org_id) 
+	sql = 'INSERT INTO kuntur.unc_in_academic_performance(id, erased, subject, approved, approved_by, file_number, hs, unc_in_enrrollment_id, unc_in_grading_scale_id, unc_in_studied_type_id, org_id)
 	VALUES (uuid_generate_v4()::varchar, false, '''|| coalesce($4, 'null') ||''', '|| approved ||', '''|| coalesce($2, 'null') ||''', null, '|| coalesce($6, null) ||', ''' || coalesce($1, null) || ''', ''' || coalesce($5, null) || ''', ''' || coalesce($7, null) || ''', ''' || coalesce($3, null) || ''') ';
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_academic_performance') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_academic_performance') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1710,14 +1710,14 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_academicPerformance(inenrrollment
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_academicPerformance(inenrrollment_id character varying, user_system_id character varying, org character varying, subject character varying, grade character varying, hs double precision, type_course character varying, academicPerformanceId character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = 'null';
 	grade_number INTEGER = -3;
 	approved boolean = false;
-	
-    
+
+
 BEGIN
 
 	select rate_number into grade_number from kuntur.unc_in_grading_scale;
@@ -1729,16 +1729,16 @@ BEGIN
 	END IF;
 
 
-	sql = 'UPDATE kuntur.unc_in_academic_performance SET subject = '''|| coalesce($4, 'null') ||''', approved = '|| approved ||', approved_by = '''|| coalesce($2, 'null') ||''', 
-	hs = '|| coalesce($6, null) ||', unc_in_enrrollment_id = ''' || coalesce($1, null) || ''', unc_in_grading_scale_id = ''' || coalesce($5, null) || ''', 
+	sql = 'UPDATE kuntur.unc_in_academic_performance SET subject = '''|| coalesce($4, 'null') ||''', approved = '|| approved ||', approved_by = '''|| coalesce($2, 'null') ||''',
+	hs = '|| coalesce($6, null) ||', unc_in_enrrollment_id = ''' || coalesce($1, null) || ''', unc_in_grading_scale_id = ''' || coalesce($5, null) || ''',
 	unc_in_studied_type_id = ''' || coalesce($7, null) || ''', org_id = ''' || coalesce($3, null) || ''' WHERE id = '''|| $8 ||''' ';
 
 
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_academic_performance') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_academic_performance') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1751,19 +1751,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_DeleteacademicPerformance(inenrro
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_DeleteacademicPerformance(inenrrollment_id character varying, user_system_id character varying, academicPerformanceId character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	sql VARCHAR = 'null';	
-    
+	sql VARCHAR = 'null';
+
 BEGIN
 
 	sql = 'DELETE FROM kuntur.unc_in_academic_performance WHERE id = '''|| $3 ||''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_academic_performance') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_academic_performance') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1775,9 +1775,9 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_org_id(inenrrollment_id VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_org_id(inenrrollment_id VARCHAR, user_system_id VARCHAR, org_id VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	oid VARCHAR = 'null';
 	sql VARCHAR = null;
 	Orgname VARCHAR = '';
@@ -1785,29 +1785,29 @@ DECLARE
 	web VARCHAR = '';
 	iname VARCHAR = '';
 	ishortName VARCHAR = '';
-    
+
 BEGIN
 
 	IF org_id IS NOT NULL AND CHAR_LENGTH(TRIM(org_id)) > 0 THEN
 
 		oid = '' || TRIM(org_id) || '';
-	
+
 	END IF;
 
 	sql = 'UPDATE kuntur.enrrollment SET org_id = ''' || oid || ''' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.org_id') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'enrrollment.org_id') INTO update_ok;
 
 	IF update_ok THEN
 
 		select original_name, web_site, country_code, name, short_name into Orgname, web, country, iname, ishortName from kuntur.org where id = oid;
-	
+
 		update kuntur.enrrollment set institution_web_site = web, institution_country_code = country, institution_original_name = Orgname, institution_name = iname, institution_short_name = ishortName where id = $1;
 
 	END IF;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1822,14 +1822,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_login(us character varying, pass character varying)
   RETURNS character varying AS
 $BODY$
-DECLARE    	
+DECLARE
 
-	num INTEGER = 0;	
+	num INTEGER = 0;
 	rol VARCHAR = '';
-    
+
 BEGIN
 
-	SELECT count(us.id) into num from kuntur.user_system us where us.name = '' || $1 ||'' and us.pass = '' || $2 || '' and checked_mail = true; 
+	SELECT count(us.id) into num from kuntur.user_system us where us.name = '' || $1 ||'' and us.pass = '' || $2 || '' and checked_mail = true;
 
 	IF num > 0 THEN
 
@@ -1846,10 +1846,10 @@ BEGIN
 
 		RETURN NULL;
 
-	END IF; 
+	END IF;
 
-	
-    
+
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1866,10 +1866,10 @@ DROP FUNCTION IF EXISTS kuntur.f_login_oid(us VARCHAR) CASCADE;
 
 CREATE OR REPLACE FUNCTION kuntur.f_login_oid(us VARCHAR) RETURNS VARCHAR AS
 $$
-DECLARE    	
+DECLARE
 
 	rol VARCHAR = '';
-    
+
 BEGIN
 
 
@@ -1882,8 +1882,8 @@ BEGIN
 
 	RETURN rol;
 
-	
-    
+
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1892,14 +1892,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_new_student(name character varying, lastname character varying, mail character varying, us character varying, pass character varying, country character varying, token character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	person_id varchar = 'null';
-    
+
 BEGIN
 
 
-	insert into kuntur.person(id, erased, given_name, family_name, birth_country_code) 
+	insert into kuntur.person(id, erased, given_name, family_name, birth_country_code)
 	values (uuid_generate_v4()::varchar, false, ''|| coalesce($1, null) ||'', ''|| coalesce($2, null) ||'', ''|| coalesce($6, null) ||'') RETURNING id into person_id;
 
 	insert into kuntur.person_email(id, erased, email, person_id) values (uuid_generate_v4()::varchar, false, ''|| coalesce($3, null) ||'', person_id);
@@ -1909,10 +1909,10 @@ BEGIN
 	insert into kuntur.user_group(id, erased, user_system_id, group_system_id) values (uuid_generate_v4()::varchar, false, person_id, (select id from kuntur.group_system where code = 'student'));
 
 	insert into kuntur.student(id, erased) values (person_id, false);
-	
+
 	return true;
-	
-    
+
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -1959,7 +1959,7 @@ BEGIN
 		pi.erased as erased,
 		pi.identity_number as identity_number,
 		pit.code as code,
-		pit.name as name, 
+		pit.name as name,
 		pi.country_code as country_code,
 		pi.person_id as person_id,
 		pi.person_identity_type_id as person_identity_type_id
@@ -2028,7 +2028,7 @@ DECLARE
 BEGIN
 	sql = 'UPDATE '|| TAB ||' SET '|| field ||' = '|| val ||' WHERE '|| idField || ' = ''' || id || '''';
 
-	RETURN sql; 
+	RETURN sql;
 END;
 $BODY$
 	LANGUAGE plpgsql;
@@ -2079,25 +2079,25 @@ BEGIN
 
 	select kuntur.f_validateStudent(idPerson, us) into per;
 
-	--RAISE EXCEPTION '% % % % % % % % % % % % % %', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14; 
-		
+	--RAISE EXCEPTION '% % % % % % % % % % % % % %', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14;
+
 
 	IF per THEN
-		UPDATE kuntur.person SET given_name = '' || $1 || '', middle_name = '' || $2 || '', family_name = '' || $3 || '', birth_date = $5::DATE , male =  $4 , 
+		UPDATE kuntur.person SET given_name = '' || $1 || '', middle_name = '' || $2 || '', family_name = '' || $3 || '', birth_date = $5::DATE , male =  $4 ,
 		birth_country_code = '' || $6 || '', url_photo = '' || $15 || '' WHERE id = '' || $14 || '';
 
 		IF idOrg is null THEN
 
-			UPDATE kuntur.student SET institution_short_name = '' || iShortName || '', institution_name = '' || iName || '', institution_original_name = '' || iOriginalName || '', 
+			UPDATE kuntur.student SET institution_short_name = '' || iShortName || '', institution_name = '' || iName || '', institution_original_name = '' || iOriginalName || '',
 			institution_web_site = '' || iWeb || '', institution_country_code = '' || iCountry || '', org_id = null WHERE id = '' || idPerson || '';
 
 		ELSE
 
 			SELECT short_name, name, original_name, web_site, country_code INTO oSName, oName, oOriginalName, oWeb, oCountry FROM kuntur.org WHERE id = '' || idOrg || '';
-		
-			UPDATE kuntur.student SET institution_short_name = '' || oSName || '', institution_name = '' || oName || '', institution_original_name = '' || oOriginalName || '', 
+
+			UPDATE kuntur.student SET institution_short_name = '' || oSName || '', institution_name = '' || oName || '', institution_original_name = '' || oOriginalName || '',
 			institution_web_site = '' || oWeb || '', institution_country_code = '' || oCountry || '', org_id = '' || idOrg || '' WHERE id = '' || idPerson || '';
-	
+
 		END IF;
 
 	ELSE
@@ -2123,21 +2123,21 @@ DROP FUNCTION IF EXISTS kuntur.f_i_student_email(person_id VARCHAR, us VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_i_student_email(person_id VARCHAR, us VARCHAR, mail VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
 	per BOOLEAN = false;
-    
+
 BEGIN
 	IF mail IS NOT NULL THEN
 
 		m = mail;
-	
+
 	END IF;
 
-	select kuntur.f_validateStudent(person_id, us) into per;	
+	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
@@ -2148,7 +2148,7 @@ BEGIN
 	END IF;
 
 	RETURN FALSE;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2160,21 +2160,21 @@ DROP FUNCTION IF EXISTS kuntur.f_u_student_email(person_id VARCHAR, us VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_student_email(person_id VARCHAR, us VARCHAR, mail VARCHAR, mailId VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
 	per BOOLEAN = false;
-    
+
 BEGIN
 	IF mail IS NOT NULL THEN
 
 		m = mail;
-	
+
 	END IF;
 
-	select kuntur.f_validateStudent(person_id, us) into per;	
+	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
@@ -2185,7 +2185,7 @@ BEGIN
 	END IF;
 
 	RETURN FALSE;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2195,16 +2195,16 @@ DROP FUNCTION IF EXISTS kuntur.f_d_student_email(person_id VARCHAR, us VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_d_student_email(person_id VARCHAR, us VARCHAR, mailId VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
-	update_ok BOOLEAN = false;	
+	update_ok BOOLEAN = false;
 	m VARCHAR = 'null';
 	sql VARCHAR = null;
 	per BOOLEAN = false;
-    
+
 BEGIN
 
-	select kuntur.f_validateStudent(person_id, us) into per;	
+	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
@@ -2215,7 +2215,7 @@ BEGIN
 	END IF;
 
 	RETURN FALSE;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2225,13 +2225,13 @@ DROP FUNCTION IF EXISTS kuntur.f_i_student_phone(person_id VARCHAR, us VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_i_student_phone(person_id VARCHAR, us VARCHAR, country VARCHAR, phone VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	per BOOLEAN = false;
-    
+
 BEGIN
 
-	select kuntur.f_validateStudent(person_id, us) into per;	
+	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
@@ -2242,7 +2242,7 @@ BEGIN
 	END IF;
 
 	RETURN FALSE;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2250,13 +2250,13 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_student_phone(person_id VARCHAR, us VARCHAR, country VARCHAR, phone VARCHAR, phone_id VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	per BOOLEAN = false;
-    
+
 BEGIN
 
-	select kuntur.f_validateStudent(person_id, us) into per;	
+	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
@@ -2267,7 +2267,7 @@ BEGIN
 	END IF;
 
 	RETURN FALSE;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2277,13 +2277,13 @@ DROP FUNCTION IF EXISTS kuntur.f_d_student_phone(person_id VARCHAR, us VARCHAR, 
 
 CREATE OR REPLACE FUNCTION kuntur.f_d_student_phone(person_id VARCHAR, us VARCHAR, phone_id VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	per BOOLEAN = false;
-    
+
 BEGIN
 
-	select kuntur.f_validateStudent(person_id, us) into per;	
+	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
@@ -2294,7 +2294,7 @@ BEGIN
 	END IF;
 
 	RETURN FALSE;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2307,10 +2307,10 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_d_student_nationality(person_id character varying, us character varying, nac_id character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 per BOOLEAN = false;
-	
+
 BEGIN
 
 	select kuntur.f_validateStudent(person_id, us) into per;
@@ -2340,17 +2340,17 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_i_student_nationality(person_id character varying, us character varying, nac character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 per BOOLEAN = false;
-	
+
 BEGIN
 
 	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
-		INSERT INTO kuntur.person_nationality(id, erased, country_code, person_id) 
+		INSERT INTO kuntur.person_nationality(id, erased, country_code, person_id)
 		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(nac, 'null')||'', ''||$1||'');
 
 		RETURN TRUE;
@@ -2374,10 +2374,10 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_student_nationality(person_id character varying, us character varying, nac character varying, nac_id character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 per BOOLEAN = false;
-	
+
 BEGIN
 
 	select kuntur.f_validateStudent(person_id, us) into per;
@@ -2405,17 +2405,17 @@ DROP FUNCTION IF EXISTS kuntur.f_i_student_document(person_id character varying,
 CREATE OR REPLACE FUNCTION kuntur.f_i_student_document(person_id character varying, us character varying, icode character varying, idenNum character varying, name character varying, country character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 per BOOLEAN = false;
-	
+
 BEGIN
 
 	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
-		INSERT INTO kuntur.person_identity(id, erased, identity_number, code, name, country_code, person_id, person_identity_type_id) 
+		INSERT INTO kuntur.person_identity(id, erased, identity_number, code, name, country_code, person_id, person_identity_type_id)
 		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(idenNum, 'null')||'', ''||coalesce(icode, 'null')||'', ''||coalesce(name, 'null')||'', ''||coalesce(country, 'null')||''
 		, ''||coalesce(person_id, 'null')||'', (SELECT t.id FROM kuntur.person_identity_type t WHERE t.code = ''|| coalesce(icode, 'null') || ''));
 
@@ -2437,17 +2437,17 @@ DROP FUNCTION IF EXISTS kuntur.f_u_student_document(person_id character varying,
 CREATE OR REPLACE FUNCTION kuntur.f_u_student_document(person_id character varying, us character varying, icode character varying, idenNum character varying, iname character varying, country character varying, idIdentity character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 per BOOLEAN = false;
-	
+
 BEGIN
 
 	select kuntur.f_validateStudent(person_id, us) into per;
 
 	IF per THEN
 
-		UPDATE kuntur.person_identity SET identity_number = ''||coalesce(idenNum, 'null')||'', code = ''||coalesce(icode, 'null')||'', name = ''||coalesce(iname, 'null')||'', country_code = ''||coalesce(country, 'null')||'', 
+		UPDATE kuntur.person_identity SET identity_number = ''||coalesce(idenNum, 'null')||'', code = ''||coalesce(icode, 'null')||'', name = ''||coalesce(iname, 'null')||'', country_code = ''||coalesce(country, 'null')||'',
 		person_identity_type_id = (SELECT t.id FROM kuntur.person_identity_type t WHERE t.code = ''|| coalesce(icode, 'null') || '') WHERE id = ''||idIdentity||'';
 
 		RETURN TRUE;
@@ -2466,10 +2466,10 @@ DROP FUNCTION IF EXISTS kuntur.f_d_student_document(person_id character varying,
 CREATE OR REPLACE FUNCTION kuntur.f_d_student_document(person_id character varying, us character varying, idIdentity character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 per BOOLEAN = false;
-	
+
 BEGIN
 
 	select kuntur.f_validateStudent(person_id, us) into per;
@@ -2495,10 +2495,10 @@ CREATE OR REPLACE FUNCTION kuntur.f_i_student_address(person_id character varyin
 , neighbourhood character varying, street character varying, street_number character varying, building_floor character varying, building_room character varying, building character varying, postal_code character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	per BOOLEAN = false;
-    
+
 BEGIN
 
 
@@ -2507,7 +2507,7 @@ BEGIN
 	IF per THEN
 
 		INSERT INTO kuntur.person_address(id, erased, country_code, admin_area_level1_code, locality, neighbourhood, street, street_number, building_floor, building_room,
-		building, postal_code, person_id) 
+		building, postal_code, person_id)
 		VALUES (uuid_generate_v4()::varchar, false, ''||coalesce(country_code, null)||'', ''||coalesce(admin_area_lvl1_code, null)||'' , ''||coalesce(locality, null)||'', ''||coalesce(neighbourhood, null)||''
 		, ''||coalesce(street, null)||'', ''||coalesce(street_number, null)||'', ''||coalesce(building_floor, null)||'', ''||coalesce(building_room, null)||'', ''||coalesce(building, null)||''
 		, ''||coalesce(postal_code, null)||'', ''||$1||'');
@@ -2518,8 +2518,8 @@ BEGIN
 
 	RETURN FALSE;
 
-	
-    
+
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -2534,10 +2534,10 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_student_address(person_id character varying, us character varying, acountry_code character varying, admin_area_lvl1_code character varying, alocality character varying, aneighbourhood character varying, astreet character varying, astreet_number character varying, abuilding_floor character varying, abuilding_room character varying, abuilding character varying, apostal_code character varying, address_id character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	per BOOLEAN = false;
-    
+
 BEGIN
 
 
@@ -2545,8 +2545,8 @@ BEGIN
 
 	IF per THEN
 
-		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, null)||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, null)||'', locality = ''||coalesce(alocality, null)||'', 
-		neighbourhood = ''||coalesce(aneighbourhood, null)||'', street = ''||coalesce(astreet, null)||'', street_number = ''||coalesce(astreet_number, null)||'', building_floor = ''||coalesce(abuilding_floor, null)||'', 
+		UPDATE kuntur.person_address SET country_code = ''||coalesce(acountry_code, null)||'', admin_area_level1_code = ''||coalesce(admin_area_lvl1_code, null)||'', locality = ''||coalesce(alocality, null)||'',
+		neighbourhood = ''||coalesce(aneighbourhood, null)||'', street = ''||coalesce(astreet, null)||'', street_number = ''||coalesce(astreet_number, null)||'', building_floor = ''||coalesce(abuilding_floor, null)||'',
 		building_room = ''||coalesce(abuilding_room, null)||'', building = ''||coalesce(abuilding, null)||'', postal_code = ''||coalesce(apostal_code, null)||'' WHERE id = address_id;
 
 		RETURN TRUE;
@@ -2555,8 +2555,8 @@ BEGIN
 
 	RETURN FALSE;
 
-	
-    
+
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -2570,10 +2570,10 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_d_student_address(person_id character varying, us character varying, address_id character varying)
   RETURNS BOOLEAN AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	per BOOLEAN = false;
-    
+
 BEGIN
 
 
@@ -2589,8 +2589,8 @@ BEGIN
 
 	RETURN FALSE;
 
-	
-    
+
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -2608,7 +2608,7 @@ $$
 DECLARE
 	statusId VARCHAR = null;
 	statusName VARCHAR = null;
-	
+
 	oldStatusId VARCHAR = null;
 	oldStatusCode VARCHAR = null;
 	oldStatusName VARCHAR = null;
@@ -2617,7 +2617,7 @@ DECLARE
 	stakeholdersStatus BOOLEAN = null;
 
 	userSystemId VARCHAR = null;
-	
+
 BEGIN
 
 	SELECT kuntur.f_validate_enrrollment_permission(userSystem, enrrollment_id) INTO permission;
@@ -2631,10 +2631,10 @@ BEGIN
 		SELECT name, code INTO oldStatusName, oldStatusCode FROM kuntur.enrrollment_status WHERE id = oldStatusId;
 
 		SELECT id INTO userSystemId FROM kuntur.user_system WHERE name = userSystem;
-		
+
 		UPDATE kuntur.enrrollment SET enrrollment_status_id = statusId WHERE id = enrrollment_id;
 
-		INSERT INTO kuntur.enrrollment_log(id, erased, code_start, name_start, code_end, name_end, promotion_date, enrrollment_status_a_id, enrrollment_status_b_id, enrrollment_id, user_system_id) 
+		INSERT INTO kuntur.enrrollment_log(id, erased, code_start, name_start, code_end, name_end, promotion_date, enrrollment_status_a_id, enrrollment_status_b_id, enrrollment_id, user_system_id)
 		VALUES (uuid_generate_v4()::varchar, false, oldStatusCode, oldStatusName, finalStatusCode, statusName, transaction_timestamp(), oldStatusId, statusId, enrrollment_id, userSystemId);
 
 		SELECT kuntur.f_update_stakeholders(enrrollment_id) INTO stakeholdersStatus;
@@ -2709,7 +2709,7 @@ BEGIN
 
 		SELECT count(*) INTO auxCount FROM kuntur.enrrollment_stakeholder WHERE user_system_id = studentid AND enrrollment_id = enrrollmentId;
 
-		IF auxCount > 0 THEN	
+		IF auxCount > 0 THEN
 
 			UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = enrrollmentId;
 
@@ -2823,8 +2823,8 @@ BEGIN
 		RETURN true;
 
 --------------------FIN CORRECCION----------------------------
-	
-	
+
+
 	ELSIF statusCode = 'K' OR statusCode = 'Z' THEN
 
 		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  enrrollment_id = enrrollmentId;
@@ -2837,7 +2837,7 @@ BEGIN
 
 	END IF;
 
-		
+
 
 END;
 $BODY$
@@ -2857,7 +2857,7 @@ $$
 DECLARE
 
 	result VARCHAR = null;
-	
+
 BEGIN
 
 	WITH t AS (
@@ -2866,7 +2866,7 @@ BEGIN
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
 	RETURN result;
-	
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -2884,7 +2884,7 @@ DECLARE
 	appr BOOLEAN = false;
 	orgIdIterator VARCHAR = null;
 	personIterator VARCHAR = null;
-	
+
 	flagApproved BOOLEAN = true;
 	flagComplete BOOLEAN = true;
 	flagOrg BOOLEAN = true;
@@ -2921,7 +2921,7 @@ BEGIN
 	SELECT id INTO userSystemId FROM kuntur.user_system WHERE name = usersystem;
 
 	SELECT org_id INTO orgId FROM kuntur.unc_in_academic_coordinator WHERE person_id = userSystemId;
-	
+
 	IF statusCode LIKE 'D' THEN -- EN EVALUACION
 
 		FOR appr, orgIdIterator IN SELECT approved, org_id from kuntur.unc_in_study_program where unc_in_enrrollment_id = enrrollmentId
@@ -2929,7 +2929,7 @@ BEGIN
 		LOOP
 
 			IF appr IS NOT null THEN
-		
+
 
 				IF appr IS FALSE THEN
 
@@ -2970,7 +2970,7 @@ BEGIN
 		ELSE -- NO TODOS LOS CAMPOS APROBADOS ESTAN LLENOS
 
 			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
-			
+
 				FOR personIterator IN SELECT person_id FROM kuntur.unc_in_academic_coordinator WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
 
 				LOOP
@@ -2995,13 +2995,13 @@ BEGIN
 	ELSIF statusCode LIKE 'C' THEN -- INCOMPLETA
 
 		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'B') INTO result;
-		RETURN result;	
+		RETURN result;
 
 	ELSIF statusCode LIKE 'E' THEN --MODIFICACION PLAN 1
-	
+
 		UPDATE kuntur.unc_in_study_program SET approved = null where unc_in_enrrollment_id = enrrollmentId AND approved = false;--LAS MATERIAS POR LAS QUE SE DESAPROBO SE VUELVEN A NULO PARA Q SEAN REEVALUADAS
 		SELECT kuntur.f_change_state(enrrollmentId, userSystem, 'D') INTO result;
-		RETURN result;			
+		RETURN result;
 
 	ELSIF statusCode LIKE 'G' THEN -- MODIFICACION PLAN 2
 
@@ -3009,9 +3009,9 @@ BEGIN
 		RETURN result;
 
 	ELSIF statusCode LIKE 'H' THEN -- EN MATRICULACION
-	
+
 		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;
-		
+
 
 		FOR fN, orgIdIterator IN SELECT file_number, org_id from kuntur.unc_in_study_program where unc_in_enrrollment_id = enrrollmentId
 
@@ -3019,11 +3019,11 @@ BEGIN
 
 			--SELECT kuntur.f_validateFileNumber(fN) INTO validFN; NO EXISTE LA FUNCION QUE VALIDA EL FILE NUMBER CREAR
 
-			
+
 
 			IF fN IS NOT NULL THEN
 
-	
+
 			ELSE
 
 				flagComplete = false;
@@ -3072,7 +3072,7 @@ BEGIN
 	ELSIF statusCode LIKE 'J' THEN -- EN MATRICULACION
 
 		SELECT org_id INTO orgId FROM kuntur.unc_in_academic_office WHERE person_id = userSystemId;--BUSCO EL ID DE LA ORG DE LA PERSONA Q ESTA LOGUEADA
-		
+
 		FOR carCode, subj, filNumb, hrs, orgIdIterator IN SELECT career_code, subject, file_number, hs, org_id from kuntur.unc_in_academic_performance where unc_in_enrrollment_id = enrrollmentId
 --SELECT career_code, subject, file_number, hs, org_id FROM KUNTUR.unc_in_academic_performance where unc_in_enrrollment_id = '489090264e78c0ce014e931e3425002b'
 		LOOP
@@ -3080,7 +3080,7 @@ BEGIN
 
 			IF  subj IS NOT NULL  AND hrs IS NOT NULL THEN --carCode IS NOT NULL AND AND filNumb IS NOT NULL
 
-	
+
 			ELSE
 
 				flagComplete = false;
@@ -3119,7 +3119,7 @@ BEGIN
 		ELSE -- NO TODOS LOS CAMPOS ESTAN LLENOS
 
 			IF flagOrg THEN -- FALTAN REGISTROS DE COMPLETAR PERO LA ORGANIZACION A LA QUE PERTENECE LA PERSONA TERMINO
-			
+
 				FOR personIterator IN SELECT person_id FROM kuntur.unc_in_academic_office WHERE org_id = orgId -- BUCLE QUE RECORRE LAS PERSONAS PERTENECIENTES A UNA ORGANIZACION PARA CAMBIARLE LOS PERMISOS EN STAKEHOLDERS
 
 				LOOP
@@ -3172,7 +3172,7 @@ BEGIN
 		replace(
 			replace(
 				(
-					SELECT	string_agg( person_identity::text , ', '::text) 
+					SELECT	string_agg( person_identity::text , ', '::text)
 					FROM (
 
 						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
@@ -3181,7 +3181,7 @@ BEGIN
 							ON t.id = i.person_identity_type_id
 							AND i.person_id = p.id
 
-					     ) AS person_identity 
+					     ) AS person_identity
 				), '("', ''), '")', ''
 			)  AS person_identity ,
 
@@ -3189,7 +3189,7 @@ BEGIN
 				(
 				select string_agg( email::text, ', '::text) FROM (
 						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
-					) AS email 
+					) AS email
 				) AS email
 
 		FROM kuntur.person p JOIN kuntur.unc_in_academic_coordinator ac ON ac.person_id = p.id WHERE ac.org_id = $1 group by family_name, given_name, middle_name, p.id
@@ -3203,7 +3203,7 @@ BEGIN
 		replace(
 			replace(
 				(
-					SELECT	string_agg( person_identity::text , ', '::text) 
+					SELECT	string_agg( person_identity::text , ', '::text)
 					FROM (
 
 						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
@@ -3212,7 +3212,7 @@ BEGIN
 							ON t.id = i.person_identity_type_id
 							AND i.person_id = p.id
 
-					     ) AS person_identity 
+					     ) AS person_identity
 				), '("', ''), '")', ''
 			)  AS person_identity ,
 
@@ -3220,7 +3220,7 @@ BEGIN
 				(
 				select string_agg( email::text, ', '::text) FROM (
 						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
-					) AS email 
+					) AS email
 				) AS email
 
 		FROM kuntur.person p JOIN kuntur.unc_in_academic_office ac ON ac.person_id = p.id WHERE ac.org_id = $1 group by family_name, given_name, middle_name, p.id
@@ -3313,10 +3313,11 @@ $$ LANGUAGE plpgsql;
 
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------Obtener Despacho Alumnos y Coordinadores de UNC------------------------------------------------------------------------------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION kuntur.f_get_all_directivos() RETURNS VARCHAR AS
-$$
+CREATE OR REPLACE FUNCTION kuntur.f_get_all_directivos()
+  RETURNS character varying AS
+$BODY$
 DECLARE
 
 	result json = null;
@@ -3326,13 +3327,13 @@ DECLARE
 BEGIN
 
 
-------------------------------------------------------------------COORDINADORES------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------coordinadores UNC------------------------------------------------------------------------------------------------------------------------------------
 	WITH t AS (
 		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
-					SELECT	string_agg( person_identity::text , ', '::text) 
+					SELECT	string_agg( person_identity::text , ', '::text)
 					FROM (
 
 						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
@@ -3341,7 +3342,7 @@ BEGIN
 							ON t.id = i.person_identity_type_id
 							AND i.person_id = p.id
 
-					     ) AS person_identity 
+					     ) AS person_identity
 				), '("', ''), '")', ''
 			)  AS person_identity ,
 
@@ -3349,21 +3350,30 @@ BEGIN
 				(
 				select string_agg( email::text, ', '::text) FROM (
 						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
-					) AS email 
+					) AS email
 				) AS email
 
-		FROM kuntur.person p JOIN kuntur.unc_in_academic_coordinator ac ON ac.person_id = p.id group by family_name, given_name, middle_name, p.id
+		--FROM kuntur.person p JOIN kuntur.unc_in_academic_coordinator ac ON ac.person_id = p.id group by family_name, given_name, middle_name, p.id
+
+			FROM 	kuntur.person p
+			JOIN	kuntur.user_system us
+				ON  p.id = us.id
+			JOIN	kuntur.user_group ug
+				ON ug.user_system_id = us.id
+			JOIN	kuntur.group_system gs
+				ON gs.id = ug.group_system_id
+		 WHERE ug.group_system_id = (SELECT gs.id FROM kuntur.group_system gs WHERE code = 'coordinator')
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO coordinadores FROM t;
 
-------------------------------------------------------------------------------DESPACHO-----------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------despacho Alumnos UNC-----------------------------------------------------------------------------------------------------------
 
 	WITH s AS (
 		SELECT p.id, family_name, given_name, middle_name,
 		replace(
 			replace(
 				(
-					SELECT	string_agg( person_identity::text , ', '::text) 
+					SELECT	string_agg( person_identity::text , ', '::text)
 					FROM (
 
 						SELECT 	TRIM( coalesce(t.code, '') || ' ' || coalesce(i.identity_number, ''))
@@ -3372,7 +3382,7 @@ BEGIN
 							ON t.id = i.person_identity_type_id
 							AND i.person_id = p.id
 
-					     ) AS person_identity 
+					     ) AS person_identity
 				), '("', ''), '")', ''
 			)  AS person_identity ,
 
@@ -3380,10 +3390,18 @@ BEGIN
 				(
 				select string_agg( email::text, ', '::text) FROM (
 						SELECT e.email FROM kuntur.person_email e WHERE e.person_id = p.id
-					) AS email 
+					) AS email
 				) AS email
 
-		FROM kuntur.person p JOIN kuntur.unc_in_academic_office ac ON ac.person_id = p.id group by family_name, given_name, middle_name, p.id
+		--FROM kuntur.person p JOIN kuntur.unc_in_academic_office ac ON ac.person_id = p.id group by family_name, given_name, middle_name, p.id
+		  FROM 	kuntur.person p
+			JOIN	kuntur.user_system us
+				ON  p.id = us.id
+			JOIN	kuntur.user_group ug
+				ON  ug.user_system_id = us.id
+			JOIN	kuntur.group_system gs
+				ON  gs.id = ug.group_system_id
+		 WHERE 	ug.group_system_id = (SELECT gs.id FROM kuntur.group_system gs WHERE code = 'office')
 	)
 	SELECT array_to_json(array_agg(row_to_json(s.*))) INTO despacho FROM s;
 
@@ -3395,7 +3413,9 @@ BEGIN
 	RETURN result;
 
 END;
-$$ language plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 
 ------------------------------------para ver las postulaciones disponibles-------------------------------------------------------------------------------------------------------------------------
@@ -3427,21 +3447,21 @@ BEGIN
 
 		WITH t AS(
 			--SELECT DISTINCT ap.* FROM kuntur.admission_period ap JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id WHERE api.org_id = org_id
-			--SELECT * FROM kuntur.admission_period ap 
-			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
+			--SELECT * FROM kuntur.admission_period ap
+			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id
 			--AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2) AND ap.is_agreement = true
-			select distinct ap.* 
-			from kuntur.admission_period ap 
-				left join kuntur.admission_period_agreement apa 
+			select distinct ap.*
+			from kuntur.admission_period ap
+				left join kuntur.admission_period_agreement apa
 				on apa.admission_period_id = ap.id
-				left join kuntur.agreement a 
+				left join kuntur.agreement a
 				on a.id = apa.agreement_id
 				left join kuntur.agreement_item ai
 				on ai.agreement_id = a.id
 			WHERE ap.from_date <= current_date AND current_date <= ap.to_date
 				AND ai.org_id = v_orgId
 				OR ap.is_agreement = false
-	
+
 
 			--SELECT * FROM kuntur.admission_period WHERE from_date < current_date AND current_date < to_date
 		)
@@ -3452,8 +3472,8 @@ BEGIN
 	--ELSE--muestro tambien los q no son agreement
 
 	--	WITH t AS(
-	--		SELECT * FROM kuntur.admission_period ap 
-			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id 
+	--		SELECT * FROM kuntur.admission_period ap
+			--JOIN kuntur.admission_period_item api ON api.admission_period_id = ap.id
 	--		WHERE ap.is_agreement = false AND ap.id NOT IN (SELECT admission_period_id FROM kuntur.enrrollment WHERE student_id = $2)
 	--	)
 	--	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
@@ -3461,7 +3481,7 @@ BEGIN
 	--END IF;
 
 	RETURN result;
-	
+
 
 END;
 $BODY$
@@ -3481,23 +3501,23 @@ DECLARE
 BEGIN
 
 INSERT INTO kuntur.enrrollment
-SELECT	uuid_generate_v4()::varchar, 
-	FALSE, 
-	p.given_name, 
-	p.middle_name, 
-	p.family_name, 
-	p.birth_date, 
-	p.male, 
+SELECT	uuid_generate_v4()::varchar,
+	FALSE,
+	p.given_name,
+	p.middle_name,
+	p.family_name,
+	p.birth_date,
+	p.male,
 	p.url_photo,
 	p.comment,--comment
-	p.birth_country_code, 
-	p.birth_admin_area_level1_code, 
-	p.birth_admin_area_level2, 
+	p.birth_country_code,
+	p.birth_admin_area_level1_code,
+	p.birth_admin_area_level2,
 	p.birth_locality,
 	p.birth_lat,
 	p.birth_lng::double precision,
 	s.institution_short_name,
-	s.institution_name, 
+	s.institution_name,
 	s.institution_original_name,
 	s.institution_web_site,
 	s.institution_country_code,
@@ -3509,7 +3529,7 @@ SELECT	uuid_generate_v4()::varchar,
 	$1,
 	(select id from kuntur.enrrollment_status where code = 'A')
 
-FROM kuntur.person p 
+FROM kuntur.person p
 	join kuntur.student s on s.id = p.id
 
 WHERE p.id = $2
@@ -3517,7 +3537,7 @@ WHERE p.id = $2
 RETURNING id INTO v_enrrollmentId;
 
 INSERT INTO kuntur.enrrollment_identity
-SELECT	uuid_generate_v4()::varchar, 
+SELECT	uuid_generate_v4()::varchar,
 	FALSE,
 	identity_number,
 	code,
@@ -3532,7 +3552,7 @@ WHERE person_id = $2;
 
 
 INSERT INTO kuntur.enrrollment_nationality
-SELECT	uuid_generate_v4()::varchar, 
+SELECT	uuid_generate_v4()::varchar,
 	FALSE,
 	country_code,
 	comment,
@@ -3542,7 +3562,7 @@ FROM kuntur.person_nationality
 WHERE person_id = $2;
 
 INSERT INTO kuntur.enrrollment_address
-SELECT	uuid_generate_v4()::varchar, 
+SELECT	uuid_generate_v4()::varchar,
 	FALSE,
 	country_code,
 	admin_area_level1_code,
@@ -3565,7 +3585,7 @@ WHERE person_id = $2;
 
 
 INSERT INTO kuntur.enrrollment_email
-SELECT	uuid_generate_v4()::varchar, 
+SELECT	uuid_generate_v4()::varchar,
 	FALSE,
 	email,
 	comment,
@@ -3575,7 +3595,7 @@ FROM kuntur.person_email
 WHERE person_id = $2;
 
 INSERT INTO kuntur.enrrollment_phone
-SELECT	uuid_generate_v4()::varchar, 
+SELECT	uuid_generate_v4()::varchar,
 	FALSE,
 	country_code,
 	phone_number,
@@ -3587,16 +3607,16 @@ WHERE person_id = $2;
 
 
 INSERT INTO kuntur.enrrollment_stakeholder--cargo gente de la pri
-SELECT	uuid_generate_v4()::varchar, 
+SELECT	uuid_generate_v4()::varchar,
 	FALSE,
 	3,--codigo de administradores
 	us.id,
 	v_enrrollmentId
-FROM kuntur.user_system us 
-	join kuntur.user_group ug 
-		on ug.user_system_id = us.id 
-		join kuntur.group_system gs 
-			on gs.id = ug.group_system_id 
+FROM kuntur.user_system us
+	join kuntur.user_group ug
+		on ug.user_system_id = us.id
+		join kuntur.group_system gs
+			on gs.id = ug.group_system_id
 
 where gs.code = 'admin';
 --RAISE EXCEPTION 'Nonexistent ID --> %', v_enrrollmentId;
@@ -3604,7 +3624,7 @@ INSERT INTO kuntur.enrrollment_stakeholder-- cargo al alumno
 values(uuid_generate_v4()::varchar,FALSE,2, $2, v_enrrollmentId);
 
 
-INSERT INTO kuntur.unc_in_enrrollment (id, erased) VALUES (v_enrrollmentId, FALSE); 
+INSERT INTO kuntur.unc_in_enrrollment (id, erased) VALUES (v_enrrollmentId, FALSE);
 
 
 
@@ -3628,10 +3648,10 @@ DECLARE
 BEGIN
 	WITH t AS (
 		SELECT p.id, family_name, given_name, middle_name, url_photo, us.name, us.email
-		FROM kuntur.person p 
-		JOIN kuntur.user_system us ON us.id = p.id 
-			GROUP BY family_name, given_name, middle_name, p.id, us.name, us.email			
-		
+		FROM kuntur.person p
+		JOIN kuntur.user_system us ON us.id = p.id
+			GROUP BY family_name, given_name, middle_name, p.id, us.name, us.email
+
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO users FROM t;
 
@@ -3668,17 +3688,17 @@ DECLARE
 BEGIN
 	WITH t AS (
 		SELECT p.*, us.email
-		FROM kuntur.user_system us 
-		JOIN kuntur.user_group ug 
-			ON ug.user_system_id = us.id 
-			JOIN kuntur.group_system gs 
-				ON gs.id = ug.group_system_id 
+		FROM kuntur.user_system us
+		JOIN kuntur.user_group ug
+			ON ug.user_system_id = us.id
+			JOIN kuntur.group_system gs
+				ON gs.id = ug.group_system_id
 				JOIN kuntur.person p
 					ON us.id = p.id
 
 		WHERE gs.id = $1
 		OFFSET $2
-		LIMIT $3			
+		LIMIT $3
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
@@ -3690,7 +3710,7 @@ $BODY$
 
 
 
---------------------------------grupos disponibles--------------------------------------------------------------------------------------- 
+--------------------------------grupos disponibles---------------------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION kuntur.f_get_groups() RETURNS VARCHAR AS
 $$
@@ -3700,14 +3720,14 @@ DECLARE
 
 BEGIN
 	WITH t AS (
-		SELECT * 
-		FROM kuntur.group_system	
+		SELECT *
+		FROM kuntur.group_system
 	)
 	SELECT array_to_json(array_agg(row_to_json(t.*))) INTO result FROM t;
 
 	RETURN result;
 END;
-$$ language plpgsql;	
+$$ language plpgsql;
 
 
 --------------------------------AGREGAR PERSONA A GRUPO--------------------------------------------------------------------------------------
@@ -3761,15 +3781,15 @@ DECLARE
 BEGIN
 
 	/*WITH t AS(
-		SELECT	p.*, us.email 
-		FROM 	kuntur.user_system us 
+		SELECT	p.*, us.email
+		FROM 	kuntur.user_system us
 		JOIN 	kuntur.person p
 		ON 	us.id = p.id
-		LEFT JOIN 
-			kuntur.user_group ug 
-		ON 	ug.user_system_id = us.id 
-		LEFT JOIN 
-			kuntur.group_system gs 
+		LEFT JOIN
+			kuntur.user_group ug
+		ON 	ug.user_system_id = us.id
+		LEFT JOIN
+			kuntur.group_system gs
 		ON 	gs.id = ug.group_system_id --
 			AND GS.CODE NOT LIKE 'student'
 		)
@@ -3777,13 +3797,13 @@ BEGIN
 
 	WITH t AS(
 		SELECT	p.*, us.email
-				FROM 	kuntur.user_system us 
+				FROM 	kuntur.user_system us
 				JOIN 	kuntur.person p
 				ON 	us.id = p.id
 				WHERE   us.id NOT IN (SELECT gs.user_system_id FROM kuntur.user_group gs )
-				UNION ALL		
+				UNION ALL
 				SELECT	p.*, us.email
-				FROM 	kuntur.user_system us 
+				FROM 	kuntur.user_system us
 				JOIN 	kuntur.person p
 				ON 	us.id = p.id
 				WHERE   us.id IN (SELECT gs.user_system_id FROM kuntur.user_group gs WHERE gs.group_system_id <> (select id from kuntur.group_system where code = 'student'))
@@ -3816,19 +3836,19 @@ DROP FUNCTION IF EXISTS kuntur.f_u_enrrollment_urlPhoto(inenrrollment_id VARCHAR
 
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_urlPhoto(inenrrollment_id VARCHAR, user_system_id VARCHAR,urlPhoto VARCHAR) RETURNS BOOLEAN AS
 $$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET url_photo = ' || coalesce(urlPhoto, 'null') || ' WHERE id = ''' || $1 || ''' ';
-	
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -3839,26 +3859,26 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_origininal_transcript(inenrrollment_id character varying, user_system_id character varying, url_transcript character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_transcript IS NOT NULL AND CHAR_LENGTH(TRIM(url_transcript)) > 0 THEN
 
 		url = '''' || TRIM(url_transcript) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_origininal_transcript = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_origininal_transcript') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_origininal_transcript') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -3871,26 +3891,26 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_cv(inenrrollment_id character varying, user_system_id character varying, url_cv character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_cv IS NOT NULL AND CHAR_LENGTH(TRIM(url_cv)) > 0 THEN
 
 		url = '''' || TRIM(url_cv) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_cv = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_cv') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_cv') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -3902,26 +3922,26 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_Passport(inenrrollment_id character varying, user_system_id character varying, url_pass character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_pass IS NOT NULL AND CHAR_LENGTH(TRIM(url_pass)) > 0 THEN
 
 		url = '''' || TRIM(url_pass) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_passport = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_passport') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_passport') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -3934,26 +3954,26 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_application_letter(inenrrollment_id character varying, user_system_id character varying, url_al character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_al IS NOT NULL AND CHAR_LENGTH(TRIM(url_al)) > 0 THEN
 
 		url = '''' || TRIM(url_al) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_application_letter = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_application_letter') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_application_letter') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -3966,26 +3986,26 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_language_certificate(inenrrollment_id character varying, user_system_id character varying, url_lc character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_lc IS NOT NULL AND CHAR_LENGTH(TRIM(url_lc)) > 0 THEN
 
 		url = '''' || TRIM(url_lc) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_language_certificate = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_language_certificate') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_language_certificate') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -3999,26 +4019,26 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_certificate_psychophysical(inenrrollment_id character varying, user_system_id character varying, url_cp character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_cp IS NOT NULL AND CHAR_LENGTH(TRIM(url_cp)) > 0 THEN
 
 		url = '''' || TRIM(url_cp) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_certificate_psychophysical = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_certificate_psychophysical') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_certificate_psychophysical') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -4070,26 +4090,26 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_university_credential(inenrrollment_id character varying, user_system_id character varying, url_crendential character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF $3 IS NOT NULL AND CHAR_LENGTH(TRIM($3)) > 0 THEN
 
 		url = '''' || TRIM($3) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_university_credential = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.verduras_total_es_pri') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.verduras_total_es_pri') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -4103,26 +4123,26 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_url_exchange_form(inenrrollment_id character varying, user_system_id character varying, url_form character varying)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
-	url VARCHAR = 'null';	
+	url VARCHAR = 'null';
 	sql VARCHAR = null;
-    
+
 BEGIN
-	
+
 	IF url_form IS NOT NULL AND CHAR_LENGTH(TRIM(url_form)) > 0 THEN
 
 		url = '''' || TRIM(url_form) || '''';
-	
-	END IF;	
+
+	END IF;
 		sql = 'UPDATE kuntur.unc_in_enrrollment SET url_exchange_form = ' || url || ' WHERE id = ''' || $1 || ''' ';
 	--raise exception '%', sql;
-	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_exchange_form') INTO update_ok; 
-	
+	SELECT  kuntur.is_update($1, $2, sql, 'unc_in_enrrollment.url_exchange_form') INTO update_ok;
+
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -4139,19 +4159,19 @@ $BODY$
 CREATE OR REPLACE FUNCTION kuntur.f_u_enrrollment_languageCertificate(inenrrollment_id character varying, user_system_id character varying, lng boolean)
   RETURNS boolean AS
 $BODY$
-DECLARE    	
+DECLARE
 
 	update_ok BOOLEAN = false;
 	sql VARCHAR = null;
-    
+
 BEGIN
 
 	sql = 'UPDATE kuntur.unc_in_enrrollment SET language_certificate = ' || coalesce(lng, false) || ' WHERE id = ''' || $1 || ''' ';
 
-	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok; 
+	SELECT  kuntur.is_update($1, $2, sql, 'null') INTO update_ok;
 
 	RETURN update_ok;
-    
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
