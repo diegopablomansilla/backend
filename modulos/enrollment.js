@@ -3848,7 +3848,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           if(documento === "analitico"){
                             analitico = pdf;
                             mailOptions.attachments.push({
-                              filename: 'Certificado Analitico',//configurar nombre del adjuno
+                              filename: 'CertificadoAnalitico.pdf',//configurar nombre del adjuno
                               content: analitico,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
@@ -3858,7 +3858,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           if(documento === "carta"){
                             acta = pdf;
                             mailOptions.attachments.push({
-                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              filename: 'CartadeAdmision.pdf',//configurar nombre del adjuno
                               content: acta,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
@@ -3890,7 +3890,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           if(x.sendadmissionact && acta){
                           console.log("enviado sin generar")
                             mailOptions.attachments.push({
-                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              filename: 'CartadeAdmision.pdf',//configurar nombre del adjuno
                               content: acta,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
@@ -3919,7 +3919,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         if(x.sendacademicperformance && analitico){
                           console.log("enviado sin generar")
                             mailOptions.attachments.push({
-                              filename: 'Certificado Analitico',//configurar nombre del adjuno
+                              filename: 'CertificadoAnalitico.pdf',//configurar nombre del adjuno
                               content: analitico,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
