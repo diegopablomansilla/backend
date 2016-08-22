@@ -763,7 +763,12 @@ var options = { format: 'A4',
   server.get({path : '/postulaciones', version : '0.0.1'}, function(req,res,next){
 
 
+
+
     filter=JSON.parse(req.params.filter);
+
+    console.log("USerSYstem:", req.headers.usersystemid);
+    console.log("FILTROS:",req.params.filter);
     if(filter.year){
       var year = filter.year;
     }else{
@@ -799,6 +804,11 @@ var options = { format: 'A4',
     }else{
       var status = null;
     }
+    if(filter.namePeriod){
+      var namePeriod = "'"+filter.namePeriod+"'";
+    }else{
+      var namePeriod = null;
+    }
     if(filter.number){
       var number = filter.number;
     }else{
@@ -809,14 +819,19 @@ var options = { format: 'A4',
     }else{
       var numberAdmissionPeriod = null;
     }
+    if(filter.aunit){
+      console.log("aUnits;",filter.aunit);
+      var aUnits = "'"+filter.aunit+"'";
+    }else{
+      var aUnits = null;
+    }
 
     //console.log(req.headers.usersystemid);
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
-      ""+name+"," +
-      //""+university+", "+number+", (SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'), "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
-      ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+") offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
+      ""+name+","+ ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+", "+aUnits+",(SELECT ap.id FROM kuntur.admission_period ap WHERE ap.title = "+namePeriod+")) offset "+req.params.offset+" limit "+req.params.pageSize+" ;"
 
 
+      console.log("SQL", sql);
 
     // console.log(sql);
     pg.connect(conString, function(err, client, done){
@@ -850,6 +865,38 @@ var options = { format: 'A4',
   server.get({path : '/enrrollmentStatus', version : '0.0.1'}, function(req,res,next){
 
   var sql = "select code, name from kuntur.enrrollment_status"
+
+
+  pg.connect(conString, function(err, client, done){
+       if(err) {
+          done();
+          res.send(500,err);
+          console.log(err);
+          return;
+          }
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end", function(result){
+        done();
+        res.send(200, result.rows);
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error.message);
+      });
+  });
+
+  });
+
+  server.get({path : '/admissionPeriod', version : '0.0.1'}, function(req,res,next){
+
+  var sql = "select title from kuntur.admission_period"
 
 
   pg.connect(conString, function(err, client, done){
@@ -2018,7 +2065,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     //var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
     //var sql = "select * from kuntur.org where org_id is not null and erased = false";
-    var sql = "select * from kuntur.org where org_id is not null and erased = false AND (code_guarani ilike '%www.efn.unc.edu.ar/escuelas/biolog/%' OR short_name = 'EIG' OR code_guarani = '12' OR code_guarani = '95' OR short_name = 'ECI' OR short_name = 'ETS' OR code_guarani = '11' OR code_guarani = '06' OR code_guarani = '06031' OR code_guarani = '06027' OR code_guarani = '75' OR code_guarani = '14' OR code_guarani = '13' OR code_guarani = '16' OR code_guarani = 'P16' OR code_guarani = '05' OR code_guarani = '19' OR code_guarani = '15' OR code_guarani = '03' OR code_guarani = '69');"
+    var sql = "select 	* from 	kuntur.org where org_id is not null and erased = false AND (code_guarani ilike '%www.efn.unc.edu.ar/escuelas/biolog/%' OR short_name = 'EIG' OR code_guarani = '12' OR code_guarani = '95' OR short_name = 'ECI' OR short_name = 'ETS' OR code_guarani = '11' OR code_guarani = '11P' OR short_name = 'M&O - FCM' OR code_guarani = '06031' OR code_guarani = '06027' OR code_guarani = '75' OR code_guarani = '14' OR code_guarani = '13' OR code_guarani = '16' OR code_guarani = 'P16' OR code_guarani = '05' OR code_guarani = '19' OR code_guarani = '15' OR code_guarani = '03' OR code_guarani = 'P20') ORDER BY name;"
 
     pg.connect(conString, function(err, client, done){
       if(err) {
@@ -4079,7 +4126,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           if(documento === "analitico"){
                             analitico = pdf;
                             mailOptions.attachments.push({
-                              filename: 'Certificado Analitico',//configurar nombre del adjuno
+                              filename: 'CertificadoAnalitico.pdf',//configurar nombre del adjuno
                               content: analitico,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
@@ -4089,7 +4136,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           if(documento === "carta"){
                             acta = pdf;
                             mailOptions.attachments.push({
-                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              filename: 'CartadeAdmision.pdf',//configurar nombre del adjuno
                               content: acta,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
@@ -4128,7 +4175,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                           if(x.sendadmissionact && acta){
                           console.log("enviado sin generar")
                             mailOptions.attachments.push({
-                              filename: 'Carta de admision',//configurar nombre del adjuno
+                              filename: 'CartadeAdmision.pdf',//configurar nombre del adjuno
                               content: acta,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'
@@ -4160,7 +4207,7 @@ server.put({path:'/student/address', version:'0.0.1'}, function(req, res, next){
                         if(x.sendacademicperformance && analitico){
                           console.log("enviado sin generar")
                             mailOptions.attachments.push({
-                              filename: 'Certificado Analitico',//configurar nombre del adjuno
+                              filename: 'CertificadoAnalitico.pdf',//configurar nombre del adjuno
                               content: analitico,//contenido
                               encoding: 'base64',//codificancion
                               contentType: 'application/pdf'

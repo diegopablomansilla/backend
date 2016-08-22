@@ -112,68 +112,48 @@ DROP VIEW IF EXISTS kuntur.v_enrrollment_list CASCADE;
 
 CREATE OR REPLACE VIEW kuntur.v_enrrollment_list AS 
 
-SELECT 	e.id,
-	e.number_enrrollment,
-	ap.id AS admission_period_id,
-	ap.year,
-	ap.semester,
-	ap.number_admission_period,
-	ap.title,
-	--CASE 	WHEN ap.semester = 1 THEN '1er Semestre'::varchar
-	--	WHEN ap.semester = 2 THEN '2do Semestre'::varchar
-	--	ELSE ''::varchar
-	--END AS semester_comment,
-	es.id AS enrrollment_status_id,
-	'(' || es.code || ') ' || es.name AS enrrollment_status,	
-	e.student_id,
-	coalesce(e.family_name, '')  || ' ' || coalesce(e.given_name, '') AS student,	
-	(SELECT string_agg(x.email, ', ') FROM kuntur.enrrollment_email x WHERE e.id = x.enrrollment_id) AS email,
-
-
-	COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '') || ', ' || COALESCE((SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id), '') AS nationality,
-	--(   COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '')   )::VARCHAR  AS nationality,
-	--(   'MEX'  )::VARCHAR  AS nationality,
-	--(   COALESCE(birth_country_code, '') || ', '  )::VARCHAR  AS nationality,
-
-/*
-	CASE 	WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NOT NULL
-			THEN birth_country_code || ', ' || (SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) 
-
-		WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) = 0 AND birth_country_code IS NOT NULL
-			THEN birth_country_code
-
-		WHEN (SELECT COUNT(x.*) FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) > 0 AND birth_country_code IS NULL
-			THEN (SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id) 
-
-		ELSE null		
-	END AS nationality,
-*/
+	SELECT 	e.id,
+		e.number_enrrollment,
+		ap.id AS admission_period_id,
+		ap.year,
+		ap.semester,
+		ap.number_admission_period,
+		ap.title,
+		es.id AS enrrollment_status_id,
+		'(' || es.code || ') ' || es.name AS enrrollment_status,	
+		e.student_id,
+		coalesce(e.family_name, '')  || ' ' || coalesce(e.given_name, '') AS student,	
+		(SELECT string_agg(x.email, ', ') FROM kuntur.enrrollment_email x WHERE e.id = x.enrrollment_id) AS email,
+		COALESCE(birth_country_code, '') || ', ' || COALESCE(o.country_code, '') || ', ' || COALESCE((SELECT string_agg(x.country_code, ', ') FROM kuntur.enrrollment_nationality x WHERE e.id = x.enrrollment_id), '') AS nationality,
+		CASE 	WHEN o.original_name IS NULL THEN e.institution_original_name 
+			ELSE o.original_name
+		END AS institution,
+		o.id AS org_institution_id,
+		(SELECT STRING_AGG(DISTINCT uisp.org_id, '|')  FROM kuntur.unc_in_study_program uisp WHERE uisp.unc_in_enrrollment_id::VARCHAR = e.id::VARCHAR)::VARCHAR AS uisp
 		
-	CASE 	WHEN o.original_name IS NULL THEN e.institution_original_name 
-		ELSE o.original_name
-	END AS institution,
-	o.id AS org_institution_id
-	
-	--,e.* 
-FROM 	kuntur.enrrollment e
-LEFT JOIN	kuntur.admission_period ap
-	ON ap.id = e.admission_period_id
-LEFT JOIN	kuntur.enrrollment_status es
-	ON es.id = e.enrrollment_status_id	
-LEFT JOIN	kuntur.org o
-	ON o.id = e.org_id
-ORDER BY e.number_enrrollment DESC;
+
+	FROM 	kuntur.enrrollment e
+	LEFT JOIN	kuntur.admission_period ap
+		ON ap.id = e.admission_period_id
+	LEFT JOIN	kuntur.enrrollment_status es
+		ON es.id = e.enrrollment_status_id	
+	LEFT JOIN	kuntur.org o
+		ON o.id = e.org_id
+	ORDER BY e.number_enrrollment DESC;
 
 
--- SELECT * FROM kuntur.v_enrrollment_list;
+--select * from kuntur.enrrollment where family_name = 'ale'
 
--- SELECT * FROM kuntur.user_system;
+-- SELECT STRING_AGG(DISTINCT uisp.org_id, '|')  FROM kuntur.unc_in_study_program uisp WHERE uisp.unc_in_enrrollment_id::VARCHAR = ('45c6615d-a56d-47c2-8c27-ee16b833257f')::VARCHAR
+
 
 DROP FUNCTION IF EXISTS kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
-					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER) CASCADE;
+					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER, au_org_id VARCHAR) CASCADE;
 
 CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester INTEGER, enrrollment_status_id VARCHAR, 
-					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, numberAdmissionPeriod INTEGER) 
+					nationality_id VARCHAR, student VARCHAR, institution VARCHAR,  number_enrrollment BIGINT, user_system_id VARCHAR, 
+					numberAdmissionPeriod INTEGER, uisp VARCHAR) 
+
 	RETURNS SETOF kuntur.v_enrrollment_list AS $$
 	
 		SELECT 	id, 
@@ -189,7 +169,9 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 			email, 
 			$4, 
 			institution, 
-			org_institution_id
+			org_institution_id,
+			$10::VARCHAR
+			
 					
 		FROM 	kuntur.v_enrrollment_list e
 		WHERE 	(($1 IS NOT NULL AND $1 = e.year) OR $1 IS NULL)
@@ -230,6 +212,8 @@ CREATE OR REPLACE FUNCTION kuntur.f_find_enrrollment_list(year INTEGER, semester
 					AND (x.code = 1 OR x.code = 2 OR x.code = 3)	
 
 			)
+
+			AND (($10 IS NOT NULL AND $10 ILIKE '%' || e.uisp || '%') OR $10 IS NULL)
 			
 		;
 $$ LANGUAGE SQL;

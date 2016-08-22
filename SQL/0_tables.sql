@@ -857,7 +857,7 @@ CREATE TABLE kuntur.admission_period
 	comment VARCHAR, 
 
 	-- admissionPeriodStatus
-	admission_period_status_id VARCHAR  NOT NULL
+	admission_period_status_id VARCHAR
 );
 
 ----------------------------------------------------------------------------------------
