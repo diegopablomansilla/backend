@@ -2065,7 +2065,7 @@ server.put({path:'/enrrollment/:inenrrollmentId/addresses', version:'0.0.1'}, fu
 
     //var sql="SELECT org.id, org.short_name, org.original_name, org.name, org.url_photo, org.primary_org, org.web_site, org.country_code, org.comment, org.erased  FROM kuntur.org org INNER JOIN kuntur.org_type types ON org.org_type_id=types.id WHERE code='F' OR code='F' ";
     //var sql = "select * from kuntur.org where org_id is not null and erased = false";
-    var sql = "select * from kuntur.org where org_id is not null and erased = false AND (code_guarani ilike '%www.efn.unc.edu.ar/escuelas/biolog/%' OR short_name = 'EIG' OR code_guarani = '12' OR code_guarani = '95' OR short_name = 'ECI' OR short_name = 'ETS' OR code_guarani = '11' OR code_guarani = '06' OR code_guarani = '06031' OR code_guarani = '06027' OR code_guarani = '75' OR code_guarani = '14' OR code_guarani = '13' OR code_guarani = '16' OR code_guarani = 'P16' OR code_guarani = '05' OR code_guarani = '19' OR code_guarani = '15' OR code_guarani = '03' OR code_guarani = '69');"
+    var sql = "select 	* from 	kuntur.org where org_id is not null and erased = false AND (code_guarani ilike '%www.efn.unc.edu.ar/escuelas/biolog/%' OR short_name = 'EIG' OR code_guarani = '12' OR code_guarani = '95' OR short_name = 'ECI' OR short_name = 'ETS' OR code_guarani = '11' OR code_guarani = '11P' OR short_name = 'M&O - FCM' OR code_guarani = '06031' OR code_guarani = '06027' OR code_guarani = '75' OR code_guarani = '14' OR code_guarani = '13' OR code_guarani = '16' OR code_guarani = 'P16' OR code_guarani = '05' OR code_guarani = '19' OR code_guarani = '15' OR code_guarani = '03' OR code_guarani = 'P20') ORDER BY name;"
 
     pg.connect(conString, function(err, client, done){
       if(err) {
