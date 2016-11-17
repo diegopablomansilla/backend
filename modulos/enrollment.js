@@ -4781,7 +4781,7 @@ server.get({path : '/convocatorias', version : '0.0.1'} , function(req, res , ne
   //JSON.parse(result.rows[0].perfilArray)
         query.on("end",function(result){
           done();
-          console.log("HOLA",result.rows)
+          // console.log("HOLA",result.rows)
           res.send(200,result.rows);
 
 

@@ -814,10 +814,10 @@ module.exports = function(server, conString) {
         //   console.log("id: "+id);
         //   console.log("array: "+array[i].id);
           // console.log("arrai:"+array[i].id);
-  
+
         // }
       }
-    
+
         console.log("id:"+id);
           return null;
   }
@@ -832,16 +832,16 @@ module.exports = function(server, conString) {
 
     for(i in nodo.children){
       (function(p){
-        
+
         if(p=='first'){
 
         }
 
-        var j = findId(nodo.id, originalTree.children);//.children[p]        
+        var j = findId(nodo.id, originalTree.children);//.children[p]
 
 
         if(j){
-          
+
           recursiva(originalTree.children[j],nodo.children[p]);
         }else{
 
@@ -850,7 +850,7 @@ module.exports = function(server, conString) {
       })(i);
     }
   }else{
-    
+
   }
 }
 
@@ -865,12 +865,12 @@ module.exports = function(server, conString) {
     for(var i = 0; i < nodo.length;i++){
     //for(i in nodo){
       (function(p){
-        
+
         // if(p=='first'){
 
         // }
                 // console.log(p)
-        var j = findId(nodo[p].id, originalTree);//.children[p]        
+        var j = findId(nodo[p].id, originalTree);//.children[p]
         if(nodo[p].id=='ff808082385897cc01387c4e53270065'){
                         // ff808082385897cc01387c4e53270065
          //  console.log("pushhhhhhhhhhhhhh")
@@ -899,13 +899,13 @@ module.exports = function(server, conString) {
           //   console.log("pushhhhhhhhhh")
           // console.log(originalTree)
           originalTree.push(nodo[p]);//.children
-          
+
           return;
         }
       })(i);
     }
   //}else{
-    
+
   //}
 }
 
@@ -939,13 +939,13 @@ module.exports = function(server, conString) {
   			// }
 
   			for(var i = 1; i < result.rows.length;i++){
-         
+
   		        (function(j){
  // console.log(j)
                 var auxArray = [];
                 auxArray.push(result.rows[j])
   		        	recursiva2(original,auxArray);
-                
+
   		        })(i);
     			}
 
@@ -1122,8 +1122,10 @@ module.exports = function(server, conString) {
                         if((findFirstOccurrence(req.body.agreement.selectedOrgs2LvlInsert,'id',elementAgreementItemOu.id)!=-1) || (newAgreementItem)){//insersion de agreement_item_ou, en caso que sea un nuevo agreementItem la insersion se realiza si o si
                           var sqlAgItOu="select kuntur.f_insertAgreementItemOu('"+agreementItemId+"','"+elementAgreementItemOu.id+"', "+elementAgreementItemOu.in+", "+elementAgreementItemOu.out+");";
                         }else if(findFirstOccurrence(req.body.agreement.selectedOrgs2LvlDelete,'org_id',elementAgreementItemOu.id)!=-1){
-                          var sqlAgItOu="DELETE kuntur.agreement_item_ou "+
+                          var sqlAgItOu="DELETE from kuntur.agreement_item_ou "+
                           "WHERE agreement_item_id = '"+agreementItemId+"' and org_id='"+elementAgreementItemOu.id+"';"
+
+                          //console.log("SQL AgItOu",sqlAgItOu);
                         }else{
                           var sqlAgItOu="UPDATE kuntur.agreement_item_ou "+
                             " SET erased=false, in_units="+elementAgreementItemOu.in+", out_units="+elementAgreementItemOu.out+" "+
@@ -1522,7 +1524,7 @@ module.exports = function(server, conString) {
     sql.values = [req.params.inenrrollment_id, req.params.userSystemId];
 
 
-     
+
 
 
     pg.connect(conString, function(err, client, done){
@@ -1566,7 +1568,7 @@ module.exports = function(server, conString) {
 
         });
     });
-  });   
+  });
 
 //Fin Historial
 
