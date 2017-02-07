@@ -5301,6 +5301,142 @@ server.post({path:'/newUNCUser', version:'0.0.1'}, function(req, res, next){
 
 });
 
+server.get({path : '/dataExport', version : '0.0.1'} , function(req, res , next){
+
+  var sql="WITH t AS ("+
+    "SELECT DISTINCT " +
+    "s.file_number as Postulación, "+
+    "e.family_name as Apellido, "+
+    "e.given_name as Nombre, "+
+    "e.family_name || ' ' || e.given_name as Estudiante, "+
+    "e.birth_date as FechadeNacimiento, "+
+    "e.birth_country_code as LugardeNacimiento, "+
+    "pi.name as Documento, "+
+    "pi.identity_number as NroDocumento, "+
+    "pi.country_code as PaísEmisor, "+
+    "e.institution_name as Universidad, "+
+    "e.institution_country_code, "+
+    "us.email as Email, "+
+    "ap.title as Convocatoria, "+
+    "es.code as Estado, "+
+    "es.name, "+
+    "("+
+      "select string_agg(distinct o.name, '; ' order by o.name) "+
+      "from kuntur.unc_in_study_program uisp "+
+      "join  kuntur.org o "+
+        "on o.id = uisp.org_id "+
+      "where uisp.unc_in_enrrollment_id = e.id "+
+    ") as UnidadAcadémica, "+
+    "(SELECT string_agg(uisp2.subject, '; ' order by uisp2.subject) FROM kuntur.unc_in_study_program uisp2 WHERE e.id = uisp2.unc_in_enrrollment_id) as Materias "+
+    "FROM  kuntur.enrrollment e " +
+    "JOIN  kuntur.admission_period ap "+
+    "ON e.admission_period_id = ap.id "+
+    "JOIN  kuntur.enrrollment_status es "+
+    "ON es.id = e.enrrollment_status_id "+
+    "JOIN  kuntur.user_system us "+
+    "ON us.id = e.user_system_id "+
+    "JOIN  kuntur.person p "+
+    "ON p.id = us.id "+
+    "JOIN  kuntur.person_identity pi "+
+    "ON p.id = pi.person_id "+
+    "JOIN  kuntur.student s "+
+    "ON s.id = e.student_id "+
+    "JOIN  kuntur.unc_in_enrrollment uie "+
+    "ON uie.id = e.id "+
+    "JOIN  kuntur.unc_in_study_program uisp "+
+    "ON uisp.unc_in_enrrollment_id = uie.id "+
+    "JOIN  kuntur.org o "+
+    "ON o.id = uisp.org_id";
+
+    /*
+    number: numero de postulacion
+    namePeriod: nombre de convocatoria
+    year: año de convocatoria
+    semester: semestre de convocatoria
+    status: codigo de estado de postulacion
+    country: pais de postulacion
+    name: nombre de postulante
+    university: universidad de postulante
+    email: email de postulante
+    aunit: id de unidad academica de la postulacion
+    */
+
+  if(req.params.filter.number){
+    sql += "AND e.number_enrrollment="+req.params.filter.number;
+  }
+
+  if(req.params.filter.namePeriod){
+    sql += "AND ap.title="+req.params.filter.namePeriod;
+  }
+
+  if(req.params.filter.year){
+    sql += "AND ap.year="+req.params.filter.year;
+  }
+
+  if(req.params.filter.semester){
+    sql += "AND ap.semester="+req.params.filter.semester;
+  }
+
+  if(req.params.filter.aunit){
+    sql += "AND uisp.id="+req.params.filter.aunit;
+  }
+
+  if(req.params.filter.status){
+    sql += "AND es.code="+req.params.filter.status;
+  }
+
+  if(req.params.filter.country){
+    sql += "AND e.birth_country_code="+req.params.filter.country;
+  }
+
+  if(req.params.filter.university){
+    sql += "AND o.name="+req.params.filter.university;
+  }
+
+
+  //cierro la tabla temporal
+  sql+=") SELECT * FROM t"
+
+
+
+  //busqueda por nombre
+  if(req.params.filter.name){
+    sql += "WHERE estudiante ILIKE '%" + req.params.filter.name + "%'";
+  }
+  console.log(sql)
+
+  //var query = client.query(sql);
+
+  pg.connect(conString, function(err, client, done){
+    if(err) {
+      done();
+      res.send(500,err);
+      console.log(err);
+    }
+
+    var query = client.query(sql);
+
+    query.on("row", function(row, result){
+      result.addRow(row);
+    });
+
+    query.on("end",function(result){
+      done();
+      res.send(200,result.rows);
+      console.log("ROWS",result.rows);
+    });
+
+    query.on("error",function(error){
+      console.log(error);
+      done();
+      res.send(500,error);
+    });
+
+
+
+  });
+});
+
 server.put({path:'/unidadesAcademicas/:auId/directivos', version:'0.0.1'}, function(req, res, next){
 
 
