@@ -896,7 +896,7 @@ var options = { format: 'A4',
 
   server.get({path : '/admissionPeriod', version : '0.0.1'}, function(req,res,next){
 
-  var sql = "select title from kuntur.admission_period"
+  var sql = "select id, title from kuntur.admission_period"
 
 
   pg.connect(conString, function(err, client, done){
