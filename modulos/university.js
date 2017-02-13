@@ -102,7 +102,7 @@ module.exports = function(server, conString) {
   	}
 
   	// var query = client.query(sql);
-  
+
   	pg.connect(conString, function(err, client, done){
       if(err) {
         done();
@@ -193,6 +193,11 @@ module.exports = function(server, conString) {
         return next();
       }
 
+      if(!req.body.alternative_name){
+        res.send(400, {code: 400, message: 'Bad Request', description: 'alternative_name value required'});
+        return next();
+      }
+
       pg.connect(conString, function(err, client, done){
         if(err){
           done();
@@ -230,7 +235,7 @@ module.exports = function(server, conString) {
 
             var sql = {};
             sql.text = "INSERT INTO kuntur.org (id, erased, short_name, original_name, name, web_site, country_code, primary_org, comment, org_type_id) VALUES(uuid_generate_v4()::varchar, false, $1, $2, $3, $4, $5, false, $6, $7) RETURNING id";
-            sql.values = [req.body.short_name, req.body.original_name, req.body.original_name, req.body.web_site, req.body.country_code, req.body.comment, result.rows[0].id];
+            sql.values = [req.body.short_name, req.body.original_name, req.body.alternative_name, req.body.web_site, req.body.country_code, req.body.comment, result.rows[0].id];
 
               client.query(sql, function(err, result) {
                 done();
@@ -274,6 +279,11 @@ module.exports = function(server, conString) {
       return next();
     }
 
+    if(!req.body.name){
+      res.send(409, {code: 409, message: 'Conflict', description: 'alternative_name value required'});
+      return next();
+    }
+
     pg.connect(conString, function(err, client, done){
       if(err){
         done();
@@ -284,6 +294,7 @@ module.exports = function(server, conString) {
 
       var sql = 'UPDATE kuntur.org SET ';
         sql += "original_name= '" + req.body.original_name + "', ";
+        sql += "name= '" + req.body.name + "', ";
         sql += "country_code= '" + req.body.country_code + "', ";
         sql += "web_site= '" + req.body.web_site + "' ";
         if(!!req.body.short_name){
