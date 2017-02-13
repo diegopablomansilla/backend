@@ -25,7 +25,7 @@ BEGIN
 
 		SELECT count(*) INTO auxCount FROM kuntur.enrrollment_stakeholder WHERE user_system_id = studentid AND enrrollment_id = enrrollmentId;
 
-		IF auxCount > 0 THEN	
+		IF auxCount > 0 THEN
 
 			UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  code = 2 AND enrrollment_id = enrrollmentId;
 
@@ -139,12 +139,12 @@ BEGIN
 		RETURN true;
 
 --------------------FIN CORRECCION----------------------------
-	
-	
+
+
 	ELSIF statusCode = 'K' OR statusCode = 'z' THEN
 
 
-		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  enrrollment_id = enrrollmentId;
+		UPDATE kuntur.enrrollment_stakeholder SET code = 1 WHERE  enrrollment_id = enrrollmentId AND code = 2;
 
 		RETURN true;
 
@@ -154,7 +154,7 @@ BEGIN
 
 	END IF;
 
-		
+
 
 END;
 $BODY$
@@ -176,10 +176,9 @@ JOIN
 	kuntur.group_system gs
 ON
 	gs.id = ug.group_system_id
-WHERE 
+WHERE
 	gs.name ilike '%admin%'
 AND
 	es.code = 1
 ) x
 WHERE x.id = kuntur.enrrollment_stakeholder.id
-
