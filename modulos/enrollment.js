@@ -896,7 +896,7 @@ var options = { format: 'A4',
 
   server.get({path : '/admissionPeriod', version : '0.0.1'}, function(req,res,next){
 
-  var sql = "select title from kuntur.admission_period order by year, semester, number_admission_period desc;"
+  var sql = "select id, title, year, semester, number_admission_period from kuntur.admission_period order by year, semester, number_admission_period"
 
 
   pg.connect(conString, function(err, client, done){
@@ -2895,6 +2895,43 @@ server.get({path : '/student', version : '0.0.1'} , function(req, res , next){
 
     });
 
+  });
+
+  server.put({path: '/admissionPeriod', version: '0.0.1'}, function(req, res, next){
+
+    var sql = {};
+    sql.text = 'UPDATE kuntur.enrrollment SET admission_period_id = $2 WHERE id = $1 RETURNING id';
+    sql.values = [req.body.params.enrrollmentId, req.body.params.newAdmissionPeriod];
+
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        res.send(500,err);
+        console.log(err);
+      }
+
+      var query = client.query(sql);
+
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
+
+      query.on("end",function(result){
+        done();
+        if(result.rows.length>0){
+          res.send(200,true);
+        }
+        else{
+          res.send(200,false);
+        }
+      });
+
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        res.send(500,error);
+      });
+    });
   });
 
   server.put({path: '/studentPricipalMail', version: '0.0.1'}, function(req, res, next){
