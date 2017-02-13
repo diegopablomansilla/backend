@@ -5302,7 +5302,6 @@ server.post({path:'/newUNCUser', version:'0.0.1'}, function(req, res, next){
 });
 
 server.get({path : '/dataExport', version : '0.0.1'} , function(req, res , next){
-
   filter=JSON.parse(req.params.filter);
 
   var sql="WITH t AS ("+
@@ -5349,7 +5348,12 @@ server.get({path : '/dataExport', version : '0.0.1'} , function(req, res , next)
     "LEFT JOIN  kuntur.unc_in_study_program uisp "+
     "ON uisp.unc_in_enrrollment_id = uie.id "+
     "LEFT JOIN  kuntur.org o "+
-    "ON o.id = uisp.org_id WHERE e.number_enrrollment is not null ";
+    "ON o.id = uisp.org_id WHERE '"+
+    req.headers.usersystemid +
+    "' IN (SELECT	x.user_system_id " +
+      "FROM kuntur.enrrollment_stakeholder x " +
+      "WHERE x.user_system_id = '" + req.headers.usersystemid +
+	    "' AND x.enrrollment_id = e.id) ";
 
     /*
     number: numero de postulacion
@@ -5378,12 +5382,11 @@ server.get({path : '/dataExport', version : '0.0.1'} , function(req, res , next)
   }
 
   if(filter.semester){
-    console.log("SEMESTER",filter.semester);
     sql += " AND ap.semester = "+filter.semester;
   }
 
   if(filter.aunit){
-    sql += " AND uisp.id = '"+filter.aunit+"'";
+    sql += " AND uisp.org_id = '"+filter.aunit+"'";
   }
 
   if(filter.status){
@@ -5408,7 +5411,6 @@ server.get({path : '/dataExport', version : '0.0.1'} , function(req, res , next)
   if(filter.name){
     sql += "WHERE estudiante ILIKE '%" + filter.name + "%' ";
   }
-  console.log("SQL",sql)
 
   //var query = client.query(sql);
 
