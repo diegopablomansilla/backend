@@ -721,8 +721,8 @@ var options = { format: 'A4',
     // var smtpTransport = nodemailer.createTransport("SMTP",{
     //     service: "Gmail",
     //     auth: {
-    //         user: "anbiagetti@gmail.com",
-    //         pass: "google1564159"
+    //         user: "",
+    //         pass: ""
     //     }
     // });
 
