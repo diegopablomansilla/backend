@@ -11,7 +11,7 @@ var server = restify.createServer({
 
 
 // reading config file
-var config = require(process.env.CONF||'/etc/nodejs-config/kuntur.json').backend;
+var config = require(process.env.CONF||'/etc/nodejs-config/kuntur_demo.json').backend;
 var ip_addr = config.host;
 var port    =  config.port;
 var activeMail = config.sendMail;
