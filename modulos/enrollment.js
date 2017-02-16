@@ -5,7 +5,7 @@ var nodemailer = require('nodemailer');
 var uuid = require('node-uuid');
 var smtpTransport = require('nodemailer-smtp-transport');
 
-var config = JSON.parse(fs.readFileSync('/etc/nodejs-config/kuntur.json'));
+var config = JSON.parse(fs.readFileSync('/etc/nodejs-config/kuntur_demo.json'));
 
 var rollback = function(client, done) {
   client.query('ROLLBACK', function(err) {
