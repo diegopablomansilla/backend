@@ -4809,16 +4809,18 @@ server.get({path : '/convocatorias', version : '0.0.1'} , function(req, res , ne
           console.log(err);
         }
 
+        console.log("SQL /convocatorias: ", sql);
         var query = client.query(sql);
+
 
         query.on("row", function(row, result){
           result.addRow(row);
 
         });
-  //JSON.parse(result.rows[0].perfilArray)
+        //JSON.parse(result.rows[0].perfilArray)
         query.on("end",function(result){
           done();
-          // console.log("HOLA",result.rows)
+          console.log("Result Rows /convocatorias: ",result.rows)
           res.send(200,result.rows);
 
 
