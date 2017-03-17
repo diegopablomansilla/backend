@@ -1,4 +1,4 @@
-var pg = require("pg")
+var pg = require("pg");
 var fs      = require('fs');
 var async = require('async');
 var nodemailer = require('nodemailer');
@@ -19,71 +19,69 @@ var rollback = function(client, done) {
 };
 
 var log = console.log;
-
 console.log = function () {
-    var first_parameter = arguments[0];
-    var other_parameters = Array.prototype.slice.call(arguments, 1);
+  var first_parameter = arguments[0];
+  var other_parameters = Array.prototype.slice.call(arguments, 1);
 
-    function formatConsoleDate (date) {
-        var hour = date.getHours();
-        var minutes = date.getMinutes();
-        var seconds = date.getSeconds();
-        var milliseconds = date.getMilliseconds();
-        var day = date.getDate();
-        var month = date.getMonth() + 1;
-        var year = date.getFullYear();
+  function formatConsoleDate (date) {
+    var hour = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var milliseconds = date.getMilliseconds();
+    var day = date.getDate();
+    var month = date.getMonth() + 1;
+    var year = date.getFullYear();
 
-        return '[' +
-        		day+
-        		'/'+
-        		month+
-        		'/'+
-        		year+
-        		' '+
-               ((hour < 10) ? '0' + hour: hour) +
-               ':' +
-               ((minutes < 10) ? '0' + minutes: minutes) +
-               ':' +
-               ((seconds < 10) ? '0' + seconds: seconds) +
-               //'.' +
-               //('00' + milliseconds).slice(-3) +
-               '] ';
-    }
+    return '[' +
+    day+
+    '/'+
+    month+
+    '/'+
+    year+
+    ' '+
+    ((hour < 10) ? '0' + hour: hour) +
+    ':' +
+    ((minutes < 10) ? '0' + minutes: minutes) +
+    ':' +
+    ((seconds < 10) ? '0' + seconds: seconds) +
+    //'.' +
+    //('00' + milliseconds).slice(-3) +
+    '] ';
+  }
 
-    log.apply(console, [formatConsoleDate(new Date()) + first_parameter].concat(other_parameters));
+  log.apply(console, [formatConsoleDate(new Date()) + first_parameter].concat(other_parameters));
 };
 
+
 var executeSQL = function(sql){
-	var pro = new node.Promise(function(resolve, reject){
-		pg.connect(conString, function(err, client, done){
-			if(err) {
-	        	done();
-	        	console.log(err);
-	        	return ;
-	      	}
+  var pro = new node.Promise(function(resolve, reject){
+    pg.connect(conString, function(err, client, done){
+      if(err) {
+        done();
+        console.log(err);
+        return ;
+      }
 
-	      	var query = client.query(sql);
+      var query = client.query(sql);
 
-			query.on("row", function(row, result){
-	        	result.addRow(row);
-	      	});
+      query.on("row", function(row, result){
+        result.addRow(row);
+      });
 
-			query.on("error",function(error){
-			    console.log(error);
-			    done();
-			    reject(error);
-			});
+      query.on("error",function(error){
+        console.log(error);
+        done();
+        reject(error);
+      });
 
-		    query.on("end", function(result){
-		        done();
-		        resolve(result);
-		    });
-		});
+      query.on("end", function(result){
+        done();
+        resolve(result);
+      });
 
-	});//fin promesa
-
-
-	return(pro);
+    });
+  });//fin promesa
+  return(pro);
 };
 
 // var promise = new Promise(function(resolve, reject) {
@@ -96,20 +94,21 @@ var executeSQL = function(sql){
 //            callback(err);
 //          })
 
+
 module.exports = function(server, conString, activeMail) {
+
 
   server.get({path : '/postulacionData', version : '0.0.1'}, function(req,res,next){
 
     postulacionId=req.params.postulacionId;
 
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_by_id ('"+postulacionId+"', '"+req.headers.usersystemid+"');";
-      //"(SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'));";
+    //"(SELECT id FROM kuntur.user_system WHERE name = '" + req.headers.usersystemid + "'));";
 
     pg.connect(conString, function(err, client, done){
       if(err) {
         done();
         res.send(500,err);
-
         console.log(err);
         return ;
       }
@@ -121,7 +120,6 @@ module.exports = function(server, conString, activeMail) {
 
       query.on("end", function(result){
         //console.log(result.rows[0].f_find_enrrollment_by_id);
-
         done();
         if(result.rows.length > 0){
           // console.log(result.rows[0].f_find_enrrollment_by_id)
@@ -130,18 +128,15 @@ module.exports = function(server, conString, activeMail) {
         else{
           res.send(200,result.rows);
         }
-
       });
 
       query.on("error",function(error){
         console.log(error);
         done();
         res.send(500,error);
-
       });
+
     });
-
-
   });
 
 
@@ -156,13 +151,14 @@ var htmlCertificadoAnaliticoTemplate = fs.readFileSync(path.join(__dirname, '../
 var htmlCertificadoAnalitico = fs.readFileSync(path.join(__dirname, '../certificadoanalitico.html'), 'utf8');
 var htmlReporteEstudiante = fs.readFileSync(path.join(__dirname, '../reporteestudiante.html'), 'utf8');
 
-var image = path.join('file://', __dirname, '../logoUncPri.png')
+var image = path.join('file://', __dirname, '../logoUncPri.png');
+
 var options = { format: 'A4',
-                footer: {
-                    "height": "20mm",
-                    "contents": '<span style="color: #444;"></span><span></span>'
-                }//,
-              };
+  footer: {
+    "height": "20mm",
+    "contents": '<span style="color: #444;"></span><span></span>'
+  }//,
+};
 
 
 
@@ -171,10 +167,10 @@ var options = { format: 'A4',
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
-    var d = new Date()
+    var d = new Date();
     var dia = d.getDate();
-    var mes = meses[d.getMonth()]
-    var anio = d.getFullYear()
+    var mes = meses[d.getMonth()];
+    var anio = d.getFullYear();
     /*var html  =  htmlCartaDeAdmisionTemplate
                       .replace("$apellidoPostulante",req.body.familyName)
                       .replace("$nombrePostulante",req.body.givenName)
@@ -218,48 +214,46 @@ var options = { format: 'A4',
                              .replace("$anioCreacion",anio)
                              .replace("$dia", "días")
                              .replace('$image', image);
-    };
+    }
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmisiontemplate.pdf'), function(err, resPdf) {
-      if (err) return console.log(err);
+   pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmisiontemplate.pdf'), function(err, resPdf) {
+     if (err) return console.log(err);
 
-      var postulacionId = req.params.postulacionId
+     var postulacionId = req.params.postulacionId;
 
-      var content;
-// First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)
-              throw err;
+     var content;
+     // First I want to read the file
+     fs.readFile(resPdf.filename, function read(err, data) {
+       if (err) {
+         console.log("Error", err);
+         throw err;
 
-          }
-          content = data;
+       }
+       content = data;
 
-          res.setHeader('Content-Type','application/pdf')
-          res.send(200,new Buffer(data).toString('base64'));
-
-      });
-
-    });
+       res.setHeader('Content-Type','application/pdf');
+       res.send(200,new Buffer(data).toString('base64'));
+     });
+   });
 
 });
+
+
 
 /*################################*/
 
 /* ###### CARTA DE ADMISION ############# */
  server.post({path : '/docs/:postulacionId/cartaDeAdmision', version : '0.0.1'}, function(req,res,next){
 
-
-
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
-    var d = new Date()
+    var d = new Date();
     var dia = d.getDate();
-    var mes = meses[d.getMonth()]
-    var anio = d.getFullYear()
+    var mes = meses[d.getMonth()];
+    var anio = d.getFullYear();
     /*var html  =  htmlCartaDeAdmisionTemplate
                       .replace("$apellidoPostulante",req.body.familyName)
                       .replace("$nombrePostulante",req.body.givenName)
@@ -303,33 +297,33 @@ var options = { format: 'A4',
                              .replace("$anioCreacion",anio)
                              .replace("$dia", "días")
                              .replace('$image', image);
-    };
+    }
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
-      if (err) return console.log(err);
+   pdf.create(html, options).toFile(path.join(__dirname, '../cartadeadmision.pdf'), function(err, resPdf) {
+     if (err) return console.log(err);
 
-      var postulacionId = req.params.postulacionId
+     var postulacionId = req.params.postulacionId;
 
-      var content;
-// First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)
-              throw err;
+     var content;
+     // First I want to read the file
+     fs.readFile(resPdf.filename, function read(err, data) {
+       if (err) {
+         console.log("Error", err);
+         throw err;
 
-          }
-          content = data;
+       }
+       content = data;
 
-          res.setHeader('Content-Type','application/pdf')
-          res.send(200,new Buffer(data).toString('base64'));
-
-      });
-
-    });
+       res.setHeader('Content-Type','application/pdf');
+       res.send(200,new Buffer(data).toString('base64'));
+     });
+   });
 
 });
+
+
 
 /*################################*/
 
@@ -338,10 +332,10 @@ var options = { format: 'A4',
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
-    var d = new Date()
+    var d = new Date();
     var dia = d.getDate();
-    var mes = meses[d.getMonth()]
-    var anio = d.getFullYear()
+    var mes = meses[d.getMonth()];
+    var anio = d.getFullYear();
     /*var html  =  htmlCartaDeAdmisionTemplate
                       .replace("$apellidoPostulante",req.body.familyName)
                       .replace("$nombrePostulante",req.body.givenName)
@@ -358,88 +352,75 @@ var options = { format: 'A4',
                       /*armado de las filas*/
     var filas = "";
 
-
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
       filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
-                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
-                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
-                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
-                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
-                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
-                "</tr>"
-
-
-    };
+      "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+      "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+      "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
+      "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
+      "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
+      "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
+      "</tr>";
+    }
 
     if (dia==1) {
-
       var html = htmlCertificadoAnaliticoTemplate.replace("$diaCreacion2","al primer día")
-                             .replace("$rotulosDias","")
-                             .replace("$apellidoPostulante",req.body.familyName)
-                             .replace("$nombrePostulante",req.body.givenName)
-                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                             .replace("$universidadOrigen",req.body.org.name)
-                             .replace("$paisOrigen",req.body.org.countryCode)
-                             .replace("$semestre",req.body.admissionPeriod.semester)
-                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                             .replace("$mesCreacion",mes)
-                             .replace("$anioCreacion",anio)
-                             .replace("$dia", "")
-                             .replace('$image', image)
-                             .replace('$fila', filas);
-
-
-
-
-    }else{
-
+      .replace("$rotulosDias","")
+      .replace("$apellidoPostulante",req.body.familyName)
+      .replace("$nombrePostulante",req.body.givenName)
+      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+      .replace("$universidadOrigen",req.body.org.name)
+      .replace("$paisOrigen",req.body.org.countryCode)
+      .replace("$semestre",req.body.admissionPeriod.semester)
+      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+      .replace("$mesCreacion",mes)
+      .replace("$anioCreacion",anio)
+      .replace("$dia", "")
+      .replace('$image', image)
+      .replace('$fila', filas);
+    } else {
       var html = htmlCertificadoAnaliticoTemplate.replace("$rotulosDias","a los")
-                             .replace("$diaCreacion2",dia)
-                             .replace("$apellidoPostulante",req.body.familyName)
-                             .replace("$nombrePostulante",req.body.givenName)
-                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                             .replace("$universidadOrigen",req.body.org.name)
-                             .replace("$paisOrigen",req.body.org.countryCode)
-                             .replace("$semestre",req.body.admissionPeriod.semester)
-                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                             .replace("$mesCreacion",mes)
-                             .replace("$anioCreacion",anio)
-                             .replace("$dia", "días")
-                             .replace('$image', image)
-                             .replace('$fila', filas);
-    };
-
-    // console.log(html)
-
+      .replace("$diaCreacion2",dia)
+      .replace("$apellidoPostulante",req.body.familyName)
+      .replace("$nombrePostulante",req.body.givenName)
+      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+      .replace("$universidadOrigen",req.body.org.name)
+      .replace("$paisOrigen",req.body.org.countryCode)
+      .replace("$semestre",req.body.admissionPeriod.semester)
+      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+      .replace("$mesCreacion",mes)
+      .replace("$anioCreacion",anio)
+      .replace("$dia", "días")
+      .replace('$image', image)
+      .replace('$fila', filas);
+    }
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanaliticotemplate.pdf'), function(err, resPdf) {
-      if (err) return console.log(err);
+   pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanaliticotemplate.pdf'), function(err, resPdf) {
+     if (err) return console.log(err);
 
-      var postulacionId = req.params.postulacionId
+     var postulacionId = req.params.postulacionId;
 
-      var content;
-// First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)
-              throw err;
+     var content;
+     // First I want to read the file
+     fs.readFile(resPdf.filename, function read(err, data) {
+       if (err) {
+         console.log("Error", err);
+         throw err;
 
-          }
-          content = data;
-
-          res.setHeader('Content-Type','application/pdf')
-          res.send(200,new Buffer(data).toString('base64'));
-
-      });
-
-    });
+       }
+       content = data;
+       res.setHeader('Content-Type','application/pdf');
+       res.send(200,new Buffer(data).toString('base64'));
+     });
+   });
 
 });
+
+
 
 /*################################*/
 
@@ -448,10 +429,10 @@ var options = { format: 'A4',
     //Generador de fecha actual al momento de realizar la carta de admision template
     var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
-    var d = new Date()
+    var d = new Date();
     var dia = d.getDate();
-    var mes = meses[d.getMonth()]
-    var anio = d.getFullYear()
+    var mes = meses[d.getMonth()];
+    var anio = d.getFullYear();
     /*var html  =  htmlCartaDeAdmisionTemplate
                       .replace("$apellidoPostulante",req.body.familyName)
                       .replace("$nombrePostulante",req.body.givenName)
@@ -463,11 +444,8 @@ var options = { format: 'A4',
                       .replace("$anioPostulacion",req.body.admissionPeriod.year)
                       .replace("$mesCreacion",mes)
                       .replace("$anioCreacion",anio);*/
-
-
                       /*armado de las filas*/
     var filas = "";
-
 
     for (var i = 0; i < req.body.uncInAcademicPerformanceList.length; i++) {
       //postulacionData.data.uncInAcademicPerformanceList[i]
@@ -475,295 +453,252 @@ var options = { format: 'A4',
         req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber="-";
       }
       filas += "<tr><td>&nbsp;"+(i+1)+"&nbsp;</td>"+
-                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
-                    "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
-                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
-                    "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
-                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
-                    "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
-                "</tr>"
-
-
-    };
+      "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].subject+"</td>"+
+      "<td>&nbsp;"+req.body.uncInAcademicPerformanceList[i].org.name+"</td>"+
+      "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateNumber+"</td>"+
+      "<td style='text-align: center'>&nbsp;"+req.body.uncInAcademicPerformanceList[i].uncInGradingScale.rateLetter+"&nbsp;</td>"+
+      "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].hs+"</td>"+
+      "<td style='text-align: center'>"+req.body.uncInAcademicPerformanceList[i].uncInStudiedType.code+"</td>"+
+      "</tr>";
+    }
 
     if (dia==1) {
-
       var html = htmlCertificadoAnalitico.replace("$diaCreacion2","al primer día")
-                             .replace("$rotulosDias","")
-                             .replace("$apellidoPostulante",req.body.familyName)
-                             .replace("$nombrePostulante",req.body.givenName)
-                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                             .replace("$universidadOrigen",req.body.org.name)
-                             .replace("$paisOrigen",req.body.org.countryCode)
-                             .replace("$semestre",req.body.admissionPeriod.semester)
-                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                             .replace("$mesCreacion",mes)
-                             .replace("$anioCreacion",anio)
-                             .replace("$dia", "")
-                             .replace('$image', image)
-                             .replace('$fila', filas);
-
-
-
-
+      .replace("$rotulosDias","")
+      .replace("$apellidoPostulante",req.body.familyName)
+      .replace("$nombrePostulante",req.body.givenName)
+      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+      .replace("$universidadOrigen",req.body.org.name)
+      .replace("$paisOrigen",req.body.org.countryCode)
+      .replace("$semestre",req.body.admissionPeriod.semester)
+      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+      .replace("$mesCreacion",mes)
+      .replace("$anioCreacion",anio)
+      .replace("$dia", "")
+      .replace('$image', image)
+      .replace('$fila', filas);
     }else{
-
       var html = htmlCertificadoAnalitico.replace("$rotulosDias","a los")
-                             .replace("$diaCreacion2",dia)
-                             .replace("$apellidoPostulante",req.body.familyName)
-                             .replace("$nombrePostulante",req.body.givenName)
-                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                             .replace("$universidadOrigen",req.body.org.name)
-                             .replace("$paisOrigen",req.body.org.countryCode)
-                             .replace("$semestre",req.body.admissionPeriod.semester)
-                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                             .replace("$mesCreacion",mes)
-                             .replace("$anioCreacion",anio)
-                             .replace("$dia", "días")
-                             .replace('$image', image)
-                             .replace('$fila', filas);
-    };
-
-    // console.log(html)
+      .replace("$diaCreacion2",dia)
+      .replace("$apellidoPostulante",req.body.familyName)
+      .replace("$nombrePostulante",req.body.givenName)
+      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+      .replace("$universidadOrigen",req.body.org.name)
+      .replace("$paisOrigen",req.body.org.countryCode)
+      .replace("$semestre",req.body.admissionPeriod.semester)
+      .replace("$anioPostulacion",req.body.admissionPeriod.year)
+      .replace("$mesCreacion",mes)
+      .replace("$anioCreacion",anio)
+      .replace("$dia", "días")
+      .replace('$image', image)
+      .replace('$fila', filas);
+    }
 
    // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-    pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
-      if (err) return console.log(err);
+   pdf.create(html, options).toFile(path.join(__dirname, '../certificadoanalitico.pdf'), function(err, resPdf) {
+     if (err) return console.log(err);
 
-      var postulacionId = req.params.postulacionId
+     var postulacionId = req.params.postulacionId;
 
-      var content;
-// First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)
-              throw err;
-
-          }
-          content = data;
-
-          res.setHeader('Content-Type','application/pdf')
-          res.send(200,new Buffer(data).toString('base64'));
-
-      });
-
-    });
+     var content;
+     // First I want to read the file
+     fs.readFile(resPdf.filename, function read(err, data) {
+       if (err) {
+         console.log("Error", err);
+         throw err;
+       }
+       content = data;
+       res.setHeader('Content-Type','application/pdf');
+       res.send(200,new Buffer(data).toString('base64'));
+     });
+   });
 
 });
+
+
 
 /*################################*/
 
 /* ###### REPORTE DEL ESTUDIANTE ############# */
- server.post({path : '/docs/:postulacionId/reporteEstudiante', version : '0.0.1'}, function(req,res,next){
+server.post({path : '/docs/:postulacionId/reporteEstudiante', version : '0.0.1'}, function(req,res,next){
 
-   var imagePerfil = path.join('file://', __dirname, '../files/'+req.body.urlPhoto.substr(0,2)+'/'+req.body.urlPhoto)
+  var imagePerfil = path.join('file://', __dirname, '../files/'+req.body.urlPhoto.substr(0,2)+'/'+req.body.urlPhoto);
+  //var imagePerfil = path.join(__dirname, 'files', req.body.urlPhoto.substr(0,2), req.body.urlPhoto);
+  var email = "";
+  for (var i = 0; i < req.body.enrrollmentEmailList.length; i++) {
+    email+= req.body.enrrollmentEmailList[i].email + " ";
+  }
 
+  var telefono = "";
+  for (var i = 0; i < req.body.enrrollmentPhoneList.length; i++) {
+    telefono+= req.body.enrrollmentPhoneList[i].phoneNumber + "("+req.body.enrrollmentPhoneList[i].countryCode+") &nbsp";
+  }
 
+  var contactoEmergencia = req.body.emergencyContact;
 
+  if(contactoEmergencia===null){
+    contactoEmergencia="";
+  }
 
-    //var imagePerfil = path.join(__dirname, 'files', req.body.urlPhoto.substr(0,2), req.body.urlPhoto);
+  var domicilio = "";
 
-    // console.log("REQ BODY: ", req.body)
+  // console.log(req.body.enrrollmentAddressList)
+  for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
+    console.log(req.body.enrrollmentAddressList[i].countryName);
 
-
-    var email = "";
-    for (var i = 0; i < req.body.enrrollmentEmailList.length; i++) {
-      email+= req.body.enrrollmentEmailList[i].email + " "
-    };
-
-    var telefono = "";
-    for (var i = 0; i < req.body.enrrollmentPhoneList.length; i++) {
-      telefono+= req.body.enrrollmentPhoneList[i].phoneNumber + "("+req.body.enrrollmentPhoneList[i].countryCode+") &nbsp"
-    };
-
-    var contactoEmergencia = req.body.emergencyContact;
-
-    if(contactoEmergencia==null){
-      contactoEmergencia="";
+    if(req.body.enrrollmentAddressList[i].provinceName===undefined || req.body.enrrollmentAddressList[i].provinceName===null ){
+      req.body.enrrollmentAddressList[i].provinceName="";
     }
 
-
-    var domicilio = "";
-
-      // console.log(req.body.enrrollmentAddressList)
-      for (var i = 0; i < req.body.enrrollmentAddressList.length; i++) {
-
-        console.log(req.body.enrrollmentAddressList[i].countryName)
-
-        if(req.body.enrrollmentAddressList[i].provinceName===undefined || req.body.enrrollmentAddressList[i].provinceName===null ){
-          req.body.enrrollmentAddressList[i].provinceName="";
-        }
-
-        if(req.body.enrrollmentAddressList[i].buildingFloor==null){
-          req.body.enrrollmentAddressList[i].buildingFloor="";
-          req.body.enrrollmentAddressList[i].building="";
-          req.body.enrrollmentAddressList[i].buildingRoom="";
-        domicilio+= "[·] "+req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+"-"+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"-"+req.body.enrrollmentAddressList[i].provinceName+"-"+req.body.enrrollmentAddressList[i].countryName+"("+req.body.enrrollmentAddressList[i].countryCode+").<br>"
-        }else{
-
-        domicilio+= "[·] "+ req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street +" Nº "+ req.body.enrrollmentAddressList[i].streetNumber + " - "+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" - " +req.body.enrrollmentAddressList[i].provinceName+" - "+req.body.enrrollmentAddressList[i].countryName+" ("+req.body.enrrollmentAddressList[i].countryCode+") <br>"
-        }
-      };
-
-
-
-
-    //Generador de fecha actual al momento de realizar la carta de admision template
-    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
-    var d = new Date()
-    var dia = d.getDate();
-    var mes = meses[d.getMonth()]
-    var anio = d.getFullYear()
-    /*var html  =  htmlCartaDeAdmisionTemplate
-                      .replace("$apellidoPostulante",req.body.familyName)
-                      .replace("$nombrePostulante",req.body.givenName)
-                      .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                      .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                      .replace("$universidadOrigen",req.body.org.name)
-                      .replace("$paisOrigen",req.body.org.countryCode)
-                      .replace("$semestre",req.body.admissionPeriod.semester)
-                      .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                      .replace("$mesCreacion",mes)
-                      .replace("$anioCreacion",anio);*/
-
-    if (dia==1) {
-      var html = htmlReporteEstudiante.replace("$diaCreacion2","al primer día")
-                             .replace("$rotulosDias","")
-                             .replace("$apellidoPostulante",req.body.familyName)
-                             .replace("$nombrePostulante",req.body.givenName)
-                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                             .replace("$universidadOrigen",req.body.org.name)
-                             .replace("$paisOrigen",req.body.org.countryCode)
-                             .replace("$semestre",req.body.admissionPeriod.semester)
-                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                             .replace("$mesCreacion",mes)
-                             .replace("$anioCreacion",anio)
-                             .replace("$dia", "")
-                             .replace('$image', image)
-                             .replace('$perfil', imagePerfil)
-                             .replace('$fechaNacimiento', req.body.birthDate)
-                             .replace('$email', email)
-                             .replace('$telefono', telefono)
-                             .replace('$contactoEmergencia', contactoEmergencia)
-                             .replace('$domicilio', domicilio)
-                             .replace('$numeroPostulacion', req.body.numberEnrrollment)
-                             .replace('$periodoAdmision', req.body.admissionPeriod.year)
-                             .replace('$convocatoria', req.body.admissionPeriod.title)
-                             .replace('$numeroEstudiante', req.body.student.fileNumber);
-
-
-
+    if(req.body.enrrollmentAddressList[i].buildingFloor===null){
+      req.body.enrrollmentAddressList[i].buildingFloor="";
+      req.body.enrrollmentAddressList[i].building="";
+      req.body.enrrollmentAddressList[i].buildingRoom="";
+      domicilio+= "[·] "+req.body.enrrollmentAddressList[i].street + " Nº "+req.body.enrrollmentAddressList[i].streetNumber+"-"+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+"-"+req.body.enrrollmentAddressList[i].provinceName+"-"+req.body.enrrollmentAddressList[i].countryName+"("+req.body.enrrollmentAddressList[i].countryCode+").<br>";
     }else{
-      var html = htmlReporteEstudiante.replace("$rotulosDias","a los")
-                             .replace("$diaCreacion2",dia)
-                             .replace("$apellidoPostulante",req.body.familyName)
-                             .replace("$nombrePostulante",req.body.givenName)
-                             .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
-                             .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
-                             .replace("$universidadOrigen",req.body.org.name)
-                             .replace("$paisOrigen",req.body.org.countryCode)
-                             .replace("$semestre",req.body.admissionPeriod.semester)
-                             .replace("$anioPostulacion",req.body.admissionPeriod.year)
-                             .replace("$mesCreacion",mes)
-                             .replace("$anioCreacion",anio)
-                             .replace("$dia", "días")
-                             .replace('$image', image)
-                             .replace('$perfil', imagePerfil)
-                             .replace('$fechaNacimiento', req.body.birthDate)
-                             .replace('$email', email)
-                             .replace('$telefono', telefono)
-                             .replace('$contactoEmergencia', contactoEmergencia)
-                             .replace('$domicilio', domicilio)
-                             .replace('$numeroPostulacion', req.body.numberEnrrollment)
-                             .replace('$periodoAdmision', req.body.admissionPeriod.year)
-                             .replace('$convocatoria', req.body.admissionPeriod.title)
-                             .replace('$numeroEstudiante', req.body.student.fileNumber);
+      domicilio+= "[·] "+ req.body.enrrollmentAddressList[i].building+"-"+req.body.enrrollmentAddressList[i].buildingFloor+","+req.body.enrrollmentAddressList[i].buildingRoom +"-"+req.body.enrrollmentAddressList[i].street +" Nº "+ req.body.enrrollmentAddressList[i].streetNumber + " - "+req.body.enrrollmentAddressList[i].locality+", CP: "+req.body.enrrollmentAddressList[i].postalCode+" - " +req.body.enrrollmentAddressList[i].provinceName+" - "+req.body.enrrollmentAddressList[i].countryName+" ("+req.body.enrrollmentAddressList[i].countryCode+") <br>";
+    }
+  }
 
 
-    };
+  //Generador de fecha actual al momento de realizar la carta de admision template
+  var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  var dias = ["Domingo","Lunes","Martes", "Miercoles", "Jueves", "Viernes", "Sábado"];
+  var d = new Date();
+  var dia = d.getDate();
+  var mes = meses[d.getMonth()];
+  var anio = d.getFullYear();
+  /*var html  =  htmlCartaDeAdmisionTemplate
+  .replace("$apellidoPostulante",req.body.familyName)
+  .replace("$nombrePostulante",req.body.givenName)
+  .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+  .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+  .replace("$universidadOrigen",req.body.org.name)
+  .replace("$paisOrigen",req.body.org.countryCode)
+  .replace("$semestre",req.body.admissionPeriod.semester)
+  .replace("$anioPostulacion",req.body.admissionPeriod.year)
+  .replace("$mesCreacion",mes)
+  .replace("$anioCreacion",anio);*/
 
+  if (dia==1) {
+    var html = htmlReporteEstudiante.replace("$diaCreacion2","al primer día")
+    .replace("$rotulosDias","")
+    .replace("$apellidoPostulante",req.body.familyName)
+    .replace("$nombrePostulante",req.body.givenName)
+    .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+    .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+    .replace("$universidadOrigen",req.body.org.name)
+    .replace("$paisOrigen",req.body.org.countryCode)
+    .replace("$semestre",req.body.admissionPeriod.semester)
+    .replace("$anioPostulacion",req.body.admissionPeriod.year)
+    .replace("$mesCreacion",mes)
+    .replace("$anioCreacion",anio)
+    .replace("$dia", "")
+    .replace('$image', image)
+    .replace('$perfil', imagePerfil)
+    .replace('$fechaNacimiento', req.body.birthDate)
+    .replace('$email', email)
+    .replace('$telefono', telefono)
+    .replace('$contactoEmergencia', contactoEmergencia)
+    .replace('$domicilio', domicilio)
+    .replace('$numeroPostulacion', req.body.numberEnrrollment)
+    .replace('$periodoAdmision', req.body.admissionPeriod.year)
+    .replace('$convocatoria', req.body.admissionPeriod.title)
+    .replace('$numeroEstudiante', req.body.student.fileNumber);
+  }else{
+    var html = htmlReporteEstudiante.replace("$rotulosDias","a los")
+    .replace("$diaCreacion2",dia)
+    .replace("$apellidoPostulante",req.body.familyName)
+    .replace("$nombrePostulante",req.body.givenName)
+    .replace("$tipoDocumento",req.body.enrrollmentIdentityList[0].name)
+    .replace("$numeroDocumento",req.body.enrrollmentIdentityList[0].identityNumber)
+    .replace("$universidadOrigen",req.body.org.name)
+    .replace("$paisOrigen",req.body.org.countryCode)
+    .replace("$semestre",req.body.admissionPeriod.semester)
+    .replace("$anioPostulacion",req.body.admissionPeriod.year)
+    .replace("$mesCreacion",mes)
+    .replace("$anioCreacion",anio)
+    .replace("$dia", "días")
+    .replace('$image', image)
+    .replace('$perfil', imagePerfil)
+    .replace('$fechaNacimiento', req.body.birthDate)
+    .replace('$email', email)
+    .replace('$telefono', telefono)
+    .replace('$contactoEmergencia', contactoEmergencia)
+    .replace('$domicilio', domicilio)
+    .replace('$numeroPostulacion', req.body.numberEnrrollment)
+    .replace('$periodoAdmision', req.body.admissionPeriod.year)
+    .replace('$convocatoria', req.body.admissionPeriod.title)
+    .replace('$numeroEstudiante', req.body.student.fileNumber);
+  }
+  // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
 
-   // console.log("FECHAAAAAA--->",dias[d.getDay()] + ", " + d.getDate() + " de " + meses[d.getMonth()] + " de " + d.getFullYear())
+  pdf.create(html, options).toFile(path.join(__dirname, '../reporteestudiante.pdf'), function(err, resPdf) {
+    if (err) return console.log(err);
 
-    pdf.create(html, options).toFile(path.join(__dirname, '../reporteestudiante.pdf'), function(err, resPdf) {
-      if (err) return console.log(err);
+    var postulacionId = req.params.postulacionId;
+    var content;
+    // First I want to read the file
+    fs.readFile(resPdf.filename, function read(err, data) {
+      if (err) {
+        console.log("Error", err);
+        throw err;
+      }
+      content = data;
 
-      var postulacionId = req.params.postulacionId
-
-      var content;
-// First I want to read the file
-      fs.readFile(resPdf.filename, function read(err, data) {
-          if (err) {
-              console.log("Error", err)
-              throw err;
-
-          }
-          content = data;
-
-          res.setHeader('Content-Type','application/pdf')
-          res.send(200,new Buffer(data).toString('base64'));
-
-      });
-
+      res.setHeader('Content-Type','application/pdf');
+      res.send(200,new Buffer(data).toString('base64'));
     });
+  });
 
 });
 
+
 /*################################*/
+server.get({path : '/pruebaMail', version : '0.0.1'}, function(req, res, next){
+  // var smtpTransport = nodemailer.createTransport("SMTP",{
+  //     service: "Gmail",
+  //     auth: {
+  //         user: "",
+  //         pass: ""
+  //     }
+  // });
 
-  server.get({path : '/pruebaMail', version : '0.0.1'}, function(req, res, next){
-
-    // var smtpTransport = nodemailer.createTransport("SMTP",{
-    //     service: "Gmail",
-    //     auth: {
-    //         user: "",
-    //         pass: ""
-    //     }
-    // });
-
-    var options = {
-        service: "Gmail",
-        auth: {
-            user: "",
-            pass: ""
-        }
-    };
-
-    var mailOptions = {
-      from: "Fred Foo ✔ <anbiagetti@gmail.com>", // sender address
-      to: "anbiagetti@gmail.com, abiagetti@unc.edu.ar", // list of receivers
-      subject: "Hello ✔", // Subject line
-      text: "Hello world ✔", // plaintext body
-      html: "<b>Hello world ✔</b>" // html body
+  var options = {
+    service: "Gmail",
+    auth: {
+      user: "",
+      pass: ""
     }
+  };
 
-    var transporter = nodemailer.createTransport(smtpTransport(options))
+  var mailOptions = {
+    from: "Fred Foo ✔ <anbiagetti@gmail.com>", // sender address
+    to: "anbiagetti@gmail.com, abiagetti@unc.edu.ar", // list of receivers
+    subject: "Hello ✔", // Subject line
+    text: "Hello world ✔", // plaintext body
+    html: "<b>Hello world ✔</b>" // html body
+  };
 
-    transporter.sendMail(mailOptions, function(error, response){
-        if(error){
-            console.log(error);
-        }else{
-            console.log("Message sent: " + response.message);
-        }
+  var transporter = nodemailer.createTransport(smtpTransport(options));
 
-        // if you don't want to use this transport object anymore, uncomment following line
-        //smtpTransport.close(); // shut down the connection pool, no more messages
-    });
-
-
+  transporter.sendMail(mailOptions, function(error, response){
+    if(error){
+      console.log(error);
+    }else{
+      console.log("Message sent: " + response.message);
+    }
+    // if you don't want to use this transport object anymore, uncomment following line
+    //smtpTransport.close(); // shut down the connection pool, no more messages
   });
+});
 
 
 
   server.get({path : '/postulaciones', version : '0.0.1'}, function(req,res,next){
-
-
-
 
     filter=JSON.parse(req.params.filter);
 
@@ -828,12 +763,10 @@ var options = { format: 'A4',
 
     //console.log(req.headers.usersystemid);
     var sql = "SELECT  * FROM kuntur.f_find_enrrollment_list("+year+", "+semester+",(SELECT x.id FROM kuntur.enrrollment_status x WHERE x.code = "+status+"), "+country+", "+
-      ""+name+","+ ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+", "+aUnits+",(SELECT ap.id FROM kuntur.admission_period ap WHERE ap.title = "+namePeriod+")) offset "+req.params.offset+" limit "+req.params.pageSize+" ;"
-
+      ""+name+","+ ""+university+", "+number+", '" + req.headers.usersystemid + "', "+numberAdmissionPeriod+", "+aUnits+",(SELECT ap.id FROM kuntur.admission_period ap WHERE ap.title = "+namePeriod+")) offset "+req.params.offset+" limit "+req.params.pageSize+" ;";
 
       console.log("SQL", sql);
 
-    // console.log(sql);
     pg.connect(conString, function(err, client, done){
         if(err) {
           done();
