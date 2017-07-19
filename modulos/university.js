@@ -1,4 +1,4 @@
-var pg = require("pg")
+var pg = require("pg");
 var fs      = require('fs');
 var async = require('async');
 var url = require('url');
@@ -83,7 +83,7 @@ module.exports = function(server, conString) {
     if(req.params.url){
       var universityUrl=url.parse(req.params.url);
       if(!universityUrl.hostname){
-        aux=universityUrl.href.split("/")
+        aux=universityUrl.href.split("/");
         sql += " AND translate(coalesce(org.web_site::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + aux[0] + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
       }else{
         sql += " AND translate(coalesce(org.web_site::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN') ILIKE translate(coalesce('%" + universityUrl.hostname + "%'::varchar, ''), 'áéíóúÁÉÍÓÚäëïöüÄËÏÖÜñÑ','aeiouAEIOUaeiouAEIOUnN')" ;
