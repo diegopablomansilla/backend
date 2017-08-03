@@ -33,32 +33,7 @@ server.use(function(req, res, next) {
 })
 
 server.use(restify.queryParser());
-server.use(restify.bodyParser(
-{
-  maxBodySize: 0,
-  mapParams: true,
-  mapFiles: true,
-  multiples: false,
-  overrideParams: false,
-  keepExtensions: false,
-  hash: 'sha1',
-  uploadDir: '/home/ivan/Alejandro/Node/kuntur/backend/uploads/',
-  multipartHandler: function(part, req) {
-         part.on('data', function(data) {
-           /* do something with the multipart data */
-           console.log("algo");
-           req.file_contents += data;
-         });
-     },
-     multipartFileHandler: function(part, req) {
-         part.on('data', function(data) {
-                     console.log("algo2");
-           req.file_contents = data;
-           /* do something with the multipart file data */
-         });
-     }
-  }
-  ));
+server.use(restify.bodyParser());
 var corsOptions={
 	headers : [ "location"]
 }
@@ -84,6 +59,21 @@ server.use(restify.fullResponse());
 //      return null;
 //    }
 // }
+
+server.get({path: '/file/:file'}, function(req, res, next) {
+  var file = req.params.file;
+
+  console.log(req.params.file)
+
+  var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
+
+
+
+  console.log(filePath)
+
+  fs.createReadStream(filePath).pipe(res);
+});
+
 server.post({path: '/file'}, function(req, res, next) {
   var n = 0;
   var mkFileName = function(cb) {
@@ -107,17 +97,11 @@ server.post({path: '/file'}, function(req, res, next) {
       console.log(err);
       return res.send(500, err);
     }
-
-
-    // var file = new Buffer(req.body.file.split(",")[1], 'base64');
-    // var file = new Buffer(decompresedFile, 'base64');
-    // console.log("file")
+    // console.log('holaaaaa???2');
+    // console.log(req.body.file.split(",")[1]);
+    // console.log(req.body.file);
+    var file = new Buffer(req.body.file.split(",")[1], 'base64');
     // console.log(file);
-
-
-
-    var file = new Buffer(req.file_contents.split(",")[1], 'base64');
-    // var guardar = req.file_contents.split(",")[1]
     fs.outputFile(result.path, file, function(err) {
       if(err) return res.send(500, err);
       res.send(200, {file: result.file});
@@ -125,23 +109,6 @@ server.post({path: '/file'}, function(req, res, next) {
 
   })
 });
-
-server.use(restify.bodyParser());
-
-server.get({path: '/file/:file'}, function(req, res, next) {
-  var file = req.params.file;
-
-  console.log(req.params.file)
-
-  var filePath = path.join(__dirname, 'files', file.substr(0,2), file);
-
-
-
-  console.log(filePath)
-
-  fs.createReadStream(filePath).pipe(res);
-});
-
 
 server.get({path:"/fileb64/:file"},function base64_encode(req, res, next) {
     var file = req.params.file;
