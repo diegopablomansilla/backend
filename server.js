@@ -134,3 +134,9 @@ require('./modulos/enrollment')(server, conString, activeMail);
 server.listen(port , function(){
 	console.log("Listening on "+ip_addr+":"+port);
 });
+
+process.on('uncaughtException', function (exception) {
+  // handle or ignore error
+  console.log("Error excepción - uncaughtException")
+  console.log(exception);
+});
